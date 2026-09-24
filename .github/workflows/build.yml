@@ -17,6 +17,19 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
+      - name: Crear google-services.json falso
+        run: |
+          echo '{"project_info":{"project_number":"123456789","project_id":"nexus-core","storage_bucket":"nexus-core.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:123:android:abc123","android_client_info":{"package_name":"com.example.nexuscore"}},"oauth_client":[],"api_key":[{"current_key":"AIzaFakeKey"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}}],"configuration_version":"1"}' > app/google-services.json
+          echo '{"project_info":{"project_number":"123456789","project_id":"nexus-core","storage_bucket":"nexus-core.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:123:android:abc123","android_client_info":{"package_name":"com.example.nexuscore"}},"oauth_client":[],"api_key":[{"current_key":"AIzaFakeKey"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}}],"configuration_version":"1"}' > app/src/debug/google-services.json || true
+          mkdir -p app/src/debug
+          cp app/google-services.json app/src/debug/google-services.json
+
+      - name: Crear debug.keystore
+        run: |
+          keytool -genkey -v -keystore debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Debug, OU=Debug, O=Debug, L=Debug, S=Debug, C=US" || true
+          keytool -genkey -v -keystore app/debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Debug, OU=Debug, O=Debug, L=Debug, S=Debug, C=US" || true
+          ls -lh *.keystore app/*.keystore
+
       - name: Generar APK con Gradle 9.3.1
         uses: gradle/actions/setup-gradle@v3
         with:
