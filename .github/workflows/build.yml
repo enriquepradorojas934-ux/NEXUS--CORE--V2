@@ -2,7 +2,7 @@ name: Generar APK Nexus
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "principal", "master" ]
   workflow_dispatch:
 
 jobs:
@@ -18,11 +18,16 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Dar permisos a gradlew
-        run: chmod +x ./gradlew
+      - name: Configurar Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Configurar Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: 8.7
 
       - name: Generar APK Debug
-        run: ./gradlew assembleDebug
+        run: gradle assembleDebug --stacktrace
 
       - name: Subir APK
         uses: actions/upload-artifact@v4
