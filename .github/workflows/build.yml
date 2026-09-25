@@ -61,6 +61,8 @@ jobs:
             echo "keystore/debug.keystore no encontrado en repo, restaurando desde backup o creando uno..."
             if [ -f debug.keystore ]; then
               cp debug.keystore keystore/debug.keystore
+            elif [ -f keystore/debug.keystore.base64 ]; then
+              base64 -d keystore/debug.keystore.base64 > keystore/debug.keystore
             elif [ -f debug.keystore.base64 ]; then
               base64 -d debug.keystore.base64 > keystore/debug.keystore
             else
