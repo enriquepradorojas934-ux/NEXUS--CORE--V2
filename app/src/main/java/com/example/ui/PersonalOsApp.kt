@@ -117,7 +117,7 @@ fun PersonalOsApp() {
                     AppNavTab.HABITS -> HabitsScreen(
                         state = state,
                         onToggleHabit = { viewModel.toggleHabitToday(it) },
-                        onAddHabit = { title, freq, cat, target, goalId -> viewModel.addHabit(title, freq, cat, target, goalId) },
+                        onAddHabit = { title, freq, cat, target, goalId, unit -> viewModel.addHabit(title, freq, cat, target, goalId, unit) },
                         onDeleteHabit = { viewModel.deleteHabit(it) },
                         onSetHabitReminder = { enabled, time -> viewModel.setHabitReminder(context, enabled, time) },
                         onTestHabitReminder = { viewModel.triggerHabitReminderTest(context) }

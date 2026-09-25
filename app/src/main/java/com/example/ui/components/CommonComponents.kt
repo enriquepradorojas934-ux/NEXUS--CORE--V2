@@ -140,25 +140,14 @@ fun ExecutiveHeader(
                             )
                         }
 
-                        Column(horizontalAlignment = Alignment.End) {
-                            Text(
-                                text = "PRÓXIMO REINICIO (05:00 AM)",
-                                style = MaterialTheme.typography.labelSmall.copy(
-                                    fontSize = 10.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    letterSpacing = 0.8.sp
-                                ),
-                                color = ExecutiveSecondaryAmber
-                            )
-                            Text(
-                                text = "T- $timeUntilReset",
-                                style = MaterialTheme.typography.labelMedium.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    letterSpacing = 0.5.sp
-                                ),
-                                color = ExecutiveSecondaryAmber
-                            )
-                        }
+                        Text(
+                            text = "Reinicio en $timeUntilReset",
+                            style = MaterialTheme.typography.labelMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 0.5.sp
+                            ),
+                            color = ExecutiveSecondaryAmber
+                        )
                     }
 
                     Spacer(modifier = Modifier.height(6.dp))

@@ -466,7 +466,7 @@ class PersonalOsViewModel(
     }
 
     // === HÁBITOS ===
-    fun addHabit(title: String, frequency: String, category: String, targetValue: Int, goalId: Long? = null) {
+    fun addHabit(title: String, frequency: String, category: String, targetValue: Int, goalId: Long? = null, unit: String = "minutos") {
         if (title.isBlank()) return
         viewModelScope.launch {
             val habit = HabitEntity(
@@ -474,6 +474,7 @@ class PersonalOsViewModel(
                 frequency = frequency,
                 category = category,
                 targetValue = targetValue,
+                unit = unit,
                 goalId = goalId
             )
             repository.insertHabit(habit)

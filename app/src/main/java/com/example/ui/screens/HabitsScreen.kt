@@ -33,7 +33,7 @@ import com.example.ui.theme.*
 fun HabitsScreen(
     state: PersonalOsUiState,
     onToggleHabit: (Long) -> Unit,
-    onAddHabit: (String, String, String, Int, Long?) -> Unit,
+    onAddHabit: (String, String, String, Int, Long?, String) -> Unit,
     onDeleteHabit: (HabitEntity) -> Unit,
     onSetHabitReminder: (Boolean, String) -> Unit = { _, _ -> },
     onTestHabitReminder: () -> Unit = {}
@@ -101,7 +101,7 @@ fun HabitsScreen(
             modifier = Modifier.fillMaxSize().padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            // Tarjeta de Recordatorio Diario (WorkManager)
+            // Tarjeta de Recordatorio Diario
             item {
                 Card(
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -123,7 +123,7 @@ fun HabitsScreen(
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    text = "RECORDATORIO DIARIO (WORKMANAGER)",
+                                    text = "RECORDATORIO DIARIO",
                                     style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
                                     color = ExecutiveSecondaryAmber
                                 )
@@ -220,10 +220,9 @@ fun HabitsScreen(
 
     if (showAddDialog) {
         AddHabitDialog(
-            goals = state.goalsWithSubGoals.map { it.goal },
             onDismiss = { showAddDialog = false },
-            onConfirm = { title, freq, cat, target, goalId ->
-                onAddHabit(title, freq, cat, target, goalId)
+            onConfirm = { title, cat, timeAmount, timeUnit ->
+                onAddHabit(title, "DIARIO", cat, timeAmount, null, timeUnit)
                 showAddDialog = false
             }
         )
@@ -232,69 +231,64 @@ fun HabitsScreen(
 
 @Composable
 private fun AddHabitDialog(
-    goals: List<com.example.data.model.GoalEntity>,
     onDismiss: () -> Unit,
-    onConfirm: (String, String, String, Int, Long?) -> Unit
+    onConfirm: (String, String, Int, String) -> Unit
 ) {
     var title by remember { mutableStateOf("") }
-    var frequency by remember { mutableStateOf("DIARIO") }
     var category by remember { mutableStateOf("Salud") }
-    var targetValue by remember { mutableStateOf("1") }
-    var selectedGoalId by remember { mutableStateOf<Long?>(null) }
+    var timeAmountInput by remember { mutableStateOf("30") }
+    var timeUnit by remember { mutableStateOf("Minutos") } // "Minutos" o "Horas"
 
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Crear Hábito") },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 OutlinedTextField(
                     value = title,
                     onValueChange = { title = it },
-                    label = { Text("Nombre del hábito (ej: Ejercicio, Lectura)") },
+                    label = { Text("Nombre del hábito") },
                     modifier = Modifier.fillMaxWidth().testTag("dialog_habit_title")
                 )
                 OutlinedTextField(
                     value = category,
                     onValueChange = { category = it },
-                    label = { Text("Categoría (ej: Salud, Estudio, Rutina)") },
+                    label = { Text("Categorías del hábito") },
                     modifier = Modifier.fillMaxWidth()
                 )
-                OutlinedTextField(
-                    value = targetValue,
-                    onValueChange = { targetValue = it },
-                    label = { Text("Objetivo numérico (ej: 30 min, 1 vez)") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    listOf("DIARIO", "DIAS_LABORABLES", "SEMANAL").forEach { f ->
-                        FilterChip(
-                            selected = frequency == f,
-                            onClick = { frequency = f },
-                            label = { Text(f.replace("_", " ")) }
-                        )
-                    }
-                }
 
-                if (goals.isNotEmpty()) {
+                // Campo "Tiempo del hábito" con selector de cantidad y unidad
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(
-                        text = "Vincular a una meta (opcional):",
-                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        text = "Tiempo del hábito",
+                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        FilterChip(
-                            selected = selectedGoalId == null,
-                            onClick = { selectedGoalId = null },
-                            label = { Text("Ninguna") }
+                        OutlinedTextField(
+                            value = timeAmountInput,
+                            onValueChange = { timeAmountInput = it.filter { ch -> ch.isDigit() } },
+                            label = { Text("Cantidad") },
+                            singleLine = true,
+                            modifier = Modifier.weight(1f).testTag("dialog_habit_time_amount")
                         )
-                        goals.take(2).forEach { goal ->
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
                             FilterChip(
-                                selected = selectedGoalId == goal.id,
-                                onClick = { selectedGoalId = goal.id },
-                                label = { Text(goal.title.take(15)) }
+                                selected = timeUnit == "Minutos",
+                                onClick = { timeUnit = "Minutos" },
+                                label = { Text("Minutos") }
+                            )
+                            FilterChip(
+                                selected = timeUnit == "Horas",
+                                onClick = { timeUnit = "Horas" },
+                                label = { Text("Horas") }
                             )
                         }
                     }
@@ -304,8 +298,9 @@ private fun AddHabitDialog(
         confirmButton = {
             Button(
                 onClick = {
-                    val target = targetValue.toIntOrNull() ?: 1
-                    onConfirm(title, frequency, category, target, selectedGoalId)
+                    val amount = timeAmountInput.toIntOrNull()?.coerceAtLeast(1) ?: 30
+                    val unitStr = if (timeUnit == "Horas") "horas" else "minutos"
+                    onConfirm(title, category, amount, unitStr)
                 },
                 modifier = Modifier.testTag("dialog_habit_confirm")
             ) {
