@@ -649,6 +649,101 @@ class PersonalOsViewModel(
         }
     }
 
+    fun evaluateExpenseBeforeSaving(
+        expenseName: String,
+        category: String,
+        amount: Double,
+        date: String,
+        description: String,
+        onDone: (String) -> Unit = {}
+    ) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isEvaluatingExpense = true, expenseEvaluationAdvice = null) }
+            val state = _uiState.value
+            val recentExpensesSummary = state.transactionsToday
+                .filter { it.type == "GASTO" }
+                .take(5)
+                .joinToString("; ") { "${it.category}: $${String.format("%.2f", it.amount)} (${it.description})" }
+
+            val totalNetWorth = state.totalAssets
+            val aiService = com.example.service.PersonalAiProductivityService()
+            val result = aiService.evaluateExpenseBeforeSaving(
+                expenseName = expenseName,
+                category = category,
+                amount = amount,
+                date = date,
+                description = description,
+                totalNetWorth = totalNetWorth,
+                recentExpensesSummary = recentExpensesSummary
+            )
+
+            val netWorthPercent = if (totalNetWorth > 0) (amount / totalNetWorth * 100) else 0.0
+            val fallbackDiagnosis = """
+                📊 IMPACTO PATRIMONIAL:
+                Este gasto de $${String.format("%,.2f", amount)} representa el ${String.format("%.1f", netWorthPercent)}% de tu patrimonio total ($${String.format("%,.2f", totalNetWorth)}).
+                ${if (netWorthPercent > 10.0) "⚠️ Alerta de liquidez: Supera el 10% de tu patrimonio total. Ten cautela con el flujo de caja." else "✅ Impacto moderado: Se encuentra en un rango manejable para tus reservas."}
+
+                👍 PUNTOS A FAVOR:
+                • Justificación presentada: "${description.ifBlank { "Gasto de necesidad directa" }}".
+                • Categoría $category: Si incrementa tu eficiencia, bienestar o seguridad patrimonial, el desembolso tiene retorno funcional.
+
+                ⚠️ PUNTOS EN CONTRA / RIESGOS:
+                • Costo de oportunidad: Este capital deja de generar rendimiento o amortizar pasivos existentes.
+                • Revisa si el gasto es estrictamente impostergable o si existen alternativas comparables más económicas.
+
+                💡 VEREDICTO EJECUTIVO:
+                ${if (netWorthPercent > 15.0) "Considera aplazar 48 horas la compra o buscar una versión de menor costo para proteger tu liquidez." else "El impacto es razonable con tu nivel patrimonial. Si está alineado con tus metas, puedes proceder."}
+            """.trimIndent()
+
+            val finalAdvice = result.getOrNull() ?: fallbackDiagnosis
+            _uiState.update {
+                it.copy(
+                    isEvaluatingExpense = false,
+                    expenseEvaluationAdvice = finalAdvice
+                )
+            }
+            onDone(finalAdvice)
+        }
+    }
+
+    fun clearExpenseEvaluationAdvice() {
+        _uiState.update { it.copy(expenseEvaluationAdvice = null, isEvaluatingExpense = false) }
+    }
+
+    fun askFinanceAdvisorQuestion(question: String) {
+        if (question.isBlank()) return
+        viewModelScope.launch {
+            _uiState.update { it.copy(isAskingFinanceAdvisor = true, customFinanceAdvice = null) }
+            val state = _uiState.value
+            val recentExpensesSummary = state.transactionsToday
+                .filter { it.type == "GASTO" }
+                .take(5)
+                .joinToString("; ") { "${it.category}: $${String.format("%.2f", it.amount)}" }
+
+            val aiService = com.example.service.PersonalAiProductivityService()
+            val result = aiService.askFinancialAdvisorQuestion(
+                question = question,
+                totalNetWorth = state.totalAssets,
+                income = state.totalIncome,
+                expenses = state.totalExpenses,
+                recentExpensesSummary = recentExpensesSummary
+            )
+
+            val fallback = "Como asesor patrimonial, ante tu consulta sobre '$question': Te sugiero mantener un fondo de emergencia mínimo de 3 a 6 meses de gastos corrientes antes de comprometer capital significativo, y evaluar cualquier inversión considerando su liquidez y horizonte temporal."
+
+            _uiState.update {
+                it.copy(
+                    isAskingFinanceAdvisor = false,
+                    customFinanceAdvice = result.getOrNull() ?: fallback
+                )
+            }
+        }
+    }
+
+    fun clearFinanceAdvisorAdvice() {
+        _uiState.update { it.copy(customFinanceAdvice = null, isAskingFinanceAdvisor = false) }
+    }
+
     // === ACCIONES DE ENTRENAMIENTO / FITNESS ===
     fun addWorkoutSession(
         title: String,
@@ -805,6 +900,20 @@ class PersonalOsViewModel(
                 notes = notes.trim()
             )
             repository.insertAssetDebt(item)
+        }
+    }
+
+    fun updateAssetDebt(item: AssetDebtEntity) {
+        viewModelScope.launch {
+            repository.updateAssetDebt(item)
+            _uiState.update { it.copy(userMessage = "Activo '${item.name}' actualizado.") }
+        }
+    }
+
+    fun deleteAssetDebt(item: AssetDebtEntity) {
+        viewModelScope.launch {
+            repository.deleteAssetDebt(item)
+            _uiState.update { it.copy(userMessage = "Activo '${item.name}' eliminado.") }
         }
     }
 

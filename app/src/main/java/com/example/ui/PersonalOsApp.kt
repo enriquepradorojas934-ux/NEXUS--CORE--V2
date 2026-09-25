@@ -137,8 +137,16 @@ fun PersonalOsApp() {
                         onAddFinancialGoal = { name, target, deadline -> viewModel.addFinancialGoal(name, target, deadline) },
                         onContributeToGoal = { goal, amt -> viewModel.contributeToFinancialGoal(goal, amt) },
                         onAddAssetDebt = { type, name, amt, notes -> viewModel.addAssetDebt(type, name, amt, notes) },
+                        onUpdateAssetDebt = { viewModel.updateAssetDebt(it) },
+                        onDeleteAssetDebt = { viewModel.deleteAssetDebt(it) },
                         onAddTransactionNatural = { viewModel.addTransactionWithNaturalLanguage(it) },
-                        onAnalyzeFinanceAi = { viewModel.analyzeFinanceWithAi() }
+                        onAnalyzeFinanceAi = { viewModel.analyzeFinanceWithAi() },
+                        onEvaluateExpenseBeforeSaving = { name, cat, amt, date, desc, onDone ->
+                            viewModel.evaluateExpenseBeforeSaving(name, cat, amt, date, desc, onDone)
+                        },
+                        onClearExpenseEvaluation = { viewModel.clearExpenseEvaluationAdvice() },
+                        onAskFinanceAdvisor = { viewModel.askFinanceAdvisorQuestion(it) },
+                        onClearFinanceAdvisor = { viewModel.clearFinanceAdvisorAdvice() }
                     )
                     AppNavTab.WELLBEING -> WellbeingScreen(
                         state = state,

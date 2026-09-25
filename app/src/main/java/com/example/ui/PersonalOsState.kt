@@ -89,6 +89,10 @@ data class PersonalOsUiState(
     // IA Financiera
     val isAnalyzingFinance: Boolean = false,
     val aiFinancialAdvice: String? = null,
+    val isEvaluatingExpense: Boolean = false,
+    val expenseEvaluationAdvice: String? = null,
+    val customFinanceAdvice: String? = null,
+    val isAskingFinanceAdvisor: Boolean = false,
 
     // Módulo Bienestar Digital
     val appBudgets: List<EvaluatedAppBudget> = emptyList(),

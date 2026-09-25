@@ -214,6 +214,92 @@ class PersonalAiProductivityService(private val context: Context? = null) {
     }
 
     /**
+     * Evalúa un gasto específico antes de su registro definitivo.
+     * Considera el patrimonio total, los patrones de gasto registrados y el impacto del nuevo desembolso.
+     */
+    suspend fun evaluateExpenseBeforeSaving(
+        expenseName: String,
+        category: String,
+        amount: Double,
+        date: String,
+        description: String,
+        totalNetWorth: Double,
+        recentExpensesSummary: String
+    ): Result<String> = withContext(Dispatchers.IO) {
+        try {
+            val netWorthPercent = if (totalNetWorth > 0) (amount / totalNetWorth * 100) else 0.0
+            val prompt = """
+                Actúa como el Asesor Financiero Ejecutivo y Estratega Patrimonial de LifeOS.
+                El usuario está evaluando registrar el siguiente gasto y solicita tu diagnóstico antes de confirmar la compra:
+
+                DETALLES DEL GASTO PROPUESTO:
+                - Concepto / Nombre: $expenseName
+                - Categoría: $category
+                - Monto: $$amount (${String.format("%.1f", netWorthPercent)}% de su patrimonio total)
+                - Fecha: $date
+                - Motivo / Justificación dada por el usuario: "$description"
+
+                CONTEXTO PATRIMONIAL DEL USUARIO:
+                - Patrimonio Total Actual (Activos): $$totalNetWorth
+                - Historial reciente de gastos: ${recentExpensesSummary.ifBlank { "Sin gastos previos registrados en el ciclo" }}
+
+                INSTRUCCIONES DE RESPUESTA:
+                Genera un análisis conciso, estratégico y objetivo estructurado exactamente con los siguientes puntos:
+                1. IMPACTO PATRIMONIAL: Analiza el peso de este gasto frente al patrimonio total y la liquidez.
+                2. PUNTOS A FAVOR (PROS): Beneficios reales o retorno (calidad de vida, utilidad, valor duradero) del desembolso según la justificación.
+                3. PUNTOS EN CONTRA (CONTRAS / RIESGOS): Costo de oportunidad, alternativas más eficientes o señales de alerta.
+                4. VEREDICTO EJECUTIVO: Recomendación clara sobre si proceder, postergar, negociar o buscar alternativas.
+
+                Responde en español, tono ejecutivo, honesto y estructurado (máximo 4 párrafos breves o bullets claros).
+            """.trimIndent()
+
+            val response = generativeModel.generateContent(prompt)
+            val text = response.text
+            if (!text.isNullOrBlank()) Result.success(text.trim())
+            else Result.failure(Exception("Sin respuesta de Gemini."))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Responde preguntas financieras libres del usuario con el contexto de su patrimonio y gastos.
+     */
+    suspend fun askFinancialAdvisorQuestion(
+        question: String,
+        totalNetWorth: Double,
+        income: Double,
+        expenses: Double,
+        recentExpensesSummary: String
+    ): Result<String> = withContext(Dispatchers.IO) {
+        try {
+            val prompt = """
+                Actúa como el Asesor Financiero y Consultor de Patrimonio de LifeOS.
+                
+                CONTEXTO FINANCIERO DEL USUARIO:
+                - Patrimonio Total (Activos): $$totalNetWorth
+                - Ingresos del ciclo: $$income
+                - Gastos acumulados: $$expenses
+                - Flujo neto: $${income - expenses}
+                - Movimientos recientes: ${recentExpensesSummary.ifBlank { "Sin movimientos registrados" }}
+
+                PREGUNTA O CONSULTA DEL USUARIO:
+                "$question"
+
+                INSTRUCCIONES:
+                Responde en español de forma profesional, práctica, pedagógica y estructurada. Si el usuario pregunta por decisiones grandes (comprar una casa, vehículos, inversiones, protección patrimonial o ahorro), evalúa escenarios realistas basados en su situación patrimonial.
+            """.trimIndent()
+
+            val response = generativeModel.generateContent(prompt)
+            val text = response.text
+            if (!text.isNullOrBlank()) Result.success(text.trim())
+            else Result.failure(Exception("Sin respuesta de Gemini."))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /**
      * Chatbot Multiturno Inteligente con Gemini:
      * - Mantiene el historial de conversación en una sola sesión conversacional.
      * - Aplica instrucciones del sistema personalizadas según el rol / persona seleccionada.
