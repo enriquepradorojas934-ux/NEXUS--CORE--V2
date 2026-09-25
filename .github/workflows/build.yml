@@ -73,6 +73,9 @@ jobs:
       - name: Dar permisos a gradlew
         run: chmod +x ./gradlew
 
+      - name: Definir número de versión
+        run: echo "VERSION_CODE=${{ github.run_number }}" >> $GITHUB_ENV
+
       - name: Compilar APK Debug
         run: ./gradlew assembleDebug --no-daemon --stacktrace
 
