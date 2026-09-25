@@ -1,6 +1,7 @@
 package com.example.ui.screens
 
 import android.Manifest
+import android.app.TimePickerDialog
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -39,26 +40,54 @@ fun HabitsScreen(
     onTestHabitReminder: () -> Unit = {}
 ) {
     var showAddDialog by remember { mutableStateOf(false) }
-    var reminderTimeInput by remember(state.habitReminderTime) { mutableStateOf(state.habitReminderTime) }
     val context = LocalContext.current
+
+    val initialTime = remember(state.habitReminderTime) {
+        val clean = state.habitReminderTime.trim()
+        val parts = clean.split(":")
+        val h = parts.getOrNull(0)?.toIntOrNull() ?: 20
+        val m = parts.getOrNull(1)?.toIntOrNull() ?: 0
+        val isPm = h >= 12
+        val h12 = when {
+            h == 0 -> 12
+            h > 12 -> h - 12
+            else -> h
+        }
+        Pair("%02d:%02d".format(h12, m.coerceIn(0, 59)), if (isPm) "PM" else "AM")
+    }
+
+    var reminderTimeInput by remember(initialTime) { mutableStateOf(initialTime.first) }
+    var reminderAmPm by remember(initialTime) { mutableStateOf(initialTime.second) }
+
+    fun get24HourTime(time12: String, amPm: String): String {
+        val clean = time12.trim()
+        val parts = clean.split(":")
+        val rawH = parts.getOrNull(0)?.toIntOrNull() ?: 8
+        val rawM = parts.getOrNull(1)?.toIntOrNull() ?: 0
+        val m = rawM.coerceIn(0, 59)
+        val isPm = amPm.equals("PM", ignoreCase = true)
+
+        val h24 = when {
+            rawH == 12 -> if (isPm) 12 else 0
+            rawH in 1..11 -> if (isPm) rawH + 12 else rawH
+            rawH == 0 -> if (isPm) 12 else 0
+            rawH in 13..23 -> if (!isPm) rawH - 12 else rawH
+            else -> if (isPm) 20 else 8
+        }
+        return "%02d:%02d".format(h24.coerceIn(0, 23), m)
+    }
 
     val notificationLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         if (isGranted) {
-            onSetHabitReminder(true, reminderTimeInput)
-        }
-    }
-
-    val testNotificationLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        if (isGranted) {
-            onTestHabitReminder()
+            val exact24h = get24HourTime(reminderTimeInput, reminderAmPm)
+            onSetHabitReminder(true, exact24h)
         }
     }
 
     fun requestAndToggleReminder(enable: Boolean) {
+        val exact24h = get24HourTime(reminderTimeInput, reminderAmPm)
         if (enable && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             val granted = ContextCompat.checkSelfPermission(
                 context,
@@ -69,21 +98,37 @@ fun HabitsScreen(
                 return
             }
         }
-        onSetHabitReminder(enable, reminderTimeInput)
+        onSetHabitReminder(enable, exact24h)
     }
 
-    fun requestAndTriggerTest() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            val granted = ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.POST_NOTIFICATIONS
-            ) == PackageManager.PERMISSION_GRANTED
-            if (!granted) {
-                testNotificationLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-                return
-            }
-        }
-        onTestHabitReminder()
+    val showTimePicker = {
+        val exact24 = get24HourTime(reminderTimeInput, reminderAmPm)
+        val p = exact24.split(":")
+        val curH = p.getOrNull(0)?.toIntOrNull() ?: 20
+        val curM = p.getOrNull(1)?.toIntOrNull() ?: 0
+
+        TimePickerDialog(
+            context,
+            { _, pickedHour, pickedMinute ->
+                val isPm = pickedHour >= 12
+                val h12 = when {
+                    pickedHour == 0 -> 12
+                    pickedHour > 12 -> pickedHour - 12
+                    else -> pickedHour
+                }
+                val formatted12 = "%02d:%02d".format(h12, pickedMinute)
+                val period = if (isPm) "PM" else "AM"
+                reminderTimeInput = formatted12
+                reminderAmPm = period
+                if (state.isHabitReminderEnabled) {
+                    val updated24 = "%02d:%02d".format(pickedHour, pickedMinute)
+                    onSetHabitReminder(true, updated24)
+                }
+            },
+            curH,
+            curM,
+            false // Formato 12 horas con selector interactivo AM/PM
+        ).show()
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -139,13 +184,15 @@ fun HabitsScreen(
 
                         Spacer(modifier = Modifier.height(6.dp))
                         Text(
-                            text = "Recibe una alerta periódica programada para revisar y marcar tus hábitos pendientes.",
+                            text = "Recibe una alerta programada para revisar y marcar tus hábitos pendientes.",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
 
                         if (state.isHabitReminderEnabled) {
-                            Spacer(modifier = Modifier.height(12.dp))
+                            Spacer(modifier = Modifier.height(14.dp))
+                            
+                            // Campo "Hora programada" (HH:mm) con selector de hora + selector AM/PM
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 verticalAlignment = Alignment.CenterVertically,
@@ -153,11 +200,79 @@ fun HabitsScreen(
                             ) {
                                 OutlinedTextField(
                                     value = reminderTimeInput,
-                                    onValueChange = { reminderTimeInput = it },
-                                    label = { Text("Hora (HH:mm)") },
+                                    onValueChange = { newValue ->
+                                        if (newValue.length <= 5 && newValue.all { it.isDigit() || it == ':' }) {
+                                            reminderTimeInput = newValue
+                                        }
+                                    },
+                                    label = { Text("Hora programada (HH:mm)") },
+                                    placeholder = { Text("08:00") },
                                     singleLine = true,
+                                    trailingIcon = {
+                                        IconButton(onClick = { showTimePicker() }) {
+                                            Icon(
+                                                Icons.Default.Schedule,
+                                                contentDescription = "Abrir selector de hora",
+                                                tint = ExecutiveSecondaryAmber
+                                            )
+                                        }
+                                    },
                                     modifier = Modifier.weight(1f).testTag("input_reminder_time")
                                 )
+
+                                // Selector AM / PM (Mañana / Tarde)
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    FilterChip(
+                                        selected = reminderAmPm == "AM",
+                                        onClick = {
+                                            reminderAmPm = "AM"
+                                            if (state.isHabitReminderEnabled) {
+                                                onSetHabitReminder(true, get24HourTime(reminderTimeInput, "AM"))
+                                            }
+                                        },
+                                        label = { Text("AM", fontWeight = FontWeight.Bold) },
+                                        colors = FilterChipDefaults.filterChipColors(
+                                            selectedContainerColor = ExecutiveSecondaryAmber.copy(alpha = 0.25f),
+                                            selectedLabelColor = ExecutiveSecondaryAmber
+                                        ),
+                                        modifier = Modifier.testTag("chip_am")
+                                    )
+                                    FilterChip(
+                                        selected = reminderAmPm == "PM",
+                                        onClick = {
+                                            reminderAmPm = "PM"
+                                            if (state.isHabitReminderEnabled) {
+                                                onSetHabitReminder(true, get24HourTime(reminderTimeInput, "PM"))
+                                            }
+                                        },
+                                        label = { Text("PM", fontWeight = FontWeight.Bold) },
+                                        colors = FilterChipDefaults.filterChipColors(
+                                            selectedContainerColor = ExecutiveSecondaryAmber.copy(alpha = 0.25f),
+                                            selectedLabelColor = ExecutiveSecondaryAmber
+                                        ),
+                                        modifier = Modifier.testTag("chip_pm")
+                                    )
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(10.dp))
+
+                            // Resumen y botón para fijar la hora
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                val periodText = if (reminderAmPm == "AM") "Mañana (AM)" else "Tarde/Noche (PM)"
+                                Text(
+                                    text = "Horario: $reminderTimeInput $reminderAmPm • $periodText",
+                                    style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
+                                    color = ExecutiveSecondaryAmber
+                                )
+
                                 Button(
                                     onClick = { requestAndToggleReminder(true) },
                                     colors = ButtonDefaults.buttonColors(containerColor = ExecutiveSecondaryAmber),
@@ -166,16 +281,6 @@ fun HabitsScreen(
                                     Text("Fijar", color = ExecutiveDarkBg, fontWeight = FontWeight.Bold)
                                 }
                             }
-                        }
-
-                        Spacer(modifier = Modifier.height(10.dp))
-                        OutlinedButton(
-                            onClick = { requestAndTriggerTest() },
-                            modifier = Modifier.fillMaxWidth().testTag("btn_test_reminder")
-                        ) {
-                            Icon(Icons.Default.Alarm, contentDescription = null, modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text("Enviar Alerta de Prueba Ahora", style = MaterialTheme.typography.labelSmall)
                         }
                     }
                 }

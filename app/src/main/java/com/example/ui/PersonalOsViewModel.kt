@@ -528,12 +528,21 @@ class PersonalOsViewModel(
         val minute = parts.getOrNull(1)?.toIntOrNull() ?: 0
         val formattedTime = "%02d:%02d".format(hour, minute)
 
+        val isPm = hour >= 12
+        val h12 = when {
+            hour == 0 -> 12
+            hour > 12 -> hour - 12
+            else -> hour
+        }
+        val periodStr = if (isPm) "PM" else "AM"
+        val formatted12 = "%02d:%02d %s".format(h12, minute, periodStr)
+
         _uiState.update {
             it.copy(
                 isHabitReminderEnabled = enabled,
                 habitReminderTime = formattedTime,
                 userMessage = if (enabled) {
-                    "Recordatorio diario de hábitos configurado a las $formattedTime"
+                    "Recordatorio diario de hábitos configurado a las $formatted12"
                 } else {
                     "Recordatorio diario de hábitos desactivado"
                 }
