@@ -54,6 +54,22 @@ jobs:
           echo "$JSON_CONTENT" > app/src/debug/google-services.json
           echo "google-services.json creado en app/ y app/src/debug/"
 
+      - name: Asegurar keystore persistente
+        run: |
+          mkdir -p keystore
+          if [ ! -f keystore/debug.keystore ]; then
+            echo "keystore/debug.keystore no encontrado en repo, restaurando desde backup o creando uno..."
+            if [ -f debug.keystore ]; then
+              cp debug.keystore keystore/debug.keystore
+            elif [ -f debug.keystore.base64 ]; then
+              base64 -d debug.keystore.base64 > keystore/debug.keystore
+            else
+              keytool -genkey -v -keystore keystore/debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+            fi
+          fi
+          echo "keystore listo:"
+          ls -la keystore/debug.keystore
+
       - name: Dar permisos a gradlew
         run: chmod +x ./gradlew
 
