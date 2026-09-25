@@ -320,16 +320,14 @@ private fun FormAddHabit(
 
     Spacer(modifier = Modifier.height(12.dp))
 
-    Text("Categoría:", style = MaterialTheme.typography.labelMedium)
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth().padding(top = 4.dp)) {
-        listOf("Salud", "Estudio", "Enfoque", "Finanzas").forEach { c ->
-            FilterChip(
-                selected = category == c,
-                onClick = { category = c },
-                label = { Text(c) }
-            )
-        }
-    }
+    OutlinedTextField(
+        value = category,
+        onValueChange = { category = it },
+        label = { Text("Categoría (ej: Salud, Estudio, Enfoque)") },
+        placeholder = { Text("Escribe la categoría que desees...") },
+        singleLine = true,
+        modifier = Modifier.fillMaxWidth().testTag("input_quick_habit_category")
+    )
 
     Spacer(modifier = Modifier.height(20.dp))
 
@@ -411,21 +409,14 @@ private fun FormAddTransaction(
 
     Spacer(modifier = Modifier.height(12.dp))
 
-    Text("Categoría:", style = MaterialTheme.typography.labelMedium)
-    Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth().padding(top = 4.dp)) {
-        val categories = if (type == "GASTO") {
-            listOf("Alimentación", "Transporte", "Servicios", "Otros")
-        } else {
-            listOf("Salario", "Inversión", "Venta", "Otros")
-        }
-        categories.forEach { c ->
-            FilterChip(
-                selected = category == c,
-                onClick = { category = c },
-                label = { Text(c, style = MaterialTheme.typography.labelSmall) }
-            )
-        }
-    }
+    OutlinedTextField(
+        value = category,
+        onValueChange = { category = it },
+        label = { Text("Categoría (ej: Alimentación, Transporte, Salario)") },
+        placeholder = { Text("Escribe la categoría que desees...") },
+        singleLine = true,
+        modifier = Modifier.fillMaxWidth().testTag("input_quick_category")
+    )
 
     Spacer(modifier = Modifier.height(20.dp))
 

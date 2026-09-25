@@ -65,6 +65,20 @@ class PersonalOsViewModel(
 
             // Sembrar datos iniciales si no hay tareas cargadas
             seedInitialDataIfEmpty(cycleDate)
+
+            // Limpieza de datos de prueba heredados para asegurar concordancia total con Finanzas
+            val allDebts = repository.assetsAndDebts.first()
+            allDebts.filter { it.type == "DEUDA" && it.name == "Tarjeta de Crédito" }.forEach {
+                repository.deleteAssetDebt(it)
+            }
+            val allTx = repository.allTransactions.first()
+            allTx.filter {
+                (it.description == "Ingreso quincenal" && it.amount == 2500.0) ||
+                (it.description == "Supermercado semanal" && it.amount == 65.0) ||
+                (it.description == "Combustible" && it.amount == 15.0)
+            }.forEach {
+                repository.deleteTransaction(it)
+            }
         }
     }
 
@@ -186,14 +200,11 @@ class PersonalOsViewModel(
         // Transacciones
         viewModelScope.launch {
             repository.allTransactions.collect { txList ->
-                val currentCycle = _uiState.value.currentCycleDate.ifEmpty {
-                    DailyCycleEngine.getCurrentCycleDate(_uiState.value.cycleStartTime)
-                }
                 val totalInc = txList.filter { it.type == "INGRESO" }.sumOf { it.amount }
                 val totalExp = txList.filter { it.type == "GASTO" }.sumOf { it.amount }
                 _uiState.update {
                     it.copy(
-                        transactionsToday = txList.filter { it.cycleDate == currentCycle },
+                        transactionsToday = txList,
                         totalIncome = totalInc,
                         totalExpenses = totalExp,
                         netBalance = totalInc - totalExp
@@ -1379,14 +1390,7 @@ class PersonalOsViewModel(
         repository.insertSubGoal(SubGoalEntity(goalId = g2Id, title = "Ahorrar primeros $1,000", isCompleted = true))
         repository.insertSubGoal(SubGoalEntity(goalId = g2Id, title = "Alcanzar $3,000 en cuenta de alto rendimiento", isCompleted = false))
 
-        // Finanzas
-        repository.insertTransaction(TransactionEntity(type = "INGRESO", amount = 2500.0, category = "Salario", description = "Ingreso quincenal", cycleDate = cycleDate))
-        repository.insertTransaction(TransactionEntity(type = "GASTO", amount = 65.0, category = "Alimentación", description = "Supermercado semanal", cycleDate = cycleDate))
-        repository.insertTransaction(TransactionEntity(type = "GASTO", amount = 15.0, category = "Transporte", description = "Combustible", cycleDate = cycleDate))
-
-        repository.insertFinancialGoal(FinancialGoalEntity(name = "Fondo de Emergencia", targetAmount = 5000.0, currentAmount = 2420.0, deadline = "Dic 2026", category = "Seguridad"))
-        repository.insertAssetDebt(AssetDebtEntity(type = "ACTIVO", name = "Cuenta Ahorro Alta Tasa", currentAmount = 2420.0, notes = "Rendimiento 10% anual"))
-        repository.insertAssetDebt(AssetDebtEntity(type = "DEUDA", name = "Tarjeta de Crédito", currentAmount = 180.0, notes = "Pagar al corte"))
+        repository.insertFinancialGoal(FinancialGoalEntity(name = "Fondo de Emergencia", targetAmount = 5000.0, currentAmount = 0.0, deadline = "Dic 2026", category = "Seguridad"))
 
         // Bienestar Digital (Apps del ejemplo explícito del usuario: Facebook 30m, Instagram 20m, YouTube 45m)
         repository.insertAppLimit(AppLimitEntity(appName = "YouTube", packageName = "com.google.android.youtube", dailyBudgetMinutes = 45, currentUsageMinutes = 15, isBlocked = false, cycleDate = cycleDate))

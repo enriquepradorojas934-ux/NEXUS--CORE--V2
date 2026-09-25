@@ -912,6 +912,13 @@ private fun AddTaskDialog(
                     label = { Text("Minutos estimados") },
                     modifier = Modifier.fillMaxWidth()
                 )
+                OutlinedTextField(
+                    value = category,
+                    onValueChange = { category = it },
+                    label = { Text("Categoría (ej: Trabajo, Estudio, Personal)") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth().testTag("input_task_category")
+                )
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     listOf("ALTA", "MEDIA", "BAJA").forEach { p ->
                         FilterChip(
@@ -976,31 +983,14 @@ private fun AddTimeBlockDialog(
                     )
                 }
 
-                Text("Categoría:", style = MaterialTheme.typography.labelSmall, color = ExecutiveTextMuted)
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    listOf("FOCO", "TRABAJO", "ESTUDIO").forEach { cat ->
-                        FilterChip(
-                            selected = category == cat,
-                            onClick = { category = cat },
-                            label = { Text(cat, fontSize = 11.sp) }
-                        )
-                    }
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    listOf("ENTRENAMIENTO", "DESCANSO", "OTROS").forEach { cat ->
-                        FilterChip(
-                            selected = category == cat,
-                            onClick = { category = cat },
-                            label = { Text(cat, fontSize = 11.sp) }
-                        )
-                    }
-                }
+                OutlinedTextField(
+                    value = category,
+                    onValueChange = { category = it },
+                    label = { Text("Categoría (ej: Foco, Trabajo, Estudio)") },
+                    placeholder = { Text("Escribe la categoría que desees...") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth().testTag("input_block_category")
+                )
             }
         },
         confirmButton = {

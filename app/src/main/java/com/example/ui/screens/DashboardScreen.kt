@@ -729,11 +729,18 @@ fun DashboardScreen(
                 }
 
                 item {
+                    val patrimonioDona = state.assetsAndDebts
+                        .filter { it.type == "ACTIVO" }
+                        .sumOf { it.currentAmount }
+                    val gastosTotal = state.totalExpenses
+                    val ingresosTotal = state.totalIncome
+                    val flujoNeto = state.netBalance
+
                     ExecutiveMetricCard(
                         title = "Control Financiero",
                         question = "¿CÓMO ESTÁ MI PATRIMONIO?",
-                        value = "$${String.format("%.2f", state.netBalance)} flujo neto",
-                        detail = "Ingresos: +$${String.format("%.0f", state.totalIncome)} • Gastos: -$${String.format("%.0f", state.totalExpenses)} • Patrimonio: $${String.format("%.0f", state.totalAssets - state.totalDebts)}",
+                        value = "${if (flujoNeto >= 0) "+" else ""}$${String.format("%,.2f", flujoNeto)} flujo neto",
+                        detail = "Ingresos: +$${String.format("%,.2f", ingresosTotal)} • Gastos: -$${String.format("%,.2f", gastosTotal)} • Patrimonio: $${String.format("%,.2f", patrimonioDona)}",
                         icon = Icons.Default.AccountBalanceWallet,
                         accentColor = ExecutiveSecondaryAmber,
                         onClick = { onNavigate(AppNavTab.FINANCE) }

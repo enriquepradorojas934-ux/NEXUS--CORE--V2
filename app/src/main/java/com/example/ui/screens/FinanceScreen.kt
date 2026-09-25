@@ -1203,8 +1203,6 @@ private fun RegisterExpenseWithAiDialog(
 
     var hasRequestedAiEvaluation by remember { mutableStateOf(false) }
 
-    val categories = listOf("Transporte", "Comida", "Vivienda", "Salud", "Educación", "Tecnología", "Ocio", "Servicios", "Inversión", "Otro")
-
     // DatePicker selector de día / mes / año
     val datePickerDialog = remember {
         val parts = selectedDate.split("-")
@@ -1248,34 +1246,16 @@ private fun RegisterExpenseWithAiDialog(
                     )
                 }
 
-                // Campo 2: Categoría
+                // Campo 2: Categoría (Texto libre)
                 item {
-                    Text("2. Categoría", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold))
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        categories.take(4).forEach { cat ->
-                            FilterChip(
-                                selected = category == cat,
-                                onClick = { category = cat },
-                                label = { Text(cat, fontSize = 11.sp) }
-                            )
-                        }
-                    }
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        categories.drop(4).take(4).forEach { cat ->
-                            FilterChip(
-                                selected = category == cat,
-                                onClick = { category = cat },
-                                label = { Text(cat, fontSize = 11.sp) }
-                            )
-                        }
-                    }
+                    OutlinedTextField(
+                        value = category,
+                        onValueChange = { category = it },
+                        label = { Text("2. Categoría (ej: Transporte, Comida, Vivienda)") },
+                        placeholder = { Text("Escribe la categoría que desees...") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth().testTag("input_expense_category")
+                    )
                 }
 
                 // Campo 3: Fecha (selector día/mes/año)

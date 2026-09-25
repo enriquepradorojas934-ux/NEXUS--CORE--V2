@@ -1,5 +1,6 @@
 package com.example.ui.screens
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -17,8 +18,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.model.GoalEntity
@@ -40,6 +44,34 @@ fun GoalsScreen(
     var showAddGoalDialog by remember { mutableStateOf(false) }
     var subGoalDialogGoalId by remember { mutableStateOf<Long?>(null) }
 
+    // Control reactivo del estado de completado de cada meta
+    var manuallyCompletedGoalIds by remember { mutableStateOf<Set<Long>>(emptySet()) }
+    var manuallyUncompletedGoalIds by remember { mutableStateOf<Set<Long>>(emptySet()) }
+
+    val isGoalCompleted: (GoalWithSubGoals) -> Boolean = remember(manuallyCompletedGoalIds, manuallyUncompletedGoalIds) {
+        { item ->
+            val id = item.goal.id
+            if (id in manuallyCompletedGoalIds) {
+                true
+            } else if (id in manuallyUncompletedGoalIds) {
+                false
+            } else {
+                item.goal.status == "COMPLETADA" || (item.subGoals.isNotEmpty() && item.progressPercent >= 1.0f)
+            }
+        }
+    }
+
+    // Ordenamiento: Metas activas arriba, metas completadas automáticamente al fondo de la lista
+    val (activeGoals, completedGoals) = remember(state.goalsWithSubGoals, manuallyCompletedGoalIds, manuallyUncompletedGoalIds) {
+        val active = state.goalsWithSubGoals.filter { !isGoalCompleted(it) }
+        val completed = state.goalsWithSubGoals.filter { isGoalCompleted(it) }
+        Pair(active, completed)
+    }
+
+    val sortedGoals = remember(activeGoals, completedGoals) {
+        activeGoals + completedGoals
+    }
+
     Column(modifier = Modifier.fillMaxSize()) {
         ExecutiveHeader(
             title = "Módulo de Metas",
@@ -52,8 +84,9 @@ fun GoalsScreen(
         )
 
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
+            modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+            contentPadding = PaddingValues(bottom = 80.dp)
         ) {
             item {
                 Row(
@@ -61,36 +94,81 @@ fun GoalsScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = "Metas en Desarrollo (${state.goalsWithSubGoals.size})",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
+                    Column {
+                        Text(
+                            text = "Metas Estratégicas (${state.goalsWithSubGoals.size})",
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        if (state.goalsWithSubGoals.isNotEmpty()) {
+                            Text(
+                                text = "${activeGoals.size} activas • ${completedGoals.size} completadas",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
                     Button(
                         onClick = { showAddGoalDialog = true },
                         colors = ButtonDefaults.buttonColors(containerColor = ExecutivePurple),
+                        shape = RoundedCornerShape(8.dp),
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
                         modifier = Modifier.testTag("btn_create_goal")
                     ) {
                         Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text("Nueva Meta")
+                        Text("Nueva Meta", fontSize = 12.sp, fontWeight = FontWeight.Bold)
                     }
                 }
             }
 
             if (state.goalsWithSubGoals.isEmpty()) {
                 item {
-                    Text(
-                        text = "No hay metas registradas. Crea una meta general y divídela en subobjetivos medibles.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(vertical = 24.dp)
-                    )
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(
+                            modifier = Modifier.fillMaxWidth().padding(24.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Icon(Icons.Default.Flag, contentDescription = null, tint = ExecutivePurple, modifier = Modifier.size(36.dp))
+                            Spacer(modifier = Modifier.height(10.dp))
+                            Text(
+                                text = "No hay metas registradas",
+                                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = "Crea una meta y desglósala en subobjetivos medibles para visualizar tu avance.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
                 }
             } else {
-                items(state.goalsWithSubGoals, key = { it.goal.id }) { item ->
+                items(sortedGoals, key = { it.goal.id }) { item ->
+                    val isCompleted = isGoalCompleted(item)
                     GoalCard(
                         item = item,
+                        isCompleted = isCompleted,
+                        onToggleGoalCompletion = {
+                            val id = item.goal.id
+                            if (isCompleted) {
+                                manuallyCompletedGoalIds = manuallyCompletedGoalIds - id
+                                manuallyUncompletedGoalIds = manuallyUncompletedGoalIds + id
+                                // Desmarcar submetas
+                                item.subGoals.filter { it.isCompleted }.forEach { onToggleSubGoal(it) }
+                            } else {
+                                manuallyUncompletedGoalIds = manuallyUncompletedGoalIds - id
+                                manuallyCompletedGoalIds = manuallyCompletedGoalIds + id
+                                // Marcar submetas pendientes como completadas
+                                item.subGoals.filter { !it.isCompleted }.forEach { onToggleSubGoal(it) }
+                            }
+                        },
                         onAddSubGoalClick = { subGoalDialogGoalId = item.goal.id },
                         onToggleSubGoal = onToggleSubGoal,
                         onDeleteGoal = { onDeleteGoal(item.goal) },
@@ -122,225 +200,310 @@ fun GoalsScreen(
     }
 }
 
+// =========================================================================
+// TARJETA DE META: FORMATO INTERMEDIO (TIPO LISTA DE TAREAS / NOTAS)
+// =========================================================================
+
 @Composable
 private fun GoalCard(
     item: GoalWithSubGoals,
+    isCompleted: Boolean,
+    onToggleGoalCompletion: () -> Unit,
     onAddSubGoalClick: () -> Unit,
     onToggleSubGoal: (SubGoalEntity) -> Unit,
     onDeleteGoal: () -> Unit,
     onToggleHabit: (Long) -> Unit = {}
 ) {
+    var isExpanded by remember { mutableStateOf(false) }
+
+    val effectiveProgress = if (isCompleted) 1.0f else item.progressPercent
     val animatedProgress by animateFloatAsState(
-        targetValue = item.progressPercent,
+        targetValue = effectiveProgress,
         animationSpec = spring(stiffness = Spring.StiffnessLow),
         label = "goalProgressAnimation"
     )
 
     Card(
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        shape = RoundedCornerShape(16.dp),
-        modifier = Modifier.fillMaxWidth().testTag("goal_card_${item.goal.id}")
+        colors = CardDefaults.cardColors(
+            containerColor = if (isCompleted) {
+                MaterialTheme.colorScheme.surface.copy(alpha = 0.60f)
+            } else {
+                MaterialTheme.colorScheme.surface
+            }
+        ),
+        shape = RoundedCornerShape(12.dp),
+        border = androidx.compose.foundation.BorderStroke(
+            1.dp,
+            if (isCompleted) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
+            else ExecutivePurple.copy(alpha = 0.22f)
+        ),
+        modifier = Modifier
+            .fillMaxWidth()
+            .testTag("goal_card_${item.goal.id}")
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 10.dp)
+        ) {
+            // Fila principal compacta estilo checklist / nota ejecutiva
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Surface(
-                    color = ExecutivePurple.copy(alpha = 0.15f),
-                    shape = RoundedCornerShape(6.dp)
+                // Checkbox / Toggle de completado directo
+                IconButton(
+                    onClick = onToggleGoalCompletion,
+                    modifier = Modifier
+                        .size(36.dp)
+                        .testTag("goal_complete_toggle_${item.goal.id}")
                 ) {
-                    Text(
-                        text = item.goal.category,
-                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                        color = ExecutivePurple,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                    Icon(
+                        imageVector = if (isCompleted) Icons.Default.CheckCircle else Icons.Default.RadioButtonUnchecked,
+                        contentDescription = if (isCompleted) "Desmarcar meta" else "Completar meta",
+                        tint = if (isCompleted) ExecutiveSuccessGreen else MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(22.dp)
                     )
                 }
 
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    if (item.goal.targetDate.isNotBlank()) {
+                Spacer(modifier = Modifier.width(6.dp))
+
+                // Contenido central: Título en negrita (+ tachado si completada), subtítulo y metadatos
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable { isExpanded = !isExpanded }
+                ) {
+                    Text(
+                        text = item.goal.title,
+                        style = MaterialTheme.typography.bodyLarge.copy(
+                            fontWeight = FontWeight.Bold,
+                            textDecoration = if (isCompleted) TextDecoration.LineThrough else TextDecoration.None
+                        ),
+                        color = if (isCompleted) {
+                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.65f)
+                        } else {
+                            MaterialTheme.colorScheme.onSurface
+                        },
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+
+                    if (item.goal.description.isNotBlank()) {
+                        Spacer(modifier = Modifier.height(2.dp))
                         Text(
-                            text = "Objetivo: ${item.goal.targetDate}",
-                            style = MaterialTheme.typography.labelSmall,
+                            text = item.goal.description,
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                textDecoration = if (isCompleted) TextDecoration.LineThrough else TextDecoration.None
+                            ),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    // Badges de metadatos en formato intermedio
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Surface(
+                            color = if (isCompleted) MaterialTheme.colorScheme.surfaceVariant else ExecutivePurple.copy(alpha = 0.15f),
+                            shape = RoundedCornerShape(4.dp)
+                        ) {
+                            Text(
+                                text = item.goal.category,
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    fontWeight = FontWeight.SemiBold,
+                                    fontSize = 10.sp
+                                ),
+                                color = if (isCompleted) MaterialTheme.colorScheme.onSurfaceVariant else ExecutivePurple,
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 1.dp)
+                            )
+                        }
+
+                        if (item.subGoals.isNotEmpty()) {
+                            val doneSubs = if (isCompleted) item.subGoals.size else item.subGoals.count { it.isCompleted }
+                            Text(
+                                text = "$doneSubs/${item.subGoals.size} hitos",
+                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text("•", style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+
+                        if (item.goal.targetDate.isNotBlank()) {
+                            Text(
+                                text = item.goal.targetDate,
+                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text("•", style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+
+                        Text(
+                            text = "${(effectiveProgress * 100).toInt()}%",
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 10.sp,
+                                color = if (isCompleted) ExecutiveSuccessGreen else ExecutivePurple
+                            )
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    // Barra de progreso compacta (4dp de espesor)
+                    LinearProgressIndicator(
+                        progress = { animatedProgress },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(4.dp)
+                            .clip(CircleShape),
+                        color = if (isCompleted) ExecutiveSuccessGreen else ExecutivePurple,
+                        trackColor = MaterialTheme.colorScheme.surfaceVariant
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(4.dp))
+
+                // Acciones a la derecha: Desplegar detalles y eliminar
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(
+                        onClick = { isExpanded = !isExpanded },
+                        modifier = Modifier.size(32.dp).testTag("goal_expand_${item.goal.id}")
+                    ) {
+                        Icon(
+                            imageVector = if (isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                            contentDescription = if (isExpanded) "Colapsar" else "Ver detalles",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+
+                    IconButton(
+                        onClick = onDeleteGoal,
+                        modifier = Modifier.size(32.dp).testTag("goal_delete_${item.goal.id}")
+                    ) {
+                        Icon(
+                            Icons.Default.DeleteOutline,
+                            contentDescription = "Eliminar",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                }
+            }
+
+            // Vista expandida con detalles de submetas y hábitos (Acordeón limpio y compacto)
+            AnimatedVisibility(visible = isExpanded) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 10.dp, start = 6.dp, end = 4.dp)
+                ) {
+                    HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // Hábitos vinculados si existen
+                    if (item.associatedHabits.isNotEmpty()) {
+                        Text(
+                            text = "Hábitos vinculados:",
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                            color = ExecutiveSuccessGreen
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        item.associatedHabits.forEach { habitItem ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 2.dp)
+                                    .clickable { onToggleHabit(habitItem.habit.id) },
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = if (habitItem.isCompletedToday) Icons.Default.CheckCircle else Icons.Default.RadioButtonUnchecked,
+                                    contentDescription = null,
+                                    tint = if (habitItem.isCompletedToday) ExecutiveSuccessGreen else MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = habitItem.habit.title,
+                                    style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
+                                    color = if (habitItem.isCompletedToday) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+
+                    // Lista de Subobjetivos / Hitos
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Hitos y Subobjetivos:",
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                    }
-                    IconButton(onClick = onDeleteGoal, modifier = Modifier.size(28.dp)) {
-                        Icon(Icons.Default.DeleteOutline, contentDescription = "Eliminar", tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = item.goal.title,
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.onSurface
-            )
-
-            if (item.goal.description.isNotBlank()) {
-                Text(
-                    text = item.goal.description,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // Barra de Progreso Dinámica e Interactiva de la Meta
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column {
-                    Text(
-                        text = "Progreso total de la meta",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    if (item.associatedHabits.isNotEmpty() && item.subGoals.isNotEmpty()) {
-                        Text(
-                            text = "Hitos: ${(item.subGoalsProgress * 100).toInt()}% • Hábitos hoy: ${(item.habitsProgress * 100).toInt()}%",
-                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-                            color = ExecutivePurple.copy(alpha = 0.8f)
-                        )
-                    }
-                }
-                Text(
-                    text = "${(animatedProgress * 100).toInt()}%",
-                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
-                    color = ExecutivePurple
-                )
-            }
-            Spacer(modifier = Modifier.height(6.dp))
-            LinearProgressIndicator(
-                progress = { animatedProgress },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(8.dp)
-                    .clip(CircleShape),
-                color = ExecutivePurple,
-                trackColor = MaterialTheme.colorScheme.surfaceVariant
-            )
-
-            // Sección de Hábitos Asociados si existen
-            if (item.associatedHabits.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(14.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Hábitos diarios vinculados:",
-                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                        color = ExecutiveSuccessGreen
-                    )
-                    Text(
-                        text = "${item.associatedHabits.count { it.isCompletedToday }} de ${item.associatedHabits.size} completados",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                Spacer(modifier = Modifier.height(6.dp))
-                item.associatedHabits.forEach { habitItem ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 3.dp)
-                            .clickable { onToggleHabit(habitItem.habit.id) },
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        IconButton(
-                            onClick = { onToggleHabit(habitItem.habit.id) },
-                            modifier = Modifier.size(32.dp).testTag("goal_habit_toggle_${habitItem.habit.id}")
+                        TextButton(
+                            onClick = onAddSubGoalClick,
+                            contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp)
                         ) {
-                            Icon(
-                                if (habitItem.isCompletedToday) Icons.Default.CheckCircle else Icons.Default.RadioButtonUnchecked,
-                                contentDescription = habitItem.habit.title,
-                                tint = if (habitItem.isCompletedToday) ExecutiveSuccessGreen else MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(20.dp)
-                            )
+                            Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(14.dp))
+                            Spacer(modifier = Modifier.width(2.dp))
+                            Text("Agregar hito", style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp))
                         }
-                        Spacer(modifier = Modifier.width(6.dp))
+                    }
+
+                    if (item.subGoals.isEmpty()) {
                         Text(
-                            text = habitItem.habit.title,
-                            style = MaterialTheme.typography.bodySmall.copy(
-                                color = if (habitItem.isCompletedToday) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface
-                            ),
-                            modifier = Modifier.weight(1f)
+                            text = "Sin subobjetivos definidos. Pulsa 'Agregar hito' para desglosar la meta.",
+                            style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                        if (habitItem.habit.currentStreak > 0) {
-                            Text(
-                                text = "🔥 ${habitItem.habit.currentStreak}d",
-                                style = MaterialTheme.typography.labelSmall.copy(color = ExecutiveSecondaryAmber)
-                            )
+                    } else {
+                        item.subGoals.forEach { sub ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 2.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Checkbox(
+                                    checked = sub.isCompleted,
+                                    onCheckedChange = { onToggleSubGoal(sub) },
+                                    colors = CheckboxDefaults.colors(checkedColor = ExecutivePurple),
+                                    modifier = Modifier.size(20.dp).testTag("subgoal_checkbox_${sub.id}")
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = sub.title,
+                                    style = MaterialTheme.typography.bodySmall.copy(
+                                        fontSize = 12.sp,
+                                        textDecoration = if (sub.isCompleted) TextDecoration.LineThrough else TextDecoration.None,
+                                        color = if (sub.isCompleted) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface
+                                    ),
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
                         }
                     }
                 }
-            }
-
-            Spacer(modifier = Modifier.height(14.dp))
-
-            // Lista de Subobjetivos
-            Text(
-                text = "Hitos y Subobjetivos:",
-                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            Spacer(modifier = Modifier.height(6.dp))
-
-            if (item.subGoals.isEmpty()) {
-                Text(
-                    text = "Sin subobjetivos definidos aún.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            } else {
-                item.subGoals.forEach { sub ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 2.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Checkbox(
-                            checked = sub.isCompleted,
-                            onCheckedChange = { onToggleSubGoal(sub) },
-                            colors = CheckboxDefaults.colors(checkedColor = ExecutivePurple),
-                            modifier = Modifier.size(24.dp).testTag("subgoal_checkbox_${sub.id}")
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = sub.title,
-                            style = MaterialTheme.typography.bodySmall.copy(
-                                color = if (sub.isCompleted) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface
-                            ),
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-            TextButton(
-                onClick = onAddSubGoalClick,
-                contentPadding = PaddingValues(0.dp),
-                modifier = Modifier.align(Alignment.End)
-            ) {
-                Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
-                Spacer(modifier = Modifier.width(4.dp))
-                Text("Agregar Subobjetivo", style = MaterialTheme.typography.labelSmall)
             }
         }
     }
 }
+
+// =========================================================================
+// DIÁLOGOS DE CREACIÓN DE METAS Y SUBMETAS
+// =========================================================================
 
 @Composable
 private fun AddGoalDialog(
@@ -354,7 +517,7 @@ private fun AddGoalDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Crear Nueva Meta") },
+        title = { Text("Crear Nueva Meta", fontWeight = FontWeight.Bold) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
@@ -386,9 +549,10 @@ private fun AddGoalDialog(
         confirmButton = {
             Button(
                 onClick = { onConfirm(title, description, category, targetDate) },
+                colors = ButtonDefaults.buttonColors(containerColor = ExecutivePurple),
                 modifier = Modifier.testTag("dialog_goal_confirm")
             ) {
-                Text("Crear Meta")
+                Text("Crear Meta", fontWeight = FontWeight.Bold)
             }
         },
         dismissButton = {
@@ -406,7 +570,7 @@ private fun AddSubGoalDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Nuevo Subobjetivo") },
+        title = { Text("Nuevo Subobjetivo", fontWeight = FontWeight.Bold) },
         text = {
             OutlinedTextField(
                 value = title,
@@ -418,9 +582,10 @@ private fun AddSubGoalDialog(
         confirmButton = {
             Button(
                 onClick = { onConfirm(title) },
+                colors = ButtonDefaults.buttonColors(containerColor = ExecutivePurple),
                 modifier = Modifier.testTag("dialog_subgoal_confirm")
             ) {
-                Text("Agregar")
+                Text("Agregar", fontWeight = FontWeight.Bold)
             }
         },
         dismissButton = {
