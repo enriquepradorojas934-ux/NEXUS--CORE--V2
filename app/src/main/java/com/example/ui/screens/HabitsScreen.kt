@@ -203,6 +203,9 @@ fun HabitsScreen(
                                     onValueChange = { newValue ->
                                         if (newValue.length <= 5 && newValue.all { it.isDigit() || it == ':' }) {
                                             reminderTimeInput = newValue
+                                            if (state.isHabitReminderEnabled && newValue.length == 5 && newValue.contains(':')) {
+                                                onSetHabitReminder(true, get24HourTime(newValue, reminderAmPm))
+                                            }
                                         }
                                     },
                                     label = { Text("Hora programada (HH:mm)") },
@@ -260,27 +263,13 @@ fun HabitsScreen(
 
                             Spacer(modifier = Modifier.height(10.dp))
 
-                            // Resumen y botón para fijar la hora
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                val periodText = if (reminderAmPm == "AM") "Mañana (AM)" else "Tarde/Noche (PM)"
-                                Text(
-                                    text = "Horario: $reminderTimeInput $reminderAmPm • $periodText",
-                                    style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
-                                    color = ExecutiveSecondaryAmber
-                                )
-
-                                Button(
-                                    onClick = { requestAndToggleReminder(true) },
-                                    colors = ButtonDefaults.buttonColors(containerColor = ExecutiveSecondaryAmber),
-                                    modifier = Modifier.testTag("btn_save_reminder_time")
-                                ) {
-                                    Text("Fijar", color = ExecutiveDarkBg, fontWeight = FontWeight.Bold)
-                                }
-                            }
+                            // Resumen del horario configurado
+                            val periodText = if (reminderAmPm == "AM") "Mañana (AM)" else "Tarde/Noche (PM)"
+                            Text(
+                                text = "Horario: $reminderTimeInput $reminderAmPm • $periodText",
+                                style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
+                                color = ExecutiveSecondaryAmber
+                            )
                         }
                     }
                 }
