@@ -54,13 +54,6 @@ jobs:
           echo "$JSON_CONTENT" > app/src/debug/google-services.json
           echo "google-services.json creado en app/ y app/src/debug/"
 
-      - name: Crear debug.keystore si no existe
-        run: |
-          if [ ! -f app/debug.keystore ]; then
-            keytool -genkey -v -keystore app/debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
-            echo "debug.keystore creado"
-          fi
-
       - name: Dar permisos a gradlew
         run: chmod +x ./gradlew
 
