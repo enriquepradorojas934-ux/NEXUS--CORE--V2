@@ -429,8 +429,8 @@ fun FinanceScreen(
             title = "Nuevo Activo",
             existingAsset = null,
             onDismiss = { showAddAssetDialog = false },
-            onConfirm = { name, amount ->
-                onAddAssetDebt("ACTIVO", name, amount, "")
+            onConfirm = { name, category, amount ->
+                onAddAssetDebt("ACTIVO", name, amount, category)
                 showAddAssetDialog = false
             }
         )
@@ -441,8 +441,8 @@ fun FinanceScreen(
             title = "Editar Activo",
             existingAsset = assetToEdit,
             onDismiss = { assetToEdit = null },
-            onConfirm = { name, amount ->
-                onUpdateAssetDebt(assetToEdit!!.copy(name = name, currentAmount = amount))
+            onConfirm = { name, category, amount ->
+                onUpdateAssetDebt(assetToEdit!!.copy(name = name, notes = category, currentAmount = amount))
                 assetToEdit = null
             }
         )
@@ -1283,12 +1283,11 @@ private fun AddEditAssetDialog(
     title: String,
     existingAsset: AssetDebtEntity?,
     onDismiss: () -> Unit,
-    onConfirm: (String, Double) -> Unit
+    onConfirm: (String, String, Double) -> Unit
 ) {
     var name by remember { mutableStateOf(existingAsset?.name ?: "") }
+    var category by remember { mutableStateOf(existingAsset?.notes ?: "") }
     var amountText by remember { mutableStateOf(existingAsset?.currentAmount?.toString() ?: "") }
-
-    val quickSuggestions = listOf("Bienes raíces", "Acciones", "Oro", "Efectivo", "Cripto", "Fondo Indexado")
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -1304,18 +1303,14 @@ private fun AddEditAssetDialog(
                     modifier = Modifier.fillMaxWidth().testTag("input_asset_name")
                 )
 
-                // Sugerencias de un toque
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    quickSuggestions.take(3).forEach { suggestion ->
-                        AssistChip(
-                            onClick = { name = suggestion },
-                            label = { Text(suggestion, fontSize = 10.sp) }
-                        )
-                    }
-                }
+                OutlinedTextField(
+                    value = category,
+                    onValueChange = { category = it },
+                    label = { Text("Categoría del activo") },
+                    placeholder = { Text("Ej: Bienes raíces, Cripto, Acciones, etc.") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth().testTag("input_asset_category")
+                )
 
                 OutlinedTextField(
                     value = amountText,
@@ -1332,7 +1327,7 @@ private fun AddEditAssetDialog(
                 onClick = {
                     val amount = amountText.toDoubleOrNull() ?: 0.0
                     if (name.isNotBlank() && amount >= 0.0) {
-                        onConfirm(name.trim(), amount)
+                        onConfirm(name.trim(), category.trim(), amount)
                     }
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = ExecutivePrimaryTeal),
