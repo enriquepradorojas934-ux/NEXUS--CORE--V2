@@ -478,7 +478,7 @@ fun SettingsScreen(
                             OutlinedTextField(
                                 value = cycleTimeInput,
                                 onValueChange = { cycleTimeInput = it },
-                                label = { Text("Hora (HH:mm)") },
+                                label = { Text("Hora del ciclo") },
                                 modifier = Modifier.weight(1f).testTag("input_cycle_time")
                             )
 

@@ -694,7 +694,7 @@ private fun FocusTrackerSection(
             OutlinedTextField(
                 value = categoryInput,
                 onValueChange = { categoryInput = it },
-                label = { Text("Categoría (FOCO, TRABAJO, ESTUDIO)") },
+                label = { Text("Categoría") },
                 modifier = Modifier.fillMaxWidth().testTag("input_timer_category")
             )
             Spacer(modifier = Modifier.height(24.dp))
@@ -915,7 +915,7 @@ private fun AddTaskDialog(
                 OutlinedTextField(
                     value = category,
                     onValueChange = { category = it },
-                    label = { Text("Categoría (ej: Trabajo, Estudio, Personal)") },
+                    label = { Text("Categoría") },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth().testTag("input_task_category")
                 )
@@ -972,13 +972,13 @@ private fun AddTimeBlockDialog(
                     OutlinedTextField(
                         value = startTime,
                         onValueChange = { startTime = it },
-                        label = { Text("Inicio (HH:mm)") },
+                        label = { Text("Inicio") },
                         modifier = Modifier.weight(1f)
                     )
                     OutlinedTextField(
                         value = endTime,
                         onValueChange = { endTime = it },
-                        label = { Text("Fin (HH:mm)") },
+                        label = { Text("Fin") },
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -986,7 +986,7 @@ private fun AddTimeBlockDialog(
                 OutlinedTextField(
                     value = category,
                     onValueChange = { category = it },
-                    label = { Text("Categoría (ej: Foco, Trabajo, Estudio)") },
+                    label = { Text("Categoría") },
                     placeholder = { Text("Escribe la categoría que desees...") },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth().testTag("input_block_category")

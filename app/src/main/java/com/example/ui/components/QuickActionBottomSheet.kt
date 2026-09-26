@@ -313,7 +313,7 @@ private fun FormAddHabit(
     OutlinedTextField(
         value = title,
         onValueChange = { title = it },
-        label = { Text("Nombre del hábito (ej. Meditación 10 min)") },
+        label = { Text("Nombre del hábito") },
         singleLine = true,
         modifier = Modifier.fillMaxWidth().testTag("input_quick_habit_title")
     )
@@ -323,7 +323,7 @@ private fun FormAddHabit(
     OutlinedTextField(
         value = category,
         onValueChange = { category = it },
-        label = { Text("Categoría (ej: Salud, Estudio, Enfoque)") },
+        label = { Text("Categoría") },
         placeholder = { Text("Escribe la categoría que desees...") },
         singleLine = true,
         modifier = Modifier.fillMaxWidth().testTag("input_quick_habit_category")
@@ -391,7 +391,7 @@ private fun FormAddTransaction(
     OutlinedTextField(
         value = amountText,
         onValueChange = { amountText = it },
-        label = { Text("Monto ($)") },
+        label = { Text("Monto") },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
         singleLine = true,
         modifier = Modifier.fillMaxWidth().testTag("input_quick_amount")
@@ -412,7 +412,7 @@ private fun FormAddTransaction(
     OutlinedTextField(
         value = category,
         onValueChange = { category = it },
-        label = { Text("Categoría (ej: Alimentación, Transporte, Salario)") },
+        label = { Text("Categoría") },
         placeholder = { Text("Escribe la categoría que desees...") },
         singleLine = true,
         modifier = Modifier.fillMaxWidth().testTag("input_quick_category")

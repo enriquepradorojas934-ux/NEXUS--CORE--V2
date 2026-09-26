@@ -1437,19 +1437,19 @@ private fun AddFinancialGoalDialog(
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
-                    label = { Text("Concepto (ej: Fondo de Emergencia)") },
+                    label = { Text("Concepto") },
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
                     value = targetText,
                     onValueChange = { targetText = it },
-                    label = { Text("Monto Objetivo ($)") },
+                    label = { Text("Monto objetivo") },
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
                     value = deadline,
                     onValueChange = { deadline = it },
-                    label = { Text("Fecha límite estimada") },
+                    label = { Text("Fecha") },
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -1483,7 +1483,7 @@ private fun ContributeGoalDialog(
             OutlinedTextField(
                 value = amountText,
                 onValueChange = { amountText = it },
-                label = { Text("Monto a aportar ($)") },
+                label = { Text("Monto a aportar") },
                 modifier = Modifier.fillMaxWidth().testTag("dialog_contribute_amount")
             )
         },

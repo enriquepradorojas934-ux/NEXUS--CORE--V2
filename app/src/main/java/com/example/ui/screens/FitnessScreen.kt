@@ -308,7 +308,7 @@ fun FitnessScreen(
                     OutlinedTextField(
                         value = workoutTitle,
                         onValueChange = { workoutTitle = it },
-                        label = { Text("Nombre de la rutina (ej. Torso Fuerza)") },
+                        label = { Text("Nombre de la rutina") },
                         modifier = Modifier.fillMaxWidth().testTag("input_workout_title"),
                         singleLine = true
                     )
@@ -334,7 +334,7 @@ fun FitnessScreen(
                     OutlinedTextField(
                         value = notesText,
                         onValueChange = { notesText = it },
-                        label = { Text("Notas tácticas (descansos, sensaciones)") },
+                        label = { Text("Notas tácticas") },
                         modifier = Modifier.fillMaxWidth().testTag("input_workout_notes"),
                         maxLines = 2
                     )
@@ -351,7 +351,7 @@ fun FitnessScreen(
                     OutlinedTextField(
                         value = exName,
                         onValueChange = { exName = it },
-                        label = { Text("Ejercicio (ej. Press de banca)") },
+                        label = { Text("Ejercicio") },
                         modifier = Modifier.fillMaxWidth().testTag("input_exercise_name"),
                         singleLine = true
                     )

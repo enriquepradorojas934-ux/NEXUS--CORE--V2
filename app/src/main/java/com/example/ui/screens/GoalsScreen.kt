@@ -552,13 +552,13 @@ private fun AddGoalDialog(
                 OutlinedTextField(
                     value = category,
                     onValueChange = { category = it },
-                    label = { Text("Categoría (ej: Carrera, Finanzas, Salud)") },
+                    label = { Text("Categoría de meta") },
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
                     value = targetDate,
                     onValueChange = { targetDate = it },
-                    label = { Text("Fecha objetivo (YYYY-MM-DD)") },
+                    label = { Text("Fecha") },
                     modifier = Modifier.fillMaxWidth()
                 )
             }
