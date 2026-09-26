@@ -208,7 +208,7 @@ fun HabitsScreen(
                                             }
                                         }
                                     },
-                                    label = { Text("Hora programada (HH:mm)") },
+                                    label = { Text("Hora programada") },
                                     placeholder = { Text("08:00") },
                                     singleLine = true,
                                     trailingIcon = {
