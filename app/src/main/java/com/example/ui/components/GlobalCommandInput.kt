@@ -28,6 +28,7 @@ fun GlobalCommandInput(
     onDetect: (String) -> Unit,
     onExecute: (List<DetectedGlobalEntry>) -> Unit,
     onClear: () -> Unit,
+    dailyAiSummary: String? = null,
     modifier: Modifier = Modifier
 ) {
     var rawText by remember { mutableStateOf("") }
@@ -74,6 +75,58 @@ fun GlobalCommandInput(
             }
 
             Spacer(modifier = Modifier.height(8.dp))
+
+            // Resumen diario generado automáticamente por IA (aparece sin escribir nada)
+            Surface(
+                shape = RoundedCornerShape(10.dp),
+                color = ExecutiveDarkSurfaceElevated,
+                border = androidx.compose.foundation.BorderStroke(1.dp, TacticalNeonCyan.copy(alpha = 0.22f)),
+                modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp).testTag("card_daily_ai_summary")
+            ) {
+                Column(modifier = Modifier.padding(12.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                Icons.Default.AutoAwesome,
+                                contentDescription = null,
+                                tint = TacticalNeonCyan,
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                "RESUMEN DEL DÍA",
+                                fontFamily = FontFamily.Monospace,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = TacticalNeonCyan,
+                                letterSpacing = 0.5.sp
+                            )
+                        }
+                        Surface(
+                            shape = RoundedCornerShape(4.dp),
+                            color = TacticalNeonCyan.copy(alpha = 0.15f)
+                        ) {
+                            Text(
+                                "IA LifeOS",
+                                fontSize = 9.sp,
+                                color = TacticalNeonCyan,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        text = dailyAiSummary ?: "Sintetizando actividades del ciclo diario...",
+                        style = MaterialTheme.typography.bodySmall.copy(lineHeight = 18.sp),
+                        color = ExecutiveTextPrimary
+                    )
+                }
+            }
 
             OutlinedTextField(
                 value = rawText,

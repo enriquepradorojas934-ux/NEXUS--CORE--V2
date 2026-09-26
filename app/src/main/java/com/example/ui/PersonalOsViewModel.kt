@@ -48,6 +48,9 @@ class PersonalOsViewModel(
             val savedAccent = repository.getConfig("accent_color") ?: "Teal"
 
             val cycleDate = DailyCycleEngine.getCurrentCycleDate(savedStartTime)
+            val savedLanguage = repository.getConfig("app_language") ?: "Español (Latinoamérica)"
+            val savedCurrencySymbol = repository.getConfig("app_currency_symbol") ?: "$"
+            val savedCurrencyCode = repository.getConfig("app_currency_code") ?: "USD"
 
             _uiState.update {
                 it.copy(
@@ -59,7 +62,10 @@ class PersonalOsViewModel(
                     timeUntilNextCycle = DailyCycleEngine.getTimeUntilNextCycle(savedStartTime),
                     cycleProgress = DailyCycleEngine.getCycleProgress(savedStartTime),
                     showOnboarding = !hasCompletedOnboarding,
-                    accentColorName = savedAccent
+                    accentColorName = savedAccent,
+                    selectedLanguage = savedLanguage,
+                    selectedCurrencySymbol = savedCurrencySymbol,
+                    selectedCurrencyCode = savedCurrencyCode
                 )
             }
 
@@ -79,6 +85,18 @@ class PersonalOsViewModel(
             }.forEach {
                 repository.deleteTransaction(it)
             }
+
+            // Eliminación definitiva de sección rota Fondo de Emergencia
+            val allGoals = repository.allGoals.first()
+            allGoals.filter { it.title.contains("Fondo de Emergencia", ignoreCase = true) }.forEach {
+                repository.deleteGoal(it)
+            }
+            val allFinGoals = repository.financialGoals.first()
+            allFinGoals.filter { it.name.contains("Fondo de Emergencia", ignoreCase = true) }.forEach {
+                repository.deleteFinancialGoal(it)
+            }
+
+            generateDailyAiSummary()
         }
     }
 
@@ -863,7 +881,95 @@ class PersonalOsViewModel(
             }
             clearGlobalCommand()
             recalculateProgression()
+            generateDailyAiSummary()
             _uiState.update { it.copy(userMessage = "${entries.size} registros aplicados a LifeOS.") }
+        }
+    }
+
+    // === RESUMEN DIARIO INTELIGENTE POR IA (HUB) ===
+    fun generateDailyAiSummary() {
+        viewModelScope.launch {
+            val s = _uiState.value
+            val habitsDone = s.habitsCompletedToday
+            val habitsTotal = s.habitsTotalToday
+            val doneHabitsNames = s.habits.filter { h -> s.habitLogsToday.any { it.habitId == h.id && it.isCompleted } }.map { it.title }
+            val expensesCount = s.transactionsToday.count { it.type == "GASTO" }
+            val totalExp = s.totalExpenses
+            val totalInc = s.totalIncome
+            val workoutsCount = s.workoutSessions.size
+            val productiveMins = s.totalProductiveMinutesToday
+            val activeGoals = s.goalsWithSubGoals.filter { it.progressPercent < 1.0f }
+            val goalsSummary = "${s.goalsWithSubGoals.count { it.progressPercent >= 1.0f }} de ${s.goalsWithSubGoals.size} metas cumplidas"
+
+            val bulletPoints = mutableListOf<String>()
+            if (habitsTotal > 0) {
+                bulletPoints.add("Hábitos: $habitsDone/$habitsTotal completados" + (if (doneHabitsNames.isNotEmpty()) " (${doneHabitsNames.joinToString(", ")})" else ""))
+            }
+            if (expensesCount > 0 || totalInc > 0) {
+                bulletPoints.add("Finanzas: ${s.selectedCurrencySymbol}${String.format("%,.2f", totalExp)} en gastos • +${s.selectedCurrencySymbol}${String.format("%,.2f", totalInc)} en ingresos")
+            }
+            if (s.goalsWithSubGoals.isNotEmpty()) {
+                bulletPoints.add("Metas: $goalsSummary (Avance promedio: ${(s.averageGoalsProgress * 100).toInt()}%)")
+            }
+            if (productiveMins > 0) {
+                bulletPoints.add("Enfoque: $productiveMins min de trabajo productivo")
+            }
+            if (workoutsCount > 0) {
+                bulletPoints.add("Entrenamiento: $workoutsCount sesión(es) registrada(s)")
+            }
+            if (s.totalAppUsageMinutes > 0) {
+                bulletPoints.add("Atención: ${s.totalAppUsageMinutes}m consumidos de ${s.totalAppBudgetMinutes}m de cuota")
+            }
+
+            val defaultSummary = if (bulletPoints.isNotEmpty()) {
+                bulletPoints.joinToString("\n• ", prefix = "• ")
+            } else {
+                "Sin actividades registradas hoy en el ciclo actual. Registra tus tareas, hábitos, gastos o entrenamientos para ver tu síntesis ejecutiva."
+            }
+
+            _uiState.update { it.copy(dailyAiSummary = defaultSummary) }
+
+            try {
+                val aiService = com.example.service.PersonalAiProductivityService()
+                val snapshot = com.example.service.UserProductivitySnapshot(
+                    cycleDate = s.currentCycleDate,
+                    productiveMinutesToday = productiveMins,
+                    pendingTasks = s.tasks.filter { !it.isCompleted }.map { it.title },
+                    completedTasks = s.tasks.filter { it.isCompleted }.map { it.title },
+                    habitsCompleted = habitsDone,
+                    habitsTotal = habitsTotal,
+                    habitNames = doneHabitsNames,
+                    appUsageMinutes = s.totalAppUsageMinutes,
+                    appBudgetMinutes = s.totalAppBudgetMinutes,
+                    blockedApps = s.appBudgets.filter { it.status == com.example.domain.AppBudgetStatus.BLOCKED }.map { it.limit.appName },
+                    activeGoals = activeGoals.map { it.goal.title },
+                    netFinancialBalance = s.netBalance
+                )
+                val aiResult = aiService.generateProductivityAdvice(snapshot)
+                val advice = aiResult.getOrNull()
+                if (!advice.isNullOrBlank()) {
+                    _uiState.update { it.copy(dailyAiSummary = advice) }
+                }
+            } catch (_: Exception) {
+                // Conserva el resumen inteligente local
+            }
+        }
+    }
+
+    // === CONFIGURACIÓN GLOBAL (IDIOMA Y MONEDA) ===
+    fun setAppLanguage(language: String) {
+        viewModelScope.launch {
+            repository.setConfig("app_language", language)
+            _uiState.update { it.copy(selectedLanguage = language) }
+        }
+    }
+
+    fun setAppCurrency(symbol: String, code: String) {
+        viewModelScope.launch {
+            repository.setConfig("app_currency_symbol", symbol)
+            repository.setConfig("app_currency_code", code)
+            _uiState.update { it.copy(selectedCurrencySymbol = symbol, selectedCurrencyCode = code) }
+            generateDailyAiSummary()
         }
     }
 
@@ -1385,12 +1491,6 @@ class PersonalOsViewModel(
         repository.insertSubGoal(SubGoalEntity(goalId = g1Id, title = "Definir arquitectura y modelo de datos", isCompleted = true))
         repository.insertSubGoal(SubGoalEntity(goalId = g1Id, title = "Construir V1 con Room y Jetpack Compose", isCompleted = true))
         repository.insertSubGoal(SubGoalEntity(goalId = g1Id, title = "Integrar servicios de bienestar y Accessibility", isCompleted = false))
-
-        val g2Id = repository.insertGoal(GoalEntity(title = "Construir Fondo de Emergencia de 6 Meses", description = "Colchón de seguridad financiera", category = "Finanzas", targetDate = "2026-10-30"))
-        repository.insertSubGoal(SubGoalEntity(goalId = g2Id, title = "Ahorrar primeros $1,000", isCompleted = true))
-        repository.insertSubGoal(SubGoalEntity(goalId = g2Id, title = "Alcanzar $3,000 en cuenta de alto rendimiento", isCompleted = false))
-
-        repository.insertFinancialGoal(FinancialGoalEntity(name = "Fondo de Emergencia", targetAmount = 5000.0, currentAmount = 0.0, deadline = "Dic 2026", category = "Seguridad"))
 
         // Bienestar Digital (Apps del ejemplo explícito del usuario: Facebook 30m, Instagram 20m, YouTube 45m)
         repository.insertAppLimit(AppLimitEntity(appName = "YouTube", packageName = "com.google.android.youtube", dailyBudgetMinutes = 45, currentUsageMinutes = 15, isBlocked = false, cycleDate = cycleDate))

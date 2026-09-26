@@ -90,10 +90,6 @@ fun FinanceScreen(
     // Diálogo de Registro de Gasto con IA
     var showRegisterExpenseDialog by remember { mutableStateOf(false) }
 
-    // Diálogos de Metas Financieras
-    var showGoalDialog by remember { mutableStateOf(false) }
-    var contributeGoalTarget by remember { mutableStateOf<FinancialGoalEntity?>(null) }
-
     // Diálogo de Pregunta Libre al Asesor
     var showAskAdvisorDialog by remember { mutableStateOf(false) }
 
@@ -257,92 +253,6 @@ fun FinanceScreen(
                         )
                     }
                 }
-
-                // Metas de Ahorro y Capital (Conservadas para respaldo financiero)
-                item {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "Metas de Capital y Ahorro",
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        TextButton(onClick = { showGoalDialog = true }) {
-                            Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text("Nueva Meta", fontSize = 12.sp)
-                        }
-                    }
-                }
-
-                if (state.financialGoals.isEmpty()) {
-                    item {
-                        Text(
-                            text = "No hay metas de ahorro activas registradas.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                } else {
-                    items(state.financialGoals, key = { it.id }) { goal ->
-                        val progress = if (goal.targetAmount > 0) {
-                            (goal.currentAmount / goal.targetAmount).toFloat().coerceIn(0f, 1f)
-                        } else 0f
-
-                        Card(
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                            shape = RoundedCornerShape(14.dp),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Column(modifier = Modifier.padding(14.dp)) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(
-                                        text = goal.name,
-                                        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                                        color = MaterialTheme.colorScheme.onSurface
-                                    )
-                                    Text(
-                                        text = "${(progress * 100).toInt()}%",
-                                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                                        color = ExecutiveSecondaryAmber
-                                    )
-                                }
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(
-                                    text = "$${String.format("%,.2f", goal.currentAmount)} de $${String.format("%,.2f", goal.targetAmount)} • Plazo: ${goal.deadline}",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                                Spacer(modifier = Modifier.height(8.dp))
-                                LinearProgressIndicator(
-                                    progress = { progress },
-                                    modifier = Modifier.fillMaxWidth().height(6.dp).clip(CircleShape),
-                                    color = ExecutiveSecondaryAmber,
-                                    trackColor = MaterialTheme.colorScheme.surfaceVariant
-                                )
-                                Spacer(modifier = Modifier.height(8.dp))
-                                TextButton(
-                                    onClick = { contributeGoalTarget = goal },
-                                    modifier = Modifier.align(Alignment.End),
-                                    contentPadding = PaddingValues(0.dp)
-                                ) {
-                                    Icon(Icons.Default.AddCircleOutline, contentDescription = null, modifier = Modifier.size(16.dp))
-                                    Spacer(modifier = Modifier.width(4.dp))
-                                    Text("Aportar a meta", style = MaterialTheme.typography.labelSmall)
-                                }
-                            }
-                        }
-                    }
-                }
-
             } else {
                 // ==================== SECCIÓN 2: GASTOS ====================
                 // Resumen rápido de gastos y flujo
@@ -579,28 +489,6 @@ fun FinanceScreen(
                 onAddTransaction("GASTO", amt, cat, fullDescription)
                 onClearExpenseEvaluation()
                 showRegisterExpenseDialog = false
-            }
-        )
-    }
-
-    // ==================== DIÁLOGOS ADICIONALES ====================
-    if (showGoalDialog) {
-        AddFinancialGoalDialog(
-            onDismiss = { showGoalDialog = false },
-            onConfirm = { name, target, deadline ->
-                onAddFinancialGoal(name, target, deadline)
-                showGoalDialog = false
-            }
-        )
-    }
-
-    if (contributeGoalTarget != null) {
-        ContributeGoalDialog(
-            goal = contributeGoalTarget!!,
-            onDismiss = { contributeGoalTarget = null },
-            onConfirm = { amount ->
-                onContributeToGoal(contributeGoalTarget!!, amount)
-                contributeGoalTarget = null
             }
         )
     }
@@ -1240,7 +1128,8 @@ private fun RegisterExpenseWithAiDialog(
                     OutlinedTextField(
                         value = name,
                         onValueChange = { name = it },
-                        label = { Text("1. Nombre del gasto (ej: Carro, Supermercado)") },
+                        label = { Text("Nombre del gasto") },
+                        placeholder = { Text("Nombre del gasto") },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth().testTag("input_expense_name")
                     )
@@ -1251,8 +1140,8 @@ private fun RegisterExpenseWithAiDialog(
                     OutlinedTextField(
                         value = category,
                         onValueChange = { category = it },
-                        label = { Text("2. Categoría (ej: Transporte, Comida, Vivienda)") },
-                        placeholder = { Text("Escribe la categoría que desees...") },
+                        label = { Text("Categoría") },
+                        placeholder = { Text("Categoría") },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth().testTag("input_expense_category")
                     )
@@ -1263,7 +1152,7 @@ private fun RegisterExpenseWithAiDialog(
                     OutlinedTextField(
                         value = selectedDate,
                         onValueChange = { selectedDate = it },
-                        label = { Text("3. Fecha (día / mes / año)") },
+                        label = { Text("Fecha") },
                         readOnly = true,
                         trailingIcon = {
                             IconButton(onClick = { datePickerDialog.show() }) {
@@ -1279,7 +1168,8 @@ private fun RegisterExpenseWithAiDialog(
                     OutlinedTextField(
                         value = amountText,
                         onValueChange = { amountText = it },
-                        label = { Text("4. Monto ($)") },
+                        label = { Text("Monto") },
+                        placeholder = { Text("0.00") },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth().testTag("input_expense_amount")
                     )
@@ -1290,8 +1180,8 @@ private fun RegisterExpenseWithAiDialog(
                     OutlinedTextField(
                         value = description,
                         onValueChange = { description = it },
-                        label = { Text("5. Descripción y motivo real de la compra") },
-                        placeholder = { Text("Explica por qué necesitas o deseas hacer este gasto...") },
+                        label = { Text("Descripción") },
+                        placeholder = { Text("Detalle o motivo del gasto") },
                         minLines = 2,
                         maxLines = 4,
                         modifier = Modifier.fillMaxWidth().testTag("input_expense_description")
@@ -1409,7 +1299,7 @@ private fun AddEditAssetDialog(
                     value = name,
                     onValueChange = { name = it },
                     label = { Text("Nombre del activo") },
-                    placeholder = { Text("Ej: Bienes raíces, Acciones, Oro") },
+                    placeholder = { Text("Nombre del activo") },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth().testTag("input_asset_name")
                 )
@@ -1430,8 +1320,8 @@ private fun AddEditAssetDialog(
                 OutlinedTextField(
                     value = amountText,
                     onValueChange = { amountText = it },
-                    label = { Text("Valor en dinero ($)") },
-                    placeholder = { Text("Ej: 25000") },
+                    label = { Text("Monto") },
+                    placeholder = { Text("0.00") },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth().testTag("input_asset_value")
                 )

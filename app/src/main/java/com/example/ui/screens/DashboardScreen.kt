@@ -82,7 +82,7 @@ fun DashboardScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = 16.dp),
-                contentPadding = PaddingValues(vertical = 14.dp),
+                contentPadding = PaddingValues(top = 14.dp, bottom = 100.dp),
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
                 // BARRA DE ESTADO DE CUENTA Y SINCRONIZACIÓN CLOUD FIRESTORE
@@ -155,7 +155,8 @@ fun DashboardScreen(
                         detectedEntries = state.detectedGlobalEntries,
                         onDetect = onDetectGlobalCommand,
                         onExecute = onExecuteGlobalCommand,
-                        onClear = onClearGlobalCommand
+                        onClear = onClearGlobalCommand,
+                        dailyAiSummary = state.dailyAiSummary
                     )
                 }
 

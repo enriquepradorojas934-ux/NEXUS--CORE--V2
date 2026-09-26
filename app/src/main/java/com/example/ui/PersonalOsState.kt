@@ -131,5 +131,14 @@ data class PersonalOsUiState(
     val showOnboarding: Boolean = false,
 
     // Personalización del Tema
-    val accentColorName: String = "Teal"
+    val accentColorName: String = "Teal",
+
+    // Resumen Diario Automático por IA (Hub)
+    val dailyAiSummary: String? = null,
+    val isGeneratingDailySummary: Boolean = false,
+
+    // Configuración Global (Idioma y Moneda)
+    val selectedLanguage: String = "Español (Latinoamérica)",
+    val selectedCurrencySymbol: String = "$",
+    val selectedCurrencyCode: String = "USD"
 )

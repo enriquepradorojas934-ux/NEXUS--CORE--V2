@@ -155,6 +155,7 @@ fun GoalsScreen(
                     GoalCard(
                         item = item,
                         isCompleted = isCompleted,
+                        modifier = Modifier.animateItem(),
                         onToggleGoalCompletion = {
                             val id = item.goal.id
                             if (isCompleted) {
@@ -170,7 +171,11 @@ fun GoalsScreen(
                             }
                         },
                         onAddSubGoalClick = { subGoalDialogGoalId = item.goal.id },
-                        onToggleSubGoal = onToggleSubGoal,
+                        onToggleSubGoal = { sub ->
+                            manuallyCompletedGoalIds = manuallyCompletedGoalIds - item.goal.id
+                            manuallyUncompletedGoalIds = manuallyUncompletedGoalIds - item.goal.id
+                            onToggleSubGoal(sub)
+                        },
                         onDeleteGoal = { onDeleteGoal(item.goal) },
                         onToggleHabit = onToggleHabit
                     )
@@ -208,6 +213,7 @@ fun GoalsScreen(
 private fun GoalCard(
     item: GoalWithSubGoals,
     isCompleted: Boolean,
+    modifier: Modifier = Modifier,
     onToggleGoalCompletion: () -> Unit,
     onAddSubGoalClick: () -> Unit,
     onToggleSubGoal: (SubGoalEntity) -> Unit,
@@ -237,7 +243,7 @@ private fun GoalCard(
             if (isCompleted) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
             else ExecutivePurple.copy(alpha = 0.22f)
         ),
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .testTag("goal_card_${item.goal.id}")
     ) {
@@ -277,7 +283,7 @@ private fun GoalCard(
                     Text(
                         text = item.goal.title,
                         style = MaterialTheme.typography.bodyLarge.copy(
-                            fontWeight = FontWeight.Bold,
+                            fontWeight = if (isCompleted) FontWeight.Bold else FontWeight.Normal,
                             textDecoration = if (isCompleted) TextDecoration.LineThrough else TextDecoration.None
                         ),
                         color = if (isCompleted) {
@@ -294,6 +300,7 @@ private fun GoalCard(
                         Text(
                             text = item.goal.description,
                             style = MaterialTheme.typography.bodySmall.copy(
+                                fontWeight = if (isCompleted) FontWeight.Bold else FontWeight.Normal,
                                 textDecoration = if (isCompleted) TextDecoration.LineThrough else TextDecoration.None
                             ),
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -320,6 +327,8 @@ private fun GoalCard(
                                     fontWeight = FontWeight.SemiBold,
                                     fontSize = 10.sp
                                 ),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
                                 color = if (isCompleted) MaterialTheme.colorScheme.onSurfaceVariant else ExecutivePurple,
                                 modifier = Modifier.padding(horizontal = 6.dp, vertical = 1.dp)
                             )
@@ -330,6 +339,8 @@ private fun GoalCard(
                             Text(
                                 text = "$doneSubs/${item.subGoals.size} hitos",
                                 style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                                maxLines = 1,
+                                softWrap = false,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Text("•", style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp), color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -339,10 +350,14 @@ private fun GoalCard(
                             Text(
                                 text = item.goal.targetDate,
                                 style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Text("•", style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp), color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
+
+                        Spacer(modifier = Modifier.weight(1f, fill = false))
 
                         Text(
                             text = "${(effectiveProgress * 100).toInt()}%",
@@ -350,7 +365,9 @@ private fun GoalCard(
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 10.sp,
                                 color = if (isCompleted) ExecutiveSuccessGreen else ExecutivePurple
-                            )
+                            ),
+                            maxLines = 1,
+                            softWrap = false
                         )
                     }
 
