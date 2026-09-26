@@ -22,8 +22,6 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.domain.AppBudgetStatus
-import com.example.domain.EvaluatedAppBudget
 import com.example.ui.AppNavTab
 import com.example.ui.PersonalOsUiState
 import com.example.ui.components.*
@@ -60,7 +58,6 @@ fun DashboardScreen(
     var customQuestionText by remember { mutableStateOf("") }
     var showQuickActions by remember { mutableStateOf(false) }
     var showProgressionDialog by remember { mutableStateOf(false) }
-    var lockScreenAppTarget by remember { mutableStateOf<EvaluatedAppBudget?>(null) }
     val todayAphorism = remember { ExecutiveAphorisms.getTodayAphorism() }
 
     Box(modifier = Modifier.fillMaxSize().background(ExecutiveDarkBg)) {
@@ -218,221 +215,7 @@ fun DashboardScreen(
                 }
 
                 // ========================================
-                // 2. ATENCIÓN (BIENESTAR DIGITAL)
-                // ========================================
-                item {
-                    LifeOsSectionHeader(
-                        title = "Atención",
-                        subtag = "Presupuestos de Pantalla",
-                        indicatorColor = if (state.blockedAppsCount > 0) ExecutiveDangerRed else ExecutivePrimaryTeal
-                    )
-                }
-
-                item {
-                    Surface(
-                        shape = RoundedCornerShape(14.dp),
-                        color = ExecutiveDarkSurface,
-                        border = androidx.compose.foundation.BorderStroke(1.dp, ExecutiveBorder),
-                        modifier = Modifier.fillMaxWidth().testTag("card_attention_hub")
-                    ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            // Cabecera de telemetría de atención
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Column {
-                                    Text(
-                                        text = "CONSUMO GLOBAL DEL CICLO",
-                                        style = MaterialTheme.typography.labelSmall.copy(
-                                            fontFamily = FontFamily.Monospace,
-                                            fontWeight = FontWeight.Bold
-                                        ),
-                                        color = ExecutiveTextMuted
-                                    )
-                                    Spacer(modifier = Modifier.height(2.dp))
-                                    Text(
-                                        text = "${state.totalAppUsageMinutes}m / ${state.totalAppBudgetMinutes}m permitidos",
-                                        style = MaterialTheme.typography.titleMedium.copy(
-                                            fontWeight = FontWeight.Bold,
-                                            fontFamily = FontFamily.Monospace
-                                        ),
-                                        color = if (state.totalAppUsageMinutes >= state.totalAppBudgetMinutes) ExecutiveDangerRed else ExecutiveTextWhite
-                                    )
-                                }
-
-                                if (state.isStrictModeEnabled) {
-                                    LifeOsBadge(
-                                        text = "MODO ESTRICTO [LOCK]",
-                                        type = LifeOsBadgeType.BLOCKED
-                                    )
-                                } else {
-                                    LifeOsBadge(
-                                        text = "MODO NORMAL",
-                                        type = LifeOsBadgeType.AVAILABLE
-                                    )
-                                }
-                            }
-
-                            Spacer(modifier = Modifier.height(14.dp))
-
-                            // Lista precisa de Aplicaciones con el formato especificado:
-                            // Nombre
-                            // Uso actual / Presupuesto (ej: 18:42 / 30:00)
-                            // Tiempo restante (ej: 11:18 restantes)
-                            // Estado (DISPONIBLE / CERCA DEL LÍMITE / AGOTADO / BLOQUEADO)
-                            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                                state.appBudgets.forEach { budget ->
-                                    val isBlocked = budget.status == AppBudgetStatus.BLOCKED || budget.status == AppBudgetStatus.EXHAUSTED
-                                    val isNearLimit = budget.status == AppBudgetStatus.NEAR_LIMIT || budget.status == AppBudgetStatus.WARNING
-
-                                    val badgeType = when (budget.status) {
-                                        AppBudgetStatus.BLOCKED -> LifeOsBadgeType.BLOCKED
-                                        AppBudgetStatus.EXHAUSTED -> LifeOsBadgeType.EXHAUSTED
-                                        AppBudgetStatus.NEAR_LIMIT, AppBudgetStatus.WARNING -> LifeOsBadgeType.NEAR_LIMIT
-                                        AppBudgetStatus.AVAILABLE -> LifeOsBadgeType.AVAILABLE
-                                    }
-
-                                    val badgeLabel = when (budget.status) {
-                                        AppBudgetStatus.BLOCKED -> "BLOQUEADO"
-                                        AppBudgetStatus.EXHAUSTED -> "AGOTADO"
-                                        AppBudgetStatus.NEAR_LIMIT, AppBudgetStatus.WARNING -> "CERCA DEL LÍMITE"
-                                        AppBudgetStatus.AVAILABLE -> "DISPONIBLE"
-                                    }
-
-                                    Surface(
-                                        shape = RoundedCornerShape(10.dp),
-                                        color = if (isBlocked) ExecutiveDangerRed.copy(alpha = 0.08f) else ExecutiveDarkSurfaceElevated,
-                                        border = androidx.compose.foundation.BorderStroke(
-                                            1.dp,
-                                            if (isBlocked) ExecutiveDangerRed.copy(alpha = 0.35f) else ExecutiveBorderSubtle
-                                        ),
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .clickable {
-                                                if (isBlocked) {
-                                                    SensoryFeedbackHelper.vibrateAlert(context)
-                                                    lockScreenAppTarget = budget
-                                                }
-                                            }
-                                            .testTag("app_budget_item_${budget.limit.appName.lowercase()}")
-                                    ) {
-                                        Column(modifier = Modifier.padding(12.dp)) {
-                                            Row(
-                                                modifier = Modifier.fillMaxWidth(),
-                                                horizontalArrangement = Arrangement.SpaceBetween,
-                                                verticalAlignment = Alignment.CenterVertically
-                                            ) {
-                                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                                    Icon(
-                                                        imageVector = if (isBlocked) Icons.Default.Lock else Icons.Default.PhoneAndroid,
-                                                        contentDescription = budget.limit.appName,
-                                                        tint = if (isBlocked) ExecutiveDangerRed else ExecutivePrimaryTeal,
-                                                        modifier = Modifier.size(18.dp)
-                                                    )
-                                                    Spacer(modifier = Modifier.width(8.dp))
-                                                    Text(
-                                                        text = budget.limit.appName,
-                                                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                                                        color = ExecutiveTextWhite
-                                                    )
-                                                }
-
-                                                LifeOsBadge(
-                                                    text = badgeLabel,
-                                                    type = badgeType
-                                                )
-                                            }
-
-                                            Spacer(modifier = Modifier.height(8.dp))
-
-                                            Row(
-                                                modifier = Modifier.fillMaxWidth(),
-                                                horizontalArrangement = Arrangement.SpaceBetween,
-                                                verticalAlignment = Alignment.CenterVertically
-                                            ) {
-                                                Text(
-                                                    text = String.format("%02d:00 / %02d:00", budget.limit.currentUsageMinutes, budget.limit.dailyBudgetMinutes),
-                                                    style = MaterialTheme.typography.labelMedium.copy(
-                                                        fontFamily = FontFamily.Monospace,
-                                                        fontWeight = FontWeight.SemiBold
-                                                    ),
-                                                    color = ExecutiveTextMuted
-                                                )
-
-                                                Text(
-                                                    text = if (isBlocked) "00:00 restantes" else String.format("%02d:00 restantes", budget.remainingMinutes),
-                                                    style = MaterialTheme.typography.labelMedium.copy(
-                                                        fontFamily = FontFamily.Monospace,
-                                                        fontWeight = FontWeight.Bold
-                                                    ),
-                                                    color = if (isBlocked) ExecutiveDangerRed else if (isNearLimit) ExecutiveSecondaryAmber else ExecutiveSuccessGreen
-                                                )
-                                            }
-
-                                            Spacer(modifier = Modifier.height(8.dp))
-
-                                            LinearProgressIndicator(
-                                                progress = { budget.percentUsed },
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .height(4.dp)
-                                                    .clip(RoundedCornerShape(2.dp)),
-                                                color = if (isBlocked) ExecutiveDangerRed else if (isNearLimit) ExecutiveSecondaryAmber else ExecutivePrimaryTeal,
-                                                trackColor = ExecutiveDarkSurfaceVariant
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-
-                            Spacer(modifier = Modifier.height(10.dp))
-
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                TextButton(
-                                    onClick = {
-                                        val sample = state.appBudgets.firstOrNull { it.status == AppBudgetStatus.BLOCKED || it.status == AppBudgetStatus.EXHAUSTED }
-                                            ?: state.appBudgets.firstOrNull()
-                                        lockScreenAppTarget = sample
-                                    },
-                                    contentPadding = PaddingValues(0.dp)
-                                ) {
-                                    Icon(
-                                        Icons.Default.Security,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(14.dp),
-                                        tint = ExecutiveSecondaryAmber
-                                    )
-                                    Spacer(modifier = Modifier.width(4.dp))
-                                    Text(
-                                        "Inspeccionar Pantalla de Bloqueo",
-                                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
-                                        color = ExecutiveSecondaryAmber
-                                    )
-                                }
-
-                                TextButton(
-                                    onClick = { onNavigate(AppNavTab.WELLBEING) },
-                                    contentPadding = PaddingValues(0.dp)
-                                ) {
-                                    Text(
-                                        "Administrar Cuotas →",
-                                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                                        color = ExecutivePrimaryTeal
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // ========================================
-                // 3. TIEMPO (AGENDA Y TAREAS DEL CICLO)
+                // TIEMPO (AGENDA Y TAREAS DEL CICLO)
                 // ========================================
                 item {
                     LifeOsSectionHeader(
@@ -972,20 +755,6 @@ fun DashboardScreen(
                 progression = state.userProgression,
                 achievements = state.achievements,
                 onDismiss = { showProgressionDialog = false }
-            )
-        }
-
-        // PANTALLA DE BLOQUEO DE SISTEMA (Overlay Full-Screen auténtico)
-        if (lockScreenAppTarget != null) {
-            SystemLockScreenOverlay(
-                visible = true,
-                appName = lockScreenAppTarget?.limit?.appName ?: "Aplicación",
-                usedMinutes = lockScreenAppTarget?.limit?.currentUsageMinutes ?: 30,
-                budgetMinutes = lockScreenAppTarget?.limit?.dailyBudgetMinutes ?: 30,
-                resetTime = state.cycleStartTime + ":00 AM",
-                timeUntilReset = state.timeUntilNextCycle,
-                isStrictMode = state.isStrictModeEnabled,
-                onDismissToHub = { lockScreenAppTarget = null }
             )
         }
 

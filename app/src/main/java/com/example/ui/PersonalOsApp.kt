@@ -148,13 +148,6 @@ fun PersonalOsApp() {
                         onAskFinanceAdvisor = { viewModel.askFinanceAdvisorQuestion(it) },
                         onClearFinanceAdvisor = { viewModel.clearFinanceAdvisorAdvice() }
                     )
-                    AppNavTab.WELLBEING -> WellbeingScreen(
-                        state = state,
-                        onAddAppLimit = { name, pkg, budget -> viewModel.addAppLimit(name, pkg, budget) },
-                        onSimulateUsage = { id, mins -> viewModel.simulateAppUsage(id, mins) },
-                        onSetStrictMode = { viewModel.setStrictMode(it) },
-                        onForceResetCycle = { viewModel.resetDailyCycleNow() }
-                    )
                     AppNavTab.SETTINGS -> SettingsScreen(
                         state = state,
                         onSetCycleStartTime = { viewModel.setCycleStartTime(it) },

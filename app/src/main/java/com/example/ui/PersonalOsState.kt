@@ -1,7 +1,6 @@
 package com.example.ui
 
 import com.example.data.model.*
-import com.example.domain.EvaluatedAppBudget
 
 enum class AppNavTab(val label: String) {
     DASHBOARD("Hub"),
@@ -9,7 +8,6 @@ enum class AppNavTab(val label: String) {
     HABITS("Hábitos"),
     GOALS("Metas"),
     FINANCE("Finanzas"),
-    WELLBEING("Bienestar"),
     SETTINGS("Ajustes")
 }
 
@@ -94,12 +92,7 @@ data class PersonalOsUiState(
     val customFinanceAdvice: String? = null,
     val isAskingFinanceAdvisor: Boolean = false,
 
-    // Módulo Bienestar Digital
-    val appBudgets: List<EvaluatedAppBudget> = emptyList(),
     val isStrictModeEnabled: Boolean = false,
-    val totalAppBudgetMinutes: Int = 0,
-    val totalAppUsageMinutes: Int = 0,
-    val blockedAppsCount: Int = 0,
 
     // Módulo Asesor IA (Firebase AI / Gemini)
     val isGeneratingAiAdvice: Boolean = false,

@@ -628,8 +628,7 @@ fun ExecutiveBottomNav(
             Triple(AppNavTab.TIME, Icons.Default.Schedule, "Tiempo"),
             Triple(AppNavTab.HABITS, Icons.Default.CheckCircle, "Hábitos"),
             Triple(AppNavTab.GOALS, Icons.Default.Flag, "Metas"),
-            Triple(AppNavTab.FINANCE, Icons.Default.AccountBalanceWallet, "Finanzas"),
-            Triple(AppNavTab.WELLBEING, Icons.Default.Shield, "Atención")
+            Triple(AppNavTab.FINANCE, Icons.Default.AccountBalanceWallet, "Finanzas")
         )
 
         items.forEach { (tab, icon, label) ->

@@ -494,40 +494,6 @@ fun SettingsScreen(
                 }
             }
 
-            // MODO ESTRICTO Y REGLAS PERSONALES
-            item {
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier.fillMaxWidth().testTag("card_strict_mode_settings")
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = "MODO ESTRICTO (RIGOR DE ATENCIÓN)",
-                                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                                    color = if (state.isStrictModeEnabled) ExecutiveDangerRed else ExecutivePrimaryTeal
-                                )
-                                Text(
-                                    text = "Impide modificar o eliminar límites de apps durante el ciclo activo.",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                            Switch(
-                                checked = state.isStrictModeEnabled,
-                                onCheckedChange = { onSetStrictMode(it) }
-                            )
-                        }
-                    }
-                }
-            }
-
             // PERSONALIZACIÓN VISUAL EJECUTIVA (TEMA Y ACENTOS)
             item {
                 Card(

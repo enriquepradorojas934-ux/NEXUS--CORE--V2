@@ -6,7 +6,6 @@ import androidx.lifecycle.viewModelScope
 import com.example.data.model.*
 import com.example.data.repository.PersonalOsRepository
 import com.example.domain.DailyCycleEngine
-import com.example.domain.WellbeingEngine
 import com.example.domain.ProgressionEngine
 import com.example.domain.NaturalLanguageEngine
 import com.example.domain.ParsedTaskData
@@ -248,24 +247,6 @@ class PersonalOsViewModel(
                         assetsAndDebts = assetsDebts,
                         totalAssets = totalAst,
                         totalDebts = totalDbt
-                    )
-                }
-            }
-        }
-
-        // Bienestar Digital (Límites de Apps)
-        viewModelScope.launch {
-            repository.allAppLimits.collect { appLimits ->
-                val evaluated = appLimits.map { WellbeingEngine.evaluate(it) }
-                val totalBudget = appLimits.sumOf { it.dailyBudgetMinutes }
-                val totalUsage = appLimits.sumOf { it.currentUsageMinutes }
-                val blockedCount = evaluated.count { it.status == com.example.domain.AppBudgetStatus.BLOCKED }
-                _uiState.update {
-                    it.copy(
-                        appBudgets = evaluated,
-                        totalAppBudgetMinutes = totalBudget,
-                        totalAppUsageMinutes = totalUsage,
-                        blockedAppsCount = blockedCount
                     )
                 }
             }
@@ -917,9 +898,6 @@ class PersonalOsViewModel(
             if (workoutsCount > 0) {
                 bulletPoints.add("Entrenamiento: $workoutsCount sesión(es) registrada(s)")
             }
-            if (s.totalAppUsageMinutes > 0) {
-                bulletPoints.add("Atención: ${s.totalAppUsageMinutes}m consumidos de ${s.totalAppBudgetMinutes}m de cuota")
-            }
 
             val defaultSummary = if (bulletPoints.isNotEmpty()) {
                 bulletPoints.joinToString("\n• ", prefix = "• ")
@@ -939,9 +917,9 @@ class PersonalOsViewModel(
                     habitsCompleted = habitsDone,
                     habitsTotal = habitsTotal,
                     habitNames = doneHabitsNames,
-                    appUsageMinutes = s.totalAppUsageMinutes,
-                    appBudgetMinutes = s.totalAppBudgetMinutes,
-                    blockedApps = s.appBudgets.filter { it.status == com.example.domain.AppBudgetStatus.BLOCKED }.map { it.limit.appName },
+                    appUsageMinutes = 0,
+                    appBudgetMinutes = 0,
+                    blockedApps = emptyList(),
                     activeGoals = activeGoals.map { it.goal.title },
                     netFinancialBalance = s.netBalance
                 )
@@ -1034,54 +1012,13 @@ class PersonalOsViewModel(
         }
     }
 
-    // === BIENESTAR DIGITAL ===
-    fun addAppLimit(appName: String, packageName: String, dailyBudgetMinutes: Int) {
-        if (appName.isBlank() || dailyBudgetMinutes <= 0) return
-        viewModelScope.launch {
-            val limit = AppLimitEntity(
-                appName = appName.trim(),
-                packageName = packageName.trim().ifBlank { "com.example.${appName.lowercase()}" },
-                dailyBudgetMinutes = dailyBudgetMinutes,
-                currentUsageMinutes = 0,
-                cycleDate = _uiState.value.currentCycleDate
-            )
-            repository.insertAppLimit(limit)
-        }
-    }
-
-    fun simulateAppUsage(limitId: Long, additionalMinutes: Int) {
-        viewModelScope.launch {
-            val limit = _uiState.value.appBudgets.find { it.limit.id == limitId }?.limit ?: return@launch
-            val newUsage = limit.currentUsageMinutes + additionalMinutes
-            val isNowBlocked = newUsage >= limit.dailyBudgetMinutes
-            val updated = limit.copy(
-                currentUsageMinutes = newUsage,
-                isBlocked = isNowBlocked
-            )
-            repository.updateAppLimit(updated)
-            if (isNowBlocked) {
-                _uiState.update {
-                    it.copy(userMessage = "⚠️ ${limit.appName}: Presupuesto agotado. Bloqueado hasta las ${_uiState.value.cycleStartTime}")
-                }
-            }
-        }
-    }
-
     fun setStrictMode(enabled: Boolean) {
-        // En Modo Estricto, si se intenta desactivar durante el ciclo activo, se valida la regla de evasión
-        if (!enabled && _uiState.value.isStrictModeEnabled) {
-            _uiState.update {
-                it.copy(userMessage = "🛡️ Modo Estricto activo: Por regla personal, no puedes desactivar restricciones durante el ciclo actual. Espera a las ${_uiState.value.cycleStartTime}.")
-            }
-            return
-        }
-
         viewModelScope.launch {
             repository.setConfig("strict_mode", enabled.toString())
             _uiState.update {
                 it.copy(
                     isStrictModeEnabled = enabled,
-                    userMessage = if (enabled) "🛡️ Modo Estricto activado. Las restricciones quedan bloqueadas hasta las ${it.cycleStartTime}." else "Modo Normal activado."
+                    userMessage = if (enabled) "Modo Estricto activado." else "Modo Normal activado."
                 )
             }
         }
@@ -1090,11 +1027,10 @@ class PersonalOsViewModel(
     fun resetDailyCycleNow() {
         viewModelScope.launch {
             val newCycle = DailyCycleEngine.getCurrentCycleDate(_uiState.value.cycleStartTime)
-            repository.resetAppLimitsForNewCycle(newCycle)
             _uiState.update {
                 it.copy(
                     currentCycleDate = newCycle,
-                    userMessage = "Ciclo diario reiniciado con éxito. Presupuestos restaurados a 0 min."
+                    userMessage = "Ciclo diario reiniciado con éxito."
                 )
             }
         }
@@ -1129,9 +1065,9 @@ class PersonalOsViewModel(
             habitsCompleted = state.habitsCompletedToday,
             habitsTotal = state.habitsTotalToday,
             habitNames = state.habits.map { it.title },
-            appUsageMinutes = state.totalAppUsageMinutes,
-            appBudgetMinutes = state.totalAppBudgetMinutes,
-            blockedApps = state.appBudgets.filter { it.status == com.example.domain.AppBudgetStatus.BLOCKED }.map { it.limit.appName },
+            appUsageMinutes = 0,
+            appBudgetMinutes = 0,
+            blockedApps = emptyList(),
             activeGoals = state.goalsWithSubGoals.map { "${it.goal.title} (${(it.progressPercent * 100).toInt()}%)" },
             netFinancialBalance = state.netBalance
         )
@@ -1179,9 +1115,9 @@ class PersonalOsViewModel(
             habitsCompleted = state.habitsCompletedToday,
             habitsTotal = state.habitsTotalToday,
             habitNames = state.habits.map { it.title },
-            appUsageMinutes = state.totalAppUsageMinutes,
-            appBudgetMinutes = state.totalAppBudgetMinutes,
-            blockedApps = state.appBudgets.filter { it.status == com.example.domain.AppBudgetStatus.BLOCKED }.map { it.limit.appName },
+            appUsageMinutes = 0,
+            appBudgetMinutes = 0,
+            blockedApps = emptyList(),
             activeGoals = state.goalsWithSubGoals.map { "${it.goal.title} (${(it.progressPercent * 100).toInt()}%)" },
             netFinancialBalance = state.netBalance
         )
@@ -1275,9 +1211,9 @@ class PersonalOsViewModel(
             habitsCompleted = state.habitsCompletedToday,
             habitsTotal = state.habitsTotalToday,
             habitNames = state.habits.map { it.title },
-            appUsageMinutes = state.totalAppUsageMinutes,
-            appBudgetMinutes = state.totalAppBudgetMinutes,
-            blockedApps = state.appBudgets.filter { it.status == com.example.domain.AppBudgetStatus.BLOCKED }.map { it.limit.appName },
+            appUsageMinutes = 0,
+            appBudgetMinutes = 0,
+            blockedApps = emptyList(),
             activeGoals = state.goalsWithSubGoals.map { "${it.goal.title} (${(it.progressPercent * 100).toInt()}%)" },
             netFinancialBalance = state.netBalance
         )
@@ -1490,12 +1426,7 @@ class PersonalOsViewModel(
         val g1Id = repository.insertGoal(GoalEntity(title = "Desarrollar mi Sistema Operativo Personal", description = "Extensión digital de control de vida y métricas", category = "Tecnología", targetDate = "2026-12-31"))
         repository.insertSubGoal(SubGoalEntity(goalId = g1Id, title = "Definir arquitectura y modelo de datos", isCompleted = true))
         repository.insertSubGoal(SubGoalEntity(goalId = g1Id, title = "Construir V1 con Room y Jetpack Compose", isCompleted = true))
-        repository.insertSubGoal(SubGoalEntity(goalId = g1Id, title = "Integrar servicios de bienestar y Accessibility", isCompleted = false))
-
-        // Bienestar Digital (Apps del ejemplo explícito del usuario: Facebook 30m, Instagram 20m, YouTube 45m)
-        repository.insertAppLimit(AppLimitEntity(appName = "YouTube", packageName = "com.google.android.youtube", dailyBudgetMinutes = 45, currentUsageMinutes = 15, isBlocked = false, cycleDate = cycleDate))
-        repository.insertAppLimit(AppLimitEntity(appName = "Facebook", packageName = "com.facebook.katana", dailyBudgetMinutes = 30, currentUsageMinutes = 10, isBlocked = false, cycleDate = cycleDate))
-        repository.insertAppLimit(AppLimitEntity(appName = "Instagram", packageName = "com.instagram.android", dailyBudgetMinutes = 20, currentUsageMinutes = 20, isBlocked = true, cycleDate = cycleDate))
+        repository.insertSubGoal(SubGoalEntity(goalId = g1Id, title = "Integrar sincronización y arquitectura moderna", isCompleted = false))
 
         // Entrenamiento Inicial
         val wsId = repository.insertWorkoutSession(

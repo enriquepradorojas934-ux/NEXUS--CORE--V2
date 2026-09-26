@@ -10,9 +10,7 @@ import com.example.data.model.HabitLogEntity
 import com.example.data.model.TaskEntity
 import com.example.data.repository.PersonalOsRepository
 import com.example.data.repository.PersonalOsRepositoryImpl
-import com.example.domain.AppBudgetStatus
 import com.example.domain.DailyCycleEngine
-import com.example.domain.WellbeingEngine
 import com.example.service.PersonalAiProductivityService
 import com.example.service.UserProductivitySnapshot
 import com.example.ui.PersonalOsViewModel
@@ -59,21 +57,6 @@ class ExampleRobolectricTest {
   fun `verify daily cycle start calculation`() {
     val cycleDate = DailyCycleEngine.getCurrentCycleDate("05:00")
     assertTrue(cycleDate.matches(Regex("\\d{4}-\\d{2}-\\d{2}")))
-  }
-
-  @Test
-  fun `verify wellbeing engine blocking`() {
-    val limit = AppLimitEntity(
-      appName = "Instagram",
-      packageName = "com.instagram.android",
-      dailyBudgetMinutes = 20,
-      currentUsageMinutes = 20,
-      isBlocked = true
-    )
-    val evaluated = WellbeingEngine.evaluate(limit)
-    assertEquals(AppBudgetStatus.BLOCKED, evaluated.status)
-    assertEquals(0, evaluated.remainingMinutes)
-    assertEquals(1.0f, evaluated.percentUsed, 0.01f)
   }
 
   @Test
