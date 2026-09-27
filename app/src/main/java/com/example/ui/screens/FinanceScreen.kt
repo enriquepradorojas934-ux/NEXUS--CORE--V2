@@ -175,7 +175,8 @@ fun FinanceScreen(
                     PatrimonioDonutCard(
                         assets = activeAssets,
                         totalPatrimonio = totalPatrimonio,
-                        onAddAssetClick = { showAddAssetDialog = true }
+                        onAddAssetClick = { showAddAssetDialog = true },
+                        currencySymbol = state.selectedCurrencySymbol
                     )
                 }
 
@@ -249,7 +250,8 @@ fun FinanceScreen(
                             color = color,
                             percentage = percentage,
                             onEdit = { assetToEdit = asset },
-                            onDelete = { assetToDelete = asset }
+                            onDelete = { assetToDelete = asset },
+                            currencySymbol = state.selectedCurrencySymbol
                         )
                     }
                 }
@@ -261,7 +263,8 @@ fun FinanceScreen(
                         totalExpenses = state.totalExpenses,
                         totalIncome = state.totalIncome,
                         netBalance = state.netBalance,
-                        onRegisterExpenseClick = { showRegisterExpenseDialog = true }
+                        onRegisterExpenseClick = { showRegisterExpenseDialog = true },
+                        currencySymbol = state.selectedCurrencySymbol
                     )
                 }
 
@@ -415,7 +418,8 @@ fun FinanceScreen(
                     items(filteredTransactions, key = { it.id }) { tx ->
                         TransactionRowItem(
                             tx = tx,
-                            onDelete = { onDeleteTransaction(tx) }
+                            onDelete = { onDeleteTransaction(tx) },
+                            currencySymbol = state.selectedCurrencySymbol
                         )
                     }
                 }
@@ -477,6 +481,7 @@ fun FinanceScreen(
             currentCycleDate = state.currentCycleDate,
             isEvaluatingExpense = state.isEvaluatingExpense,
             expenseEvaluationAdvice = state.expenseEvaluationAdvice,
+            currencySymbol = state.selectedCurrencySymbol,
             onDismiss = {
                 onClearExpenseEvaluation()
                 showRegisterExpenseDialog = false
@@ -511,7 +516,8 @@ fun FinanceScreen(
 private fun PatrimonioDonutCard(
     assets: List<AssetDebtEntity>,
     totalPatrimonio: Double,
-    onAddAssetClick: () -> Unit
+    onAddAssetClick: () -> Unit,
+    currencySymbol: String = "$"
 ) {
     var selectedAssetId by remember { mutableStateOf<Long?>(null) }
     val selectedAsset = remember(selectedAssetId, assets) {
@@ -576,7 +582,7 @@ private fun PatrimonioDonutCard(
                     }
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text("PATRIMONIO", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Text("$0.00", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.onSurface)
+                        Text("${currencySymbol}0.00", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.onSurface)
                         Text("Sin activos", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 } else {
@@ -663,7 +669,7 @@ private fun PatrimonioDonutCard(
                             )
                             Spacer(modifier = Modifier.height(2.dp))
                             Text(
-                                text = "$${String.format("%,.2f", selectedAsset.currentAmount)}",
+                                text = "${currencySymbol}${String.format("%,.2f", selectedAsset.currentAmount)}",
                                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold),
                                 color = AssetPalette[assets.indexOf(selectedAsset) % AssetPalette.size]
                             )
@@ -680,7 +686,7 @@ private fun PatrimonioDonutCard(
                             )
                             Spacer(modifier = Modifier.height(2.dp))
                             Text(
-                                text = "$${String.format("%,.2f", totalPatrimonio)}",
+                                text = "${currencySymbol}${String.format("%,.2f", totalPatrimonio)}",
                                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold),
                                 color = ExecutivePrimaryTeal
                             )
@@ -717,7 +723,8 @@ private fun AssetItemCard(
     color: Color,
     percentage: Double,
     onEdit: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    currencySymbol: String = "$"
 ) {
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -758,7 +765,7 @@ private fun AssetItemCard(
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = "$${String.format("%,.2f", asset.currentAmount)}",
+                    text = "${currencySymbol}${String.format("%,.2f", asset.currentAmount)}",
                     style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.ExtraBold),
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -783,7 +790,8 @@ private fun GastosSummaryCard(
     totalExpenses: Double,
     totalIncome: Double,
     netBalance: Double,
-    onRegisterExpenseClick: () -> Unit
+    onRegisterExpenseClick: () -> Unit,
+    currencySymbol: String = "$"
 ) {
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -804,7 +812,7 @@ private fun GastosSummaryCard(
                     )
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
-                        text = "$${String.format("%,.2f", totalExpenses)}",
+                        text = "${currencySymbol}${String.format("%,.2f", totalExpenses)}",
                         style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.ExtraBold),
                         color = ExecutiveDangerRed
                     )
@@ -833,7 +841,7 @@ private fun GastosSummaryCard(
                 Column {
                     Text("Ingresos Registrados", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Text(
-                        text = "+$${String.format("%,.2f", totalIncome)}",
+                        text = "+${currencySymbol}${String.format("%,.2f", totalIncome)}",
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                         color = ExecutiveSuccessGreen
                     )
@@ -841,7 +849,7 @@ private fun GastosSummaryCard(
                 Column(horizontalAlignment = Alignment.End) {
                     Text("Flujo Neto Actual", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Text(
-                        text = "${if (netBalance >= 0) "+" else ""}$${String.format("%,.2f", netBalance)}",
+                        text = "${if (netBalance >= 0) "+" else ""}${currencySymbol}${String.format("%,.2f", netBalance)}",
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                         color = if (netBalance >= 0) ExecutiveSuccessGreen else ExecutiveDangerRed
                     )
@@ -1003,7 +1011,8 @@ private fun AsesorFinancieroIaCard(
 @Composable
 private fun TransactionRowItem(
     tx: TransactionEntity,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    currencySymbol: String = "$"
 ) {
     Row(
         modifier = Modifier
@@ -1053,7 +1062,7 @@ private fun TransactionRowItem(
 
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = "${if (tx.type == "INGRESO") "+" else "-"}$${String.format("%,.2f", tx.amount)}",
+                text = "${if (tx.type == "INGRESO") "+" else "-"}${currencySymbol}${String.format("%,.2f", tx.amount)}",
                 style = MaterialTheme.typography.bodyMedium.copy(
                     fontWeight = FontWeight.Bold,
                     color = if (tx.type == "INGRESO") ExecutiveSuccessGreen else ExecutiveDangerRed
@@ -1078,7 +1087,8 @@ private fun RegisterExpenseWithAiDialog(
     expenseEvaluationAdvice: String?,
     onDismiss: () -> Unit,
     onEvaluateWithAi: (String, String, Double, String, String, (String) -> Unit) -> Unit,
-    onConfirmExpense: (String, String, Double, String, String) -> Unit
+    onConfirmExpense: (String, String, Double, String, String) -> Unit,
+    currencySymbol: String = "$"
 ) {
     val context = LocalContext.current
 
@@ -1228,7 +1238,7 @@ private fun RegisterExpenseWithAiDialog(
                                 )
                             } else {
                                 Text(
-                                    text = "Antes de confirmar, el Asesor Financiero evaluará cómo impacta este desembolso en tus $${String.format("%,.0f", totalPatrimonio)} de patrimonio y tus hábitos de gasto.",
+                                    text = "Antes de confirmar, el Asesor Financiero evaluará cómo impacta este desembolso en tus ${currencySymbol}${String.format("%,.0f", totalPatrimonio)} de patrimonio y tus hábitos de gasto.",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )

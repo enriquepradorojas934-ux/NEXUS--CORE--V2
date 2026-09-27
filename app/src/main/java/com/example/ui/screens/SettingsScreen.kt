@@ -21,6 +21,8 @@ import com.example.util.SensoryFeedbackHelper
 import com.example.ui.PersonalOsUiState
 import com.example.ui.components.ExecutiveHeader
 import com.example.ui.theme.*
+import com.example.BuildConfig
+import androidx.compose.ui.unit.sp
 
 @Composable
 fun SettingsScreen(
@@ -37,7 +39,9 @@ fun SettingsScreen(
     onOpenOnboarding: () -> Unit = {},
     onSetAccentColor: (String) -> Unit = {},
     onExportBackup: ((String) -> Unit) -> Unit = {},
-    onImportBackup: (String) -> Unit = {}
+    onImportBackup: (String) -> Unit = {},
+    onSetCurrency: (symbol: String, code: String) -> Unit = { _, _ -> },
+    onSetLanguage: (String) -> Unit = {}
 ) {
     val context = LocalContext.current
     val clipboardManager = LocalClipboardManager.current
@@ -47,6 +51,29 @@ fun SettingsScreen(
     var exportedJsonText by remember { mutableStateOf("") }
     var showImportDialog by remember { mutableStateOf(false) }
     var importJsonInput by remember { mutableStateOf("") }
+    var showCurrencyDialog by remember { mutableStateOf(false) }
+    var showLanguageDialog by remember { mutableStateOf(false) }
+
+    val (versionName, versionCode) = remember {
+        try {
+            val pInfo = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                context.packageManager.getPackageInfo(context.packageName, android.content.pm.PackageManager.PackageInfoFlags.of(0))
+            } else {
+                @Suppress("DEPRECATION")
+                context.packageManager.getPackageInfo(context.packageName, 0)
+            }
+            val vName = pInfo.versionName ?: BuildConfig.VERSION_NAME
+            val vCode = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+                pInfo.longVersionCode.toInt()
+            } else {
+                @Suppress("DEPRECATION")
+                pInfo.versionCode
+            }
+            vName to vCode
+        } catch (_: Exception) {
+            BuildConfig.VERSION_NAME to BuildConfig.VERSION_CODE
+        }
+    }
 
     if (showExportDialog) {
         AlertDialog(
@@ -554,6 +581,119 @@ fun SettingsScreen(
                 }
             }
 
+            // REGIONALIZACIÓN: MONEDA E IDIOMA
+            item {
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.fillMaxWidth().testTag("card_regional_settings")
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                Icons.Default.Language,
+                                contentDescription = null,
+                                tint = ExecutivePrimaryTeal,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "MONEDA E IDIOMA",
+                                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                                color = ExecutivePrimaryTeal
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            text = "Personaliza la divisa para tus finanzas y el idioma preferido para tu sistema ejecutivo.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(14.dp))
+
+                        // Selector Moneda
+                        Surface(
+                            onClick = { showCurrencyDialog = true },
+                            shape = RoundedCornerShape(12.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
+                            modifier = Modifier.fillMaxWidth().testTag("btn_select_currency")
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    Icons.Default.AttachMoney,
+                                    contentDescription = null,
+                                    tint = ExecutiveSecondaryAmber,
+                                    modifier = Modifier.size(22.dp)
+                                )
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = "Moneda de Finanzas",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    val currName = availableCurrencies.find { it.code == state.selectedCurrencyCode }?.name
+                                        ?: "${state.selectedCurrencyCode} (${state.selectedCurrencySymbol})"
+                                    Text(
+                                        text = "$currName • ${state.selectedCurrencySymbol} ${state.selectedCurrencyCode}",
+                                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
+                                Icon(
+                                    Icons.Default.ChevronRight,
+                                    contentDescription = "Cambiar moneda",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        // Selector Idioma
+                        Surface(
+                            onClick = { showLanguageDialog = true },
+                            shape = RoundedCornerShape(12.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
+                            modifier = Modifier.fillMaxWidth().testTag("btn_select_language")
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    Icons.Default.Translate,
+                                    contentDescription = null,
+                                    tint = ExecutiveAccentBlue,
+                                    modifier = Modifier.size(22.dp)
+                                )
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = "Idioma del Sistema",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    Text(
+                                        text = state.selectedLanguage,
+                                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
+                                Icon(
+                                    Icons.Default.ChevronRight,
+                                    contentDescription = "Cambiar idioma",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
             // COPIA DE SEGURIDAD SOBERANA (OFFLINE-FIRST JSON)
             item {
                 Card(
@@ -756,7 +896,7 @@ fun SettingsScreen(
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "Versión 1.0.0 (Build 1) • Producción",
+                            text = "Versión $versionName (Build $versionCode) • Producción",
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -779,4 +919,298 @@ fun SettingsScreen(
             }
         }
     }
+
+    if (showCurrencyDialog) {
+        var searchQuery by remember { mutableStateOf("") }
+        val filtered = remember(searchQuery) {
+            val q = searchQuery.trim().lowercase()
+            if (q.isEmpty()) {
+                availableCurrencies
+            } else {
+                availableCurrencies.filter { c ->
+                    c.name.lowercase().contains(q) ||
+                    c.code.lowercase().contains(q) ||
+                    c.country.lowercase().contains(q) ||
+                    c.searchTerms.any { it.contains(q) || q.contains(it) }
+                }
+            }
+        }
+
+        AlertDialog(
+            onDismissRequest = { showCurrencyDialog = false },
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Paid, contentDescription = null, tint = ExecutiveSecondaryAmber)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Seleccionar Moneda", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
+                }
+            },
+            text = {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    OutlinedTextField(
+                        value = searchQuery,
+                        onValueChange = { searchQuery = it },
+                        placeholder = { Text("Buscar país o moneda (ej: Colombia, Pesos)...", fontSize = 12.sp) },
+                        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, modifier = Modifier.size(18.dp)) },
+                        trailingIcon = {
+                            if (searchQuery.isNotEmpty()) {
+                                IconButton(onClick = { searchQuery = "" }) {
+                                    Icon(Icons.Default.Close, contentDescription = "Limpiar", modifier = Modifier.size(16.dp))
+                                }
+                            }
+                        },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth().testTag("input_search_currency")
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    LazyColumn(
+                        modifier = Modifier.fillMaxWidth().heightIn(max = 280.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        if (filtered.isEmpty()) {
+                            item {
+                                Box(modifier = Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
+                                    Text("No se encontraron monedas", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
+                            }
+                        } else {
+                            items(filtered.size) { index ->
+                                val item = filtered[index]
+                                val isSelected = state.selectedCurrencyCode == item.code
+                                Surface(
+                                    onClick = {
+                                        SensoryFeedbackHelper.vibrateLightTick(context)
+                                        onSetCurrency(item.symbol, item.code)
+                                        showCurrencyDialog = false
+                                    },
+                                    shape = RoundedCornerShape(8.dp),
+                                    color = if (isSelected) ExecutiveSecondaryAmber.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
+                                    modifier = Modifier.fillMaxWidth().testTag("currency_option_${item.code}")
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(
+                                                text = item.name,
+                                                style = MaterialTheme.typography.bodyMedium.copy(
+                                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                                                ),
+                                                color = if (isSelected) ExecutiveSecondaryAmber else MaterialTheme.colorScheme.onSurface
+                                            )
+                                            Text(
+                                                text = "${item.country} • ${item.code} (${item.symbol})",
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
+                                        if (isSelected) {
+                                            Icon(Icons.Default.Check, contentDescription = null, tint = ExecutiveSecondaryAmber, modifier = Modifier.size(18.dp))
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(onClick = { showCurrencyDialog = false }) {
+                    Text("Cerrar")
+                }
+            }
+        )
+    }
+
+    if (showLanguageDialog) {
+        var searchQuery by remember { mutableStateOf("") }
+        val filtered = remember(searchQuery) {
+            val q = searchQuery.trim().lowercase()
+            if (q.isEmpty()) {
+                availableLanguages
+            } else {
+                availableLanguages.filter { l ->
+                    l.name.lowercase().contains(q) ||
+                    l.subtitle.lowercase().contains(q) ||
+                    l.searchTerms.any { it.contains(q) || q.contains(it) }
+                }
+            }
+        }
+
+        AlertDialog(
+            onDismissRequest = { showLanguageDialog = false },
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Translate, contentDescription = null, tint = ExecutiveAccentBlue)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Seleccionar Idioma", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
+                }
+            },
+            text = {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    OutlinedTextField(
+                        value = searchQuery,
+                        onValueChange = { searchQuery = it },
+                        placeholder = { Text("Buscar país o idioma (ej: Colombia, Español)...", fontSize = 12.sp) },
+                        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, modifier = Modifier.size(18.dp)) },
+                        trailingIcon = {
+                            if (searchQuery.isNotEmpty()) {
+                                IconButton(onClick = { searchQuery = "" }) {
+                                    Icon(Icons.Default.Close, contentDescription = "Limpiar", modifier = Modifier.size(16.dp))
+                                }
+                            }
+                        },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth().testTag("input_search_language")
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    LazyColumn(
+                        modifier = Modifier.fillMaxWidth().heightIn(max = 280.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        if (filtered.isEmpty()) {
+                            item {
+                                Box(modifier = Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
+                                    Text("No se encontraron idiomas", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
+                            }
+                        } else {
+                            items(filtered.size) { index ->
+                                val item = filtered[index]
+                                val isSelected = state.selectedLanguage == item.name
+                                Surface(
+                                    onClick = {
+                                        SensoryFeedbackHelper.vibrateLightTick(context)
+                                        onSetLanguage(item.name)
+                                        showLanguageDialog = false
+                                    },
+                                    shape = RoundedCornerShape(8.dp),
+                                    color = if (isSelected) ExecutiveAccentBlue.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
+                                    modifier = Modifier.fillMaxWidth().testTag("language_option_${item.name}")
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(
+                                                text = item.name,
+                                                style = MaterialTheme.typography.bodyMedium.copy(
+                                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                                                ),
+                                                color = if (isSelected) ExecutiveAccentBlue else MaterialTheme.colorScheme.onSurface
+                                            )
+                                            Text(
+                                                text = item.subtitle,
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
+                                        if (isSelected) {
+                                            Icon(Icons.Default.Check, contentDescription = null, tint = ExecutiveAccentBlue, modifier = Modifier.size(18.dp))
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(onClick = { showLanguageDialog = false }) {
+                    Text("Cerrar")
+                }
+            }
+        )
+    }
 }
+
+private data class CurrencyOption(
+    val code: String,
+    val symbol: String,
+    val name: String,
+    val country: String,
+    val searchTerms: List<String>
+)
+
+private data class LanguageOption(
+    val name: String,
+    val subtitle: String,
+    val searchTerms: List<String>
+)
+
+private val availableCurrencies = listOf(
+    CurrencyOption("COP", "$", "Peso Colombiano", "Colombia", listOf("colombia", "peso", "pesos", "cop")),
+    CurrencyOption("MXN", "$", "Peso Mexicano", "México", listOf("mexico", "méxico", "peso", "pesos", "mxn")),
+    CurrencyOption("ARS", "$", "Peso Argentino", "Argentina", listOf("argentina", "peso", "pesos", "ars")),
+    CurrencyOption("CLP", "$", "Peso Chileno", "Chile", listOf("chile", "peso", "pesos", "clp")),
+    CurrencyOption("UYU", "$", "Peso Uruguayo", "Uruguay", listOf("uruguay", "peso", "pesos", "uyu")),
+    CurrencyOption("DOP", "RD$", "Peso Dominicano", "República Dominicana", listOf("dominicana", "republica dominicana", "república dominicana", "peso", "pesos", "dop")),
+    CurrencyOption("USD", "$", "Dólar Estadounidense", "Estados Unidos", listOf("estados unidos", "usa", "us", "eeuu", "dolar", "dólar", "dollar", "usd")),
+    CurrencyOption("EUR", "€", "Euro", "Unión Europea / España", listOf("europa", "españa", "espana", "francia", "alemania", "italia", "portugal", "euro", "euros", "eur")),
+    CurrencyOption("PEN", "S/", "Sol Peruano", "Perú", listOf("peru", "perú", "sol", "soles", "pen")),
+    CurrencyOption("BRL", "R$", "Real Brasileño", "Brasil", listOf("brasil", "brazil", "real", "reais", "brl")),
+    CurrencyOption("GBP", "£", "Libra Esterlina", "Reino Unido", listOf("reino unido", "uk", "inglaterra", "britanico", "libra", "pound", "gbp")),
+    CurrencyOption("CAD", "CA$", "Dólar Canadiense", "Canadá", listOf("canada", "canadá", "dolar", "dólar", "cad")),
+    CurrencyOption("AUD", "AU$", "Dólar Australiano", "Australia", listOf("australia", "dolar", "dólar", "aud")),
+    CurrencyOption("CHF", "CHF", "Franco Suizo", "Suiza", listOf("suiza", "switzerland", "franco", "chf")),
+    CurrencyOption("JPY", "¥", "Yen Japonés", "Japón", listOf("japon", "japón", "japan", "yen", "jpy")),
+    CurrencyOption("BOB", "Bs", "Boliviano", "Bolivia", listOf("bolivia", "boliviano", "bob")),
+    CurrencyOption("CRC", "₡", "Colón Costarricense", "Costa Rica", listOf("costa rica", "colon", "colón", "crc")),
+    CurrencyOption("GTQ", "Q", "Quetzal", "Guatemala", listOf("guatemala", "quetzal", "gtq")),
+    CurrencyOption("HNL", "L", "Lempira", "Honduras", listOf("honduras", "lempira", "hnl")),
+    CurrencyOption("NIO", "C$", "Córdoba", "Nicaragua", listOf("nicaragua", "cordoba", "córdoba", "nio")),
+    CurrencyOption("PYG", "₲", "Guaraní Paraguayo", "Paraguay", listOf("paraguay", "guarani", "guaraní", "pyg")),
+    CurrencyOption("VES", "Bs.", "Bolívar Soberano", "Venezuela", listOf("venezuela", "bolivar", "bolívar", "ves"))
+)
+
+private val availableLanguages = listOf(
+    LanguageOption(
+        name = "Español (Latinoamérica)",
+        subtitle = "Colombia, México, Argentina, Chile, Perú, etc.",
+        searchTerms = listOf("español", "espanol", "latinoamerica", "latinoamérica", "latam", "colombia", "mexico", "méxico", "argentina", "chile", "peru", "perú", "venezuela", "ecuador", "bolivia", "uruguay", "paraguay", "costa rica", "panama", "panamá", "guatemala", "republica dominicana", "honduras", "nicaragua", "el salvador")
+    ),
+    LanguageOption(
+        name = "Español (España)",
+        subtitle = "España, Europa",
+        searchTerms = listOf("español", "espanol", "españa", "espana", "castellano", "madrid", "barcelona", "europa")
+    ),
+    LanguageOption(
+        name = "English (United States)",
+        subtitle = "United States, North America",
+        searchTerms = listOf("english", "ingles", "inglés", "united states", "usa", "us", "estados unidos", "america")
+    ),
+    LanguageOption(
+        name = "English (United Kingdom)",
+        subtitle = "United Kingdom, Europe",
+        searchTerms = listOf("english", "ingles", "inglés", "united kingdom", "uk", "reino unido", "inglaterra", "britain")
+    ),
+    LanguageOption(
+        name = "Português (Brasil)",
+        subtitle = "Brasil, América do Sul",
+        searchTerms = listOf("portugues", "português", "brasil", "brazil", "america do sul")
+    ),
+    LanguageOption(
+        name = "Português (Portugal)",
+        subtitle = "Portugal, Europa",
+        searchTerms = listOf("portugues", "português", "portugal", "europa")
+    ),
+    LanguageOption(
+        name = "Français",
+        subtitle = "France, Canada, Belgique",
+        searchTerms = listOf("francais", "français", "frances", "francés", "france", "francia", "canada", "belgique")
+    ),
+    LanguageOption(
+        name = "Deutsch",
+        subtitle = "Deutschland, Österreich, Schweiz",
+        searchTerms = listOf("deutsch", "aleman", "alemán", "germany", "alemania", "austria", "suiza")
+    ),
+    LanguageOption(
+        name = "Italiano",
+        subtitle = "Italia, Europa",
+        searchTerms = listOf("italiano", "italian", "italia", "italy", "europa")
+    )
+)

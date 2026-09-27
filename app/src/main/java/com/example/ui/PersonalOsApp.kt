@@ -162,7 +162,9 @@ fun PersonalOsApp() {
                         onOpenOnboarding = { viewModel.openOnboarding() },
                         onSetAccentColor = { viewModel.setAccentColor(it) },
                         onExportBackup = { callback -> viewModel.exportBackup(callback) },
-                        onImportBackup = { json -> viewModel.importBackup(json) }
+                        onImportBackup = { json -> viewModel.importBackup(json) },
+                        onSetCurrency = { symbol, code -> viewModel.setAppCurrency(symbol, code) },
+                        onSetLanguage = { viewModel.setAppLanguage(it) }
                     )
                 }
             }
