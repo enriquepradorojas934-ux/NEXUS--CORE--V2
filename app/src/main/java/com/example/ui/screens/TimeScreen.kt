@@ -952,6 +952,7 @@ private fun AddTimeBlockDialog(
     onDismiss: () -> Unit,
     onConfirm: (String, String, String, String) -> Unit
 ) {
+    val context = LocalContext.current
     var title by remember { mutableStateOf("") }
     var startTime by remember { mutableStateOf("09:00") }
     var endTime by remember { mutableStateOf("10:30") }
@@ -959,7 +960,7 @@ private fun AddTimeBlockDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Crear Bloque de Tiempo") },
+        title = { Text("Crear Bloque de Tiempo", fontWeight = FontWeight.Bold) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 OutlinedTextField(
@@ -973,12 +974,54 @@ private fun AddTimeBlockDialog(
                         value = startTime,
                         onValueChange = { startTime = it },
                         label = { Text("Inicio") },
+                        readOnly = true,
+                        trailingIcon = {
+                            IconButton(onClick = {
+                                val sParts = startTime.split(":")
+                                val h = sParts.getOrNull(0)?.trim()?.toIntOrNull() ?: 9
+                                val m = sParts.getOrNull(1)?.trim()?.toIntOrNull() ?: 0
+                                android.app.TimePickerDialog(
+                                    context,
+                                    { _, hourOfDay, minute ->
+                                        startTime = "%02d:%02d".format(hourOfDay, minute)
+                                    },
+                                    h, m, true
+                                ).show()
+                            }) {
+                                Icon(
+                                    Icons.Default.Schedule,
+                                    contentDescription = "Seleccionar hora de inicio",
+                                    tint = ExecutivePurple
+                                )
+                            }
+                        },
                         modifier = Modifier.weight(1f)
                     )
                     OutlinedTextField(
                         value = endTime,
                         onValueChange = { endTime = it },
                         label = { Text("Fin") },
+                        readOnly = true,
+                        trailingIcon = {
+                            IconButton(onClick = {
+                                val eParts = endTime.split(":")
+                                val h = eParts.getOrNull(0)?.trim()?.toIntOrNull() ?: 10
+                                val m = eParts.getOrNull(1)?.trim()?.toIntOrNull() ?: 30
+                                android.app.TimePickerDialog(
+                                    context,
+                                    { _, hourOfDay, minute ->
+                                        endTime = "%02d:%02d".format(hourOfDay, minute)
+                                    },
+                                    h, m, true
+                                ).show()
+                            }) {
+                                Icon(
+                                    Icons.Default.Schedule,
+                                    contentDescription = "Seleccionar hora de fin",
+                                    tint = ExecutivePurple
+                                )
+                            }
+                        },
                         modifier = Modifier.weight(1f)
                     )
                 }

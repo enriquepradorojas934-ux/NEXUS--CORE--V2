@@ -1,6 +1,7 @@
 package com.example.service
 
 import android.content.Context
+import com.example.util.CurrencyFormatter
 import com.google.firebase.Firebase
 import com.google.firebase.ai.ai
 import com.google.firebase.ai.type.GenerativeBackend
@@ -51,10 +52,14 @@ class PersonalAiProductivityService(private val context: Context? = null) {
      * Construye un prompt contextual con los datos operativos del usuario
      * y solicita a Gemini un análisis de productividad conciso y accionable.
      */
-    suspend fun generateProductivityAdvice(snapshot: UserProductivitySnapshot): Result<String> =
+    suspend fun generateProductivityAdvice(
+        snapshot: UserProductivitySnapshot,
+        language: String = "Español",
+        currencySymbol: String = "$"
+    ): Result<String> =
         withContext(Dispatchers.IO) {
             try {
-                val prompt = buildProductivityPrompt(snapshot)
+                val prompt = buildProductivityPrompt(snapshot, language, currencySymbol)
                 val response = generativeModel.generateContent(prompt)
                 val responseText = response.text
 
@@ -73,7 +78,8 @@ class PersonalAiProductivityService(private val context: Context? = null) {
      */
     suspend fun askCustomProductivityQuestion(
         question: String,
-        snapshot: UserProductivitySnapshot
+        snapshot: UserProductivitySnapshot,
+        language: String = "Español"
     ): Result<String> = withContext(Dispatchers.IO) {
         try {
             val prompt = """
@@ -91,8 +97,9 @@ class PersonalAiProductivityService(private val context: Context? = null) {
                 PREGUNTA DEL USUARIO:
                 "$question"
                 
-                Instrucciones:
-                Responde en español de forma directa, motivadora, ejecutiva y estructurada (máximo 3 párrafos o puntos clave).
+                INSTRUCCIONES CRÍTICAS:
+                Genera tu respuesta en el idioma seleccionado por el usuario: $language (si no está soportado, usa inglés como respaldo).
+                Tono directo, motivador, ejecutivo y estructurado (máximo 3 párrafos o puntos clave).
             """.trimIndent()
 
             val response = generativeModel.generateContent(prompt)
@@ -107,7 +114,11 @@ class PersonalAiProductivityService(private val context: Context? = null) {
         }
     }
 
-    private fun buildProductivityPrompt(snapshot: UserProductivitySnapshot): String {
+    private fun buildProductivityPrompt(
+        snapshot: UserProductivitySnapshot,
+        language: String = "Español",
+        currencySymbol: String = "$"
+    ): String {
         val screenTimeRatio = if (snapshot.appBudgetMinutes > 0) {
             (snapshot.appUsageMinutes.toFloat() / snapshot.appBudgetMinutes.toFloat() * 100).toInt()
         } else 0
@@ -135,7 +146,7 @@ class PersonalAiProductivityService(private val context: Context? = null) {
                - Metas en curso: ${if (snapshot.activeGoals.isEmpty()) "Sin metas registradas" else snapshot.activeGoals.joinToString("; ")}
                
             5. BALANCE FINANCIERO DEL CICLO:
-               - Balance neto: $${String.format("%.2f", snapshot.netFinancialBalance)}
+               - Balance neto: $currencySymbol${String.format("%.2f", snapshot.netFinancialBalance)}
                
             OBJETIVO DE TU RESPUESTA:
             Proporciona un análisis ejecutivo dividido en las siguientes 3 secciones breves con emojis sobrios:
@@ -143,7 +154,8 @@ class PersonalAiProductivityService(private val context: Context? = null) {
             ⚡ PRÓXIMA MEJOR ACCIÓN: 1 o 2 recomendaciones inmediatas y concretas para las próximas horas del ciclo.
             🛡️ CONTROL DE ATENCIÓN: Un consejo para proteger el foco y evitar fugas de energía o tiempo.
             
-            Formato: Español, tono profesional pero cercano, sin relleno ni introducciones genéricas.
+            REQUISITO DE IDIOMA: Responde obligatoriamente en: $language (si no está disponible, responde en inglés como respaldo).
+            Tono profesional pero cercano, sin relleno ni introducciones genéricas.
         """.trimIndent()
     }
 
@@ -152,7 +164,8 @@ class PersonalAiProductivityService(private val context: Context? = null) {
      */
     suspend fun generateWorkoutAdvice(
         workoutsSummary: String,
-        goal: String
+        goal: String,
+        language: String = "Español"
     ): Result<String> = withContext(Dispatchers.IO) {
         try {
             val prompt = """
@@ -166,12 +179,49 @@ class PersonalAiProductivityService(private val context: Context? = null) {
                 2. Progresión de cargas y repeticiones.
                 3. Recomendaciones específicas para la próxima sesión y optimización de descansos.
                 
-                Responde en español con formato conciso, táctico y motivador.
+                REQUISITO OBLIGATORIO: Responde en el idioma: $language (o inglés como respaldo). Formato conciso, táctico y motivador.
             """.trimIndent()
             val response = generativeModel.generateContent(prompt)
             val text = response.text
             if (!text.isNullOrBlank()) Result.success(text.trim())
             else Result.failure(Exception("Sin respuesta de IA"))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Sugiere automáticamente una nota táctica relevante para la rutina que el usuario está armando.
+     */
+    suspend fun suggestTacticalWorkoutNote(
+        routineName: String,
+        goal: String,
+        minutes: Int,
+        routinePlanSummary: String,
+        language: String = "Español"
+    ): Result<String> = withContext(Dispatchers.IO) {
+        try {
+            val prompt = """
+                Actúa como el Asesor Ejecutivo de Entrenamiento y Alto Rendimiento de LifeOS.
+                El usuario está planificando una rutina de entrenamiento con los siguientes datos:
+                - Nombre de la rutina: $routineName
+                - Objetivo principal: $goal
+                - Duración estimada: $minutes minutos
+                - Plan de días y ejercicios configurados:
+                $routinePlanSummary
+
+                TAREA:
+                Genera una sola "Nota Táctica" breve (1 o 2 frases máximo, entre 20 y 45 palabras) con una sugerencia concreta de enfoque:
+                Por ejemplo: enfoque de la sesión (calentamiento articular, tempo excéntrico, RPE objetivo) o tiempo de descanso recomendado entre series pesadas vs accesorias.
+
+                REGLA DE IDIOMA: Responde exactamente en: $language (o en inglés como respaldo).
+                Directo al grano, sin saludos ni comillas alrededor.
+            """.trimIndent()
+
+            val response = generativeModel.generateContent(prompt)
+            val text = response.text
+            if (!text.isNullOrBlank()) Result.success(text.trim().removeSurrounding("\""))
+            else Result.failure(Exception("Sin sugerencia generada"))
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -185,16 +235,24 @@ class PersonalAiProductivityService(private val context: Context? = null) {
         expenses: Double,
         balance: Double,
         netWorth: Double,
-        goalsSummary: String
+        goalsSummary: String,
+        currencySymbol: String = "$",
+        currencyCode: String = "USD",
+        language: String = "Español"
     ): Result<String> = withContext(Dispatchers.IO) {
         try {
+            val formattedIncome = CurrencyFormatter.format(income, currencySymbol, currencyCode)
+            val formattedExpenses = CurrencyFormatter.format(expenses, currencySymbol, currencyCode)
+            val formattedBalance = CurrencyFormatter.format(balance, currencySymbol, currencyCode)
+            val formattedNetWorth = CurrencyFormatter.format(netWorth, currencySymbol, currencyCode)
+
             val prompt = """
                 Actúa como un asesor patrimonial y estratega financiero personal de LifeOS.
-                Datos financieros actuales:
-                - Ingresos del período: $$income
-                - Gastos: $$expenses
-                - Balance neto: $$balance
-                - Patrimonio neto estimado (Activos - Pasivos): $$netWorth
+                Datos financieros actuales (Moneda seleccionada por el usuario: $currencyCode, símbolo: $currencySymbol):
+                - Ingresos del período: $formattedIncome
+                - Gastos: $formattedExpenses
+                - Balance neto: $formattedBalance
+                - Patrimonio neto estimado (Activos - Pasivos): $formattedNetWorth
                 - Metas de ahorro: $goalsSummary
                 
                 Proporciona:
@@ -202,7 +260,10 @@ class PersonalAiProductivityService(private val context: Context? = null) {
                 2. OPTIMIZACIÓN DE PATRIMONIO: Cómo acelerar el cumplimiento de metas y reducir pasivos.
                 3. ACCIÓN CONCRETA: Un ajuste práctico para esta semana.
                 
-                Responde en español, profesional, directo y al grano.
+                REGLAS:
+                - Idioma: Responde en $language (o inglés de respaldo si no está disponible).
+                - Moneda: Menciona y usa siempre la moneda del usuario ($currencySymbol / $currencyCode).
+                - Tono: Profesional, directo y al grano.
             """.trimIndent()
             val response = generativeModel.generateContent(prompt)
             val text = response.text
@@ -224,10 +285,16 @@ class PersonalAiProductivityService(private val context: Context? = null) {
         date: String,
         description: String,
         totalNetWorth: Double,
-        recentExpensesSummary: String
+        recentExpensesSummary: String,
+        currencySymbol: String = "$",
+        currencyCode: String = "USD",
+        language: String = "Español"
     ): Result<String> = withContext(Dispatchers.IO) {
         try {
             val netWorthPercent = if (totalNetWorth > 0) (amount / totalNetWorth * 100) else 0.0
+            val formattedAmount = CurrencyFormatter.format(amount, currencySymbol, currencyCode)
+            val formattedNetWorth = CurrencyFormatter.format(totalNetWorth, currencySymbol, currencyCode)
+
             val prompt = """
                 Actúa como el Asesor Financiero Ejecutivo y Estratega Patrimonial de LifeOS.
                 El usuario está evaluando registrar el siguiente gasto y solicita tu diagnóstico antes de confirmar la compra:
@@ -235,12 +302,13 @@ class PersonalAiProductivityService(private val context: Context? = null) {
                 DETALLES DEL GASTO PROPUESTO:
                 - Concepto / Nombre: $expenseName
                 - Categoría: $category
-                - Monto: $$amount (${String.format("%.1f", netWorthPercent)}% de su patrimonio total)
+                - Monto: $formattedAmount (${String.format("%.1f", netWorthPercent)}% de su patrimonio total)
                 - Fecha: $date
                 - Motivo / Justificación dada por el usuario: "$description"
 
                 CONTEXTO PATRIMONIAL DEL USUARIO:
-                - Patrimonio Total Actual (Activos): $$totalNetWorth
+                - Moneda en uso: $currencyCode ($currencySymbol)
+                - Patrimonio Total Actual (Activos): $formattedNetWorth
                 - Historial reciente de gastos: ${recentExpensesSummary.ifBlank { "Sin gastos previos registrados en el ciclo" }}
 
                 INSTRUCCIONES DE RESPUESTA:
@@ -250,7 +318,10 @@ class PersonalAiProductivityService(private val context: Context? = null) {
                 3. PUNTOS EN CONTRA (CONTRAS / RIESGOS): Costo de oportunidad, alternativas más eficientes o señales de alerta.
                 4. VEREDICTO EJECUTIVO: Recomendación clara sobre si proceder, postergar, negociar o buscar alternativas.
 
-                Responde en español, tono ejecutivo, honesto y estructurado (máximo 4 párrafos breves o bullets claros).
+                REGLAS OBLIGATORIAS:
+                - Responde en el idioma del usuario: $language (o inglés como respaldo).
+                - Utiliza siempre la moneda $currencySymbol ($currencyCode) para cualquier referencia a dinero.
+                - Tono ejecutivo, honesto y estructurado (máximo 4 párrafos breves o bullets claros).
             """.trimIndent()
 
             val response = generativeModel.generateContent(prompt)
@@ -270,24 +341,35 @@ class PersonalAiProductivityService(private val context: Context? = null) {
         totalNetWorth: Double,
         income: Double,
         expenses: Double,
-        recentExpensesSummary: String
+        recentExpensesSummary: String,
+        currencySymbol: String = "$",
+        currencyCode: String = "USD",
+        language: String = "Español"
     ): Result<String> = withContext(Dispatchers.IO) {
         try {
+            val formattedIncome = CurrencyFormatter.format(income, currencySymbol, currencyCode)
+            val formattedExpenses = CurrencyFormatter.format(expenses, currencySymbol, currencyCode)
+            val formattedNetWorth = CurrencyFormatter.format(totalNetWorth, currencySymbol, currencyCode)
+            val formattedBalance = CurrencyFormatter.format(income - expenses, currencySymbol, currencyCode)
+
             val prompt = """
                 Actúa como el Asesor Financiero y Consultor de Patrimonio de LifeOS.
                 
                 CONTEXTO FINANCIERO DEL USUARIO:
-                - Patrimonio Total (Activos): $$totalNetWorth
-                - Ingresos del ciclo: $$income
-                - Gastos acumulados: $$expenses
-                - Flujo neto: $${income - expenses}
+                - Moneda oficial: $currencyCode ($currencySymbol)
+                - Patrimonio Total (Activos): $formattedNetWorth
+                - Ingresos del ciclo: $formattedIncome
+                - Gastos acumulados: $formattedExpenses
+                - Flujo neto: $formattedBalance
                 - Movimientos recientes: ${recentExpensesSummary.ifBlank { "Sin movimientos registrados" }}
 
                 PREGUNTA O CONSULTA DEL USUARIO:
                 "$question"
 
                 INSTRUCCIONES:
-                Responde en español de forma profesional, práctica, pedagógica y estructurada. Si el usuario pregunta por decisiones grandes (comprar una casa, vehículos, inversiones, protección patrimonial o ahorro), evalúa escenarios realistas basados en su situación patrimonial.
+                Responde en $language (o en inglés si el idioma seleccionado aún no tiene soporte completo).
+                Menciona las cifras con la moneda $currencySymbol ($currencyCode).
+                Tono profesional, práctico, pedagógico y estructurado.
             """.trimIndent()
 
             val response = generativeModel.generateContent(prompt)
@@ -300,20 +382,15 @@ class PersonalAiProductivityService(private val context: Context? = null) {
     }
 
     /**
-     * Chatbot Multiturno Inteligente con Gemini:
-     * - Mantiene el historial de conversación en una sola sesión conversacional.
-     * - Aplica instrucciones del sistema personalizadas según el rol / persona seleccionada.
-     * - Permite seleccionar el modelo de Gemini idóneo según la complejidad:
-     *   * gemini-3.1-flash-lite-preview (tareas rápidas)
-     *   * gemini-3.5-flash (tareas generales y estándar)
-     *   * gemini-3.1-pro-preview (tareas complejas y razonamiento profundo)
+     * Chatbot Multiturno Inteligente con Gemini.
      */
     suspend fun sendChatMessage(
         history: List<com.example.data.model.ChatMessage>,
         userMessage: String,
         persona: com.example.data.model.ChatbotPersona,
         modelOption: com.example.data.model.GeminiModelOption,
-        snapshot: UserProductivitySnapshot? = null
+        snapshot: UserProductivitySnapshot? = null,
+        language: String = "Español"
     ): Result<String> = withContext(Dispatchers.IO) {
         try {
             val ai = Firebase.ai(backend = GenerativeBackend.googleAI())
@@ -329,7 +406,7 @@ class PersonalAiProductivityService(private val context: Context? = null) {
                     topP = 0.95f
                 },
                 systemInstruction = com.google.firebase.ai.type.content {
-                    text(persona.systemInstruction)
+                    text("${persona.systemInstruction}\nREQUISITO DE IDIOMA: Responde obligatoriamente en el idioma del usuario: $language (o inglés como respaldo).")
                 }
             )
 
@@ -342,7 +419,7 @@ class PersonalAiProductivityService(private val context: Context? = null) {
                 - Hábitos cumplidos: ${snap.habitsCompleted}/${snap.habitsTotal}
                 - Tiempo ocio/pantalla: ${snap.appUsageMinutes}/${snap.appBudgetMinutes} min
                 - Metas activas: ${if (snap.activeGoals.isEmpty()) "Sin metas" else snap.activeGoals.joinToString("; ")}
-                - Balance financiero neto: $${String.format("%.2f", snap.netFinancialBalance)}
+                - Balance financiero neto: ${String.format("%.2f", snap.netFinancialBalance)}
                 ---
                 """.trimIndent()
             } ?: ""
@@ -378,4 +455,3 @@ class PersonalAiProductivityService(private val context: Context? = null) {
         }
     }
 }
-

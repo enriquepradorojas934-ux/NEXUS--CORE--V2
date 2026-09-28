@@ -63,6 +63,18 @@ fun PersonalOsApp() {
         }
     }
 
+    val currentLocale = remember(state.selectedLanguage) {
+        com.example.util.LocaleHelper.getLocaleForLanguage(state.selectedLanguage)
+    }
+
+    DisposableEffect(currentLocale) {
+        java.util.Locale.setDefault(currentLocale)
+        val config = context.resources.configuration
+        config.setLocale(currentLocale)
+        context.resources.updateConfiguration(config, context.resources.displayMetrics)
+        onDispose { }
+    }
+
     com.example.ui.theme.MyApplicationTheme(accentColorName = state.accentColorName) {
         Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -70,7 +82,8 @@ fun PersonalOsApp() {
         bottomBar = {
             ExecutiveBottomNav(
                 activeTab = state.activeTab,
-                onTabSelected = { viewModel.selectTab(it) }
+                onTabSelected = { viewModel.selectTab(it) },
+                language = state.selectedLanguage
             )
         }
     ) { innerPadding ->

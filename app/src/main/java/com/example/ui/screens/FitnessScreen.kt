@@ -138,7 +138,7 @@ fun FitnessScreen(
                                     Icon(
                                         imageVector = Icons.Default.SmartToy,
                                         contentDescription = null,
-                                        tint = TacticalLuminousBlue,
+                                        tint = TacticalVioletIdentity,
                                         modifier = Modifier.size(20.dp)
                                     )
                                     Spacer(modifier = Modifier.width(8.dp))
@@ -147,7 +147,7 @@ fun FitnessScreen(
                                         fontFamily = FontFamily.Monospace,
                                         fontSize = 12.sp,
                                         fontWeight = FontWeight.Bold,
-                                        color = TacticalLuminousBlue
+                                        color = TacticalVioletIdentity
                                     )
                                 }
 
@@ -161,13 +161,13 @@ fun FitnessScreen(
                                     FilledTonalButton(
                                         onClick = onAnalyzeAi,
                                         colors = ButtonDefaults.filledTonalButtonColors(
-                                            containerColor = TacticalLuminousBlue.copy(alpha = 0.15f)
+                                            containerColor = TacticalVioletIdentity.copy(alpha = 0.18f)
                                         ),
                                         shape = RoundedCornerShape(6.dp),
                                         contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
                                         modifier = Modifier.testTag("btn_analyze_workout_ai")
                                     ) {
-                                        Text("Analizar Volumen", fontSize = 11.sp, color = TacticalLuminousBlue, fontWeight = FontWeight.Bold)
+                                        Text("Analizar Volumen", fontSize = 11.sp, color = TacticalVioletIdentity, fontWeight = FontWeight.Bold)
                                     }
                                 }
                             }
@@ -398,11 +398,11 @@ fun FitnessScreen(
                                 exName = ""
                             }
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = TacticalLuminousBlue),
+                        colors = ButtonDefaults.buttonColors(containerColor = TacticalVioletIdentity),
                         shape = RoundedCornerShape(6.dp),
                         modifier = Modifier.fillMaxWidth().testTag("btn_add_exercise_item")
                     ) {
-                        Text("Añadir Ejercicio (${exercises.size} listos)", fontSize = 11.sp, color = ExecutiveDarkBg, fontWeight = FontWeight.Bold)
+                        Text("Añadir Ejercicio (${exercises.size} listos)", fontSize = 11.sp, color = Color.White, fontWeight = FontWeight.Bold)
                     }
                 }
             },

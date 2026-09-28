@@ -616,7 +616,8 @@ fun ExecutiveMetricCard(
 fun ExecutiveBottomNav(
     activeTab: AppNavTab,
     onTabSelected: (AppNavTab) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    language: String = "Español"
 ) {
     NavigationBar(
         modifier = modifier.testTag("bottom_navigation_bar"),
@@ -624,11 +625,11 @@ fun ExecutiveBottomNav(
         tonalElevation = 6.dp
     ) {
         val items = listOf(
-            Triple(AppNavTab.DASHBOARD, Icons.Default.Dashboard, "Hub"),
-            Triple(AppNavTab.TIME, Icons.Default.Schedule, "Tiempo"),
-            Triple(AppNavTab.HABITS, Icons.Default.CheckCircle, "Hábitos"),
-            Triple(AppNavTab.GOALS, Icons.Default.Flag, "Metas"),
-            Triple(AppNavTab.FINANCE, Icons.Default.AccountBalanceWallet, "Finanzas")
+            Triple(AppNavTab.DASHBOARD, Icons.Default.Dashboard, com.example.util.AppStrings.get("nav_hub", language)),
+            Triple(AppNavTab.TIME, Icons.Default.Schedule, com.example.util.AppStrings.get("nav_time", language)),
+            Triple(AppNavTab.HABITS, Icons.Default.CheckCircle, com.example.util.AppStrings.get("nav_habits", language)),
+            Triple(AppNavTab.GOALS, Icons.Default.Flag, com.example.util.AppStrings.get("nav_goals", language)),
+            Triple(AppNavTab.FINANCE, Icons.Default.AccountBalanceWallet, com.example.util.AppStrings.get("nav_finance", language))
         )
 
         items.forEach { (tab, icon, label) ->

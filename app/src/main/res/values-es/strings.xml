@@ -1,0 +1,98 @@
+<resources>
+    <string name="app_name">LifeOS</string>
+
+    <!-- Navigation Tabs -->
+    <string name="nav_hub">Hub</string>
+    <string name="nav_time">Tiempo</string>
+    <string name="nav_habits">Hábitos</string>
+    <string name="nav_goals">Metas</string>
+    <string name="nav_finance">Finanzas</string>
+
+    <!-- Common Actions -->
+    <string name="action_save">Guardar</string>
+    <string name="action_cancel">Cancelar</string>
+    <string name="action_confirm">Confirmar</string>
+    <string name="action_delete">Eliminar</string>
+    <string name="action_edit">Editar</string>
+    <string name="action_close">Cerrar</string>
+    <string name="action_add">Añadir</string>
+    <string name="action_select">Seleccionar</string>
+    <string name="action_apply">Aplicar</string>
+
+    <!-- Hub Screen -->
+    <string name="hub_title">Centro de Mando Ejecutivo</string>
+    <string name="hub_subtitle">Monitoreo integral de tu sistema personal</string>
+    <string name="hub_next_task">Siguiente Tarea Prioritaria</string>
+    <string name="hub_active_block">Bloque Activo</string>
+    <string name="hub_productive_time">Tiempo Productivo</string>
+    <string name="hub_habits_today">Hábitos de Hoy</string>
+    <string name="hub_goals_overview">Panorama de Metas</string>
+    <string name="hub_finance_summary">Resumen Financiero</string>
+    <string name="hub_vitality_summary">Entrenamiento y Vitalidad</string>
+    <string name="hub_quick_actions">Acciones Tácticas Rápidas</string>
+    <string name="hub_no_tasks">No hay tareas pendientes en este ciclo.</string>
+    <string name="hub_no_active_block">No hay bloque programado en este momento.</string>
+
+    <!-- Goals Module -->
+    <string name="goals_title">Metas de Alto Impacto</string>
+    <string name="goals_subtitle">Sistema OKR y seguimiento de resultados clave</string>
+    <string name="goals_create_title">Crear Nueva Meta</string>
+    <string name="goals_name_label">Nombre de la meta</string>
+    <string name="goals_desc_label">Descripción o propósito</string>
+    <string name="goals_category_label">Categoría de meta</string>
+    <string name="goals_date_label">Fecha</string>
+    <string name="goals_create_button">Crear Meta</string>
+    <string name="goals_completed_state">ESTADO 2: META COMPLETADA</string>
+    <string name="goals_milestones_title">Hitos y Subobjetivos</string>
+    <string name="goals_new_subgoal">Nuevo Subobjetivo</string>
+    <string name="goals_subgoal_label">Descripción del hito o submeta</string>
+    <string name="goals_add_milestone">Añadir Hito</string>
+
+    <!-- Time Module -->
+    <string name="time_title">Gestión del Tiempo</string>
+    <string name="time_subtitle">Bloques de foco profundo, tareas y temporizador ejecutivo</string>
+    <string name="time_create_block_title">Crear Bloque de Tiempo</string>
+    <string name="time_block_activity_label">Actividad o Enfoque</string>
+    <string name="time_block_start_label">Inicio</string>
+    <string name="time_block_end_label">Fin</string>
+    <string name="time_block_category_label">Categoría</string>
+    <string name="time_block_save_button">Guardar Bloque</string>
+
+    <!-- Workout / Fitness Module -->
+    <string name="fitness_title">Módulo de Entrenamiento</string>
+    <string name="fitness_subtitle">Sobrecarga progresiva y rendimiento físico</string>
+    <string name="fitness_dialog_title">Registrar Sesión de Entrenamiento</string>
+    <string name="fitness_routine_name">Nombre de la rutina</string>
+    <string name="fitness_goal_label">Objetivo</string>
+    <string name="fitness_minutes_label">Minutos</string>
+    <string name="fitness_tactical_notes">Notas tácticas</string>
+    <string name="fitness_ai_suggest_note">Sugerencia IA</string>
+    <string name="fitness_add_day">+ Agregar día</string>
+    <string name="fitness_add_exercise">+ Agregar ejercicio</string>
+    <string name="fitness_series_label">SERIES</string>
+    <string name="fitness_reps_label">REPS</string>
+    <string name="fitness_kg_label">KG</string>
+    <string name="fitness_save_session">Guardar Sesión</string>
+    <string name="fitness_analyze_ai">Analizar Volumen</string>
+
+    <!-- Settings Module -->
+    <string name="settings_title">Configuración del Sistema</string>
+    <string name="settings_subtitle">Configuración global, regionalización y respaldo soberano</string>
+    <string name="settings_regional_title">MONEDA E IDIOMA</string>
+    <string name="settings_regional_desc">Personaliza la divisa para tus finanzas y el idioma preferido para tu sistema ejecutivo.</string>
+    <string name="settings_currency_label">Moneda de Finanzas</string>
+    <string name="settings_language_label">Idioma del Sistema</string>
+    <string name="settings_select_currency">Seleccionar Moneda</string>
+    <string name="settings_select_language">Seleccionar Idioma</string>
+    <string name="settings_search_currency">Buscar país o moneda (ej: Colombia, Pesos)...</string>
+    <string name="settings_search_language">Buscar país o idioma (ej: Colombia, Español)...</string>
+
+    <!-- Finance Module -->
+    <string name="finance_title">Finanzas Personales &amp; Patrimonio</string>
+    <string name="finance_subtitle">Balance patrimonial en dona, gastos y flujo de caja</string>
+    <string name="finance_register_expense">Registrar Gasto</string>
+    <string name="finance_net_flow">Flujo Neto Actual</string>
+    <string name="finance_registered_income">Ingresos Registrados</string>
+    <string name="finance_total_expenses">Total Gastos</string>
+    <string name="finance_net_worth">PATRIMONIO</string>
+</resources>

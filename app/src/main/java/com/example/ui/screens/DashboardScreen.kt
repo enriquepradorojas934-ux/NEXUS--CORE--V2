@@ -520,11 +520,22 @@ fun DashboardScreen(
                     val ingresosTotal = state.totalIncome
                     val flujoNeto = state.netBalance
 
+                    val formattedFlujo = com.example.util.CurrencyFormatter.format(flujoNeto, state.selectedCurrencySymbol, state.selectedCurrencyCode, includePlus = true)
+                    val formattedIngresos = com.example.util.CurrencyFormatter.format(ingresosTotal, state.selectedCurrencySymbol, state.selectedCurrencyCode, includePlus = true)
+                    val formattedGastos = com.example.util.CurrencyFormatter.format(gastosTotal, state.selectedCurrencySymbol, state.selectedCurrencyCode)
+                    val formattedPatrimonio = com.example.util.CurrencyFormatter.format(patrimonioDona, state.selectedCurrencySymbol, state.selectedCurrencyCode)
+
+                    val isSpanish = com.example.util.AppStrings.isSpanish(state.selectedLanguage)
+                    val flujoLabel = if (isSpanish) "flujo neto" else "net cash flow"
+                    val ingresosLabel = if (isSpanish) "Ingresos" else "Income"
+                    val gastosLabel = if (isSpanish) "Gastos" else "Expenses"
+                    val patrimonioLabel = if (isSpanish) "Patrimonio" else "Net Worth"
+
                     ExecutiveMetricCard(
-                        title = "Control Financiero",
-                        question = "¿CÓMO ESTÁ MI PATRIMONIO?",
-                        value = "${if (flujoNeto >= 0) "+" else ""}$${String.format("%,.2f", flujoNeto)} flujo neto",
-                        detail = "Ingresos: +$${String.format("%,.2f", ingresosTotal)} • Gastos: -$${String.format("%,.2f", gastosTotal)} • Patrimonio: $${String.format("%,.2f", patrimonioDona)}",
+                        title = if (isSpanish) "Control Financiero" else "Financial Control",
+                        question = if (isSpanish) "¿CÓMO ESTÁ MI PATRIMONIO?" else "HOW IS MY NET WORTH?",
+                        value = "$formattedFlujo $flujoLabel",
+                        detail = "$ingresosLabel: $formattedIngresos • $gastosLabel: -$formattedGastos • $patrimonioLabel: $formattedPatrimonio",
                         icon = Icons.Default.AccountBalanceWallet,
                         accentColor = ExecutiveSecondaryAmber,
                         onClick = { onNavigate(AppNavTab.FINANCE) }

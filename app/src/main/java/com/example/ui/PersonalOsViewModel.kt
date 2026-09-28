@@ -641,14 +641,17 @@ class PersonalOsViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isAnalyzingFinance = true) }
             val state = _uiState.value
-            val goalsSummary = state.financialGoals.joinToString(", ") { "${it.name}: $${it.currentAmount}/$${it.targetAmount}" }
+            val goalsSummary = state.financialGoals.joinToString(", ") { "${it.name}: ${state.selectedCurrencySymbol}${it.currentAmount}/${state.selectedCurrencySymbol}${it.targetAmount}" }
             val aiService = com.example.service.PersonalAiProductivityService()
             val result = aiService.generateFinancialAdvice(
                 income = state.totalIncome,
                 expenses = state.totalExpenses,
                 balance = state.netBalance,
                 netWorth = state.totalAssets - state.totalDebts,
-                goalsSummary = if (goalsSummary.isBlank()) "Sin metas financieras activas" else goalsSummary
+                goalsSummary = if (goalsSummary.isBlank()) "Sin metas financieras activas" else goalsSummary,
+                currencySymbol = state.selectedCurrencySymbol,
+                currencyCode = state.selectedCurrencyCode,
+                language = state.selectedLanguage
             )
             _uiState.update {
                 it.copy(
@@ -673,7 +676,7 @@ class PersonalOsViewModel(
             val recentExpensesSummary = state.transactionsToday
                 .filter { it.type == "GASTO" }
                 .take(5)
-                .joinToString("; ") { "${it.category}: $${String.format("%.2f", it.amount)} (${it.description})" }
+                .joinToString("; ") { "${it.category}: ${state.selectedCurrencySymbol}${String.format("%.2f", it.amount)} (${it.description})" }
 
             val totalNetWorth = state.totalAssets
             val aiService = com.example.service.PersonalAiProductivityService()
@@ -684,13 +687,16 @@ class PersonalOsViewModel(
                 date = date,
                 description = description,
                 totalNetWorth = totalNetWorth,
-                recentExpensesSummary = recentExpensesSummary
+                recentExpensesSummary = recentExpensesSummary,
+                currencySymbol = state.selectedCurrencySymbol,
+                currencyCode = state.selectedCurrencyCode,
+                language = state.selectedLanguage
             )
 
             val netWorthPercent = if (totalNetWorth > 0) (amount / totalNetWorth * 100) else 0.0
             val fallbackDiagnosis = """
                 📊 IMPACTO PATRIMONIAL:
-                Este gasto de $${String.format("%,.2f", amount)} representa el ${String.format("%.1f", netWorthPercent)}% de tu patrimonio total ($${String.format("%,.2f", totalNetWorth)}).
+                Este gasto de ${state.selectedCurrencySymbol}${String.format("%,.2f", amount)} representa el ${String.format("%.1f", netWorthPercent)}% de tu patrimonio total (${state.selectedCurrencySymbol}${String.format("%,.2f", totalNetWorth)}).
                 ${if (netWorthPercent > 10.0) "⚠️ Alerta de liquidez: Supera el 10% de tu patrimonio total. Ten cautela con el flujo de caja." else "✅ Impacto moderado: Se encuentra en un rango manejable para tus reservas."}
 
                 👍 PUNTOS A FAVOR:
@@ -728,7 +734,7 @@ class PersonalOsViewModel(
             val recentExpensesSummary = state.transactionsToday
                 .filter { it.type == "GASTO" }
                 .take(5)
-                .joinToString("; ") { "${it.category}: $${String.format("%.2f", it.amount)}" }
+                .joinToString("; ") { "${it.category}: ${state.selectedCurrencySymbol}${String.format("%.2f", it.amount)}" }
 
             val aiService = com.example.service.PersonalAiProductivityService()
             val result = aiService.askFinancialAdvisorQuestion(
@@ -736,7 +742,10 @@ class PersonalOsViewModel(
                 totalNetWorth = state.totalAssets,
                 income = state.totalIncome,
                 expenses = state.totalExpenses,
-                recentExpensesSummary = recentExpensesSummary
+                recentExpensesSummary = recentExpensesSummary,
+                currencySymbol = state.selectedCurrencySymbol,
+                currencyCode = state.selectedCurrencyCode,
+                language = state.selectedLanguage
             )
 
             val fallback = "Como asesor patrimonial, ante tu consulta sobre '$question': Te sugiero mantener un fondo de emergencia mínimo de 3 a 6 meses de gastos corrientes antes de comprometer capital significativo, y evaluar cualquier inversión considerando su liquidez y horizonte temporal."
@@ -797,13 +806,38 @@ class PersonalOsViewModel(
                 }
             }
             val aiService = com.example.service.PersonalAiProductivityService()
-            val result = aiService.generateWorkoutAdvice(summary, "Progresión de Fuerza y Rendimiento")
+            val result = aiService.generateWorkoutAdvice(summary, "Progresión de Fuerza y Rendimiento", _uiState.value.selectedLanguage)
             _uiState.update {
                 it.copy(
                     isAnalyzingWorkout = false,
                     aiWorkoutAdvice = result.getOrNull() ?: "Se recomienda una cadencia de 3-4 sesiones semanales alternando grupos musculares y un descanso de 48h entre sesiones intensas para asegurar la recuperación."
                 )
             }
+        }
+    }
+
+    fun suggestTacticalWorkoutNote(
+        routineName: String,
+        goal: String,
+        minutes: Int,
+        routinePlanSummary: String,
+        onResult: (String) -> Unit
+    ) {
+        viewModelScope.launch {
+            val aiService = com.example.service.PersonalAiProductivityService()
+            val res = aiService.suggestTacticalWorkoutNote(
+                routineName = routineName,
+                goal = goal,
+                minutes = minutes,
+                routinePlanSummary = routinePlanSummary,
+                language = _uiState.value.selectedLanguage
+            )
+            val note = res.getOrNull() ?: if (com.example.util.AppStrings.isSpanish(_uiState.value.selectedLanguage)) {
+                "Enfócate en la cadencia de ejecución (tempo 3-0-1) y respeta descansos de 90s entre series pesadas."
+            } else {
+                "Focus on execution tempo (3-0-1 cadence) and adhere to 90s rest periods between heavy compound sets."
+            }
+            onResult(note)
         }
     }
 
@@ -923,7 +957,7 @@ class PersonalOsViewModel(
                     activeGoals = activeGoals.map { it.goal.title },
                     netFinancialBalance = s.netBalance
                 )
-                val aiResult = aiService.generateProductivityAdvice(snapshot)
+                val aiResult = aiService.generateProductivityAdvice(snapshot, s.selectedLanguage, s.selectedCurrencySymbol)
                 val advice = aiResult.getOrNull()
                 if (!advice.isNullOrBlank()) {
                     _uiState.update { it.copy(dailyAiSummary = advice) }
@@ -939,6 +973,7 @@ class PersonalOsViewModel(
         viewModelScope.launch {
             repository.setConfig("app_language", language)
             _uiState.update { it.copy(selectedLanguage = language) }
+            generateDailyAiSummary()
         }
     }
 

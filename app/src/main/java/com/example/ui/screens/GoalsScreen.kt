@@ -5,6 +5,7 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -19,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
@@ -220,9 +222,20 @@ private fun GoalCard(
     onDeleteGoal: () -> Unit,
     onToggleHabit: (Long) -> Unit = {}
 ) {
+    if (isCompleted) {
+        CompletedGoalCard(
+            item = item,
+            modifier = modifier,
+            onToggleGoalCompletion = onToggleGoalCompletion,
+            onDeleteGoal = onDeleteGoal,
+            onToggleSubGoal = onToggleSubGoal
+        )
+        return
+    }
+
     var isExpanded by remember { mutableStateOf(false) }
 
-    val effectiveProgress = if (isCompleted) 1.0f else item.progressPercent
+    val effectiveProgress = item.progressPercent
     val animatedProgress by animateFloatAsState(
         targetValue = effectiveProgress,
         animationSpec = spring(stiffness = Spring.StiffnessLow),
@@ -231,17 +244,12 @@ private fun GoalCard(
 
     Card(
         colors = CardDefaults.cardColors(
-            containerColor = if (isCompleted) {
-                MaterialTheme.colorScheme.surface.copy(alpha = 0.60f)
-            } else {
-                MaterialTheme.colorScheme.surface
-            }
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         shape = RoundedCornerShape(12.dp),
         border = androidx.compose.foundation.BorderStroke(
             1.dp,
-            if (isCompleted) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
-            else ExecutivePurple.copy(alpha = 0.22f)
+            ExecutivePurple.copy(alpha = 0.22f)
         ),
         modifier = modifier
             .fillMaxWidth()
@@ -359,16 +367,24 @@ private fun GoalCard(
 
                         Spacer(modifier = Modifier.weight(1f, fill = false))
 
-                        Text(
-                            text = "${(effectiveProgress * 100).toInt()}%",
-                            style = MaterialTheme.typography.labelSmall.copy(
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 10.sp,
-                                color = if (isCompleted) ExecutiveSuccessGreen else ExecutivePurple
-                            ),
-                            maxLines = 1,
-                            softWrap = false
-                        )
+                        Surface(
+                            color = ExecutivePurple.copy(alpha = 0.15f),
+                            shape = RoundedCornerShape(4.dp),
+                            modifier = Modifier.defaultMinSize(minWidth = 38.dp)
+                        ) {
+                            Text(
+                                text = "${(effectiveProgress * 100).toInt()}%",
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 11.sp,
+                                    color = ExecutivePurple
+                                ),
+                                maxLines = 1,
+                                softWrap = false,
+                                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
+                            )
+                        }
                     }
 
                     Spacer(modifier = Modifier.height(6.dp))
@@ -519,18 +535,383 @@ private fun GoalCard(
 }
 
 // =========================================================================
-// DIÁLOGOS DE CREACIÓN DE METAS Y SUBMETAS
+// TARJETA DE META COMPLETADA: REDISEÑO SEGÚN ESPECIFICACIÓN Y REFERENCIA VISUAL
 // =========================================================================
+
+@Composable
+private fun CompletedGoalCard(
+    item: GoalWithSubGoals,
+    modifier: Modifier = Modifier,
+    onToggleGoalCompletion: () -> Unit,
+    onDeleteGoal: () -> Unit,
+    onToggleSubGoal: (SubGoalEntity) -> Unit
+) {
+    Card(
+        colors = CardDefaults.cardColors(
+            containerColor = ExecutiveDarkSurface
+        ),
+        shape = RoundedCornerShape(16.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, ExecutiveSuccessGreen.copy(alpha = 0.35f)),
+        modifier = modifier
+            .fillMaxWidth()
+            .testTag("completed_goal_card_${item.goal.id}")
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            // Header: Estado 2: META COMPLETADA
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Surface(
+                    color = ExecutiveSuccessGreen.copy(alpha = 0.18f),
+                    shape = RoundedCornerShape(6.dp)
+                ) {
+                    Text(
+                        text = "ESTADO 2: META COMPLETADA",
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            fontWeight = FontWeight.ExtraBold,
+                            fontSize = 11.sp,
+                            letterSpacing = 0.6.sp
+                        ),
+                        color = ExecutiveSuccessGreen,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                    )
+                }
+
+                IconButton(
+                    onClick = onDeleteGoal,
+                    modifier = Modifier.size(28.dp).testTag("goal_delete_${item.goal.id}")
+                ) {
+                    Icon(
+                        Icons.Default.DeleteOutline,
+                        contentDescription = "Eliminar meta",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // 1. Ícono circular de check en verde + 2. Título de la meta en texto grande y en negrita (ej: "GRADUARME")
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(34.dp)
+                        .background(ExecutiveSuccessGreen, CircleShape)
+                        .clickable { onToggleGoalCompletion() }
+                        .testTag("goal_complete_toggle_${item.goal.id}"),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        Icons.Default.Check,
+                        contentDescription = "Meta completada",
+                        tint = ExecutiveDarkBg,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                Text(
+                    text = item.goal.title.uppercase(),
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Black,
+                        letterSpacing = 0.5.sp
+                    ),
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            // 3. Debajo, la descripción de la meta en texto normal
+            if (item.goal.description.isNotBlank()) {
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    text = item.goal.description,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    lineHeight = 20.sp
+                )
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // 4. Una fila de chips/badges compactos con: categoría, conteo de hitos completados, fecha objetivo y porcentaje ("100%")
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                // Categoría
+                Surface(
+                    color = ExecutivePurple.copy(alpha = 0.22f),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            Icons.Default.Work,
+                            contentDescription = null,
+                            tint = ExecutivePurple,
+                            modifier = Modifier.size(13.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = item.goal.category,
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 11.sp
+                            ),
+                            color = ExecutivePurple
+                        )
+                    }
+                }
+
+                // Hitos completados (ej: "3/3 hitos")
+                val totalHitos = item.subGoals.size
+                val completedHitos = if (totalHitos == 0) 1 else item.subGoals.count { it.isCompleted }.coerceAtLeast(totalHitos)
+                val displayTotal = if (totalHitos == 0) 1 else totalHitos
+                Surface(
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            Icons.Default.Checklist,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(13.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "$completedHitos/$displayTotal hitos",
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 11.sp
+                            ),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
+                // Fecha objetivo
+                if (item.goal.targetDate.isNotBlank()) {
+                    Surface(
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                Icons.Default.CalendarToday,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(13.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = item.goal.targetDate,
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    fontWeight = FontWeight.SemiBold,
+                                    fontSize = 11.sp
+                                ),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+
+                // Porcentaje 100% (completamente legible, sin recortes)
+                Surface(
+                    color = ExecutiveSuccessGreen.copy(alpha = 0.20f),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            Icons.Default.AutoAwesome,
+                            contentDescription = null,
+                            tint = ExecutiveSuccessGreen,
+                            modifier = Modifier.size(13.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "100%",
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                fontWeight = FontWeight.ExtraBold,
+                                fontSize = 11.sp
+                            ),
+                            color = ExecutiveSuccessGreen,
+                            softWrap = false
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // 5. Una barra de progreso debajo de los chips (llena y en verde cuando está al 100%)
+            LinearProgressIndicator(
+                progress = { 1.0f },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(6.dp)
+                    .clip(CircleShape),
+                color = ExecutiveSuccessGreen,
+                trackColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // 6. Sección "Hitos y Subobjetivos" que liste cada hito de esa meta con su propio check si está completado
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Hitos y Subobjetivos",
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 15.sp
+                    ),
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Icon(
+                    Icons.Default.FormatListBulleted,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            if (item.subGoals.isEmpty()) {
+                Surface(
+                    shape = RoundedCornerShape(10.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, TacticalNeonCyan.copy(alpha = 0.3f)),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(24.dp)
+                                .background(ExecutivePurple, CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(Icons.Default.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(15.dp))
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            text = "Meta principal completada",
+                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
+            } else {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    item.subGoals.forEach { sub ->
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
+                            border = androidx.compose.foundation.BorderStroke(
+                                1.dp,
+                                if (sub.isCompleted) TacticalNeonCyan.copy(alpha = 0.4f) else MaterialTheme.colorScheme.surfaceVariant
+                            ),
+                            modifier = Modifier.fillMaxWidth().clickable { onToggleSubGoal(sub) }
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(24.dp)
+                                        .background(
+                                            if (sub.isCompleted) ExecutivePurple else Color.Transparent,
+                                            CircleShape
+                                        )
+                                        .border(
+                                            1.dp,
+                                            if (sub.isCompleted) ExecutivePurple else MaterialTheme.colorScheme.onSurfaceVariant,
+                                            CircleShape
+                                        ),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    if (sub.isCompleted) {
+                                        Icon(
+                                            Icons.Default.Check,
+                                            contentDescription = null,
+                                            tint = Color.White,
+                                            modifier = Modifier.size(15.dp)
+                                        )
+                                    }
+                                }
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text(
+                                    text = sub.title,
+                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                        fontWeight = FontWeight.Medium
+                                    ),
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
 
 @Composable
 private fun AddGoalDialog(
     onDismiss: () -> Unit,
     onConfirm: (String, String, String, String) -> Unit
 ) {
+    val context = LocalContext.current
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var category by remember { mutableStateOf("Profesional") }
     var targetDate by remember { mutableStateOf("2026-12-31") }
+
+    val datePickerDialog = remember {
+        val parts = targetDate.split("-")
+        val y = parts.getOrNull(0)?.toIntOrNull() ?: 2026
+        val m = (parts.getOrNull(1)?.toIntOrNull() ?: 12) - 1
+        val d = parts.getOrNull(2)?.toIntOrNull() ?: 31
+        android.app.DatePickerDialog(
+            context,
+            { _, year, month, dayOfMonth ->
+                targetDate = "%04d-%02d-%02d".format(year, month + 1, dayOfMonth)
+            },
+            y, m, d
+        )
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -559,7 +940,20 @@ private fun AddGoalDialog(
                     value = targetDate,
                     onValueChange = { targetDate = it },
                     label = { Text("Fecha") },
-                    modifier = Modifier.fillMaxWidth()
+                    readOnly = true,
+                    trailingIcon = {
+                        IconButton(onClick = { datePickerDialog.show() }) {
+                            Icon(
+                                Icons.Default.CalendarToday,
+                                contentDescription = "Seleccionar fecha",
+                                tint = ExecutivePurple
+                            )
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { datePickerDialog.show() }
+                        .testTag("dialog_goal_date_picker")
                 )
             }
         },

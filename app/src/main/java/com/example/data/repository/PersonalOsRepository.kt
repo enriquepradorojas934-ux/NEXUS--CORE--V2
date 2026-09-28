@@ -221,14 +221,17 @@ class PersonalOsRepositoryImpl(
 
     // === PUENTE CON SERVICIO DE PRODUCTIVIDAD GEMINI (FIREBASE AI) ===
     override suspend fun generateProductivityAdvice(snapshot: UserProductivitySnapshot): Result<String> {
-        return aiService.generateProductivityAdvice(snapshot)
+        val lang = getConfig("app_language") ?: "Español"
+        val curr = getConfig("app_currency_symbol") ?: "$"
+        return aiService.generateProductivityAdvice(snapshot, lang, curr)
     }
 
     override suspend fun askCustomProductivityQuestion(
         question: String,
         snapshot: UserProductivitySnapshot
     ): Result<String> {
-        return aiService.askCustomProductivityQuestion(question, snapshot)
+        val lang = getConfig("app_language") ?: "Español"
+        return aiService.askCustomProductivityQuestion(question, snapshot, lang)
     }
 
     override suspend fun sendChatMessage(
@@ -238,7 +241,8 @@ class PersonalOsRepositoryImpl(
         modelOption: GeminiModelOption,
         snapshot: UserProductivitySnapshot?
     ): Result<String> {
-        return aiService.sendChatMessage(history, userMessage, persona, modelOption, snapshot)
+        val lang = getConfig("app_language") ?: "Español"
+        return aiService.sendChatMessage(history, userMessage, persona, modelOption, snapshot, lang)
     }
 
     /**
