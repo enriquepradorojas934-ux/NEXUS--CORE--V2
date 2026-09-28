@@ -535,7 +535,7 @@ fun DashboardScreen(
                         title = if (isSpanish) "Control Financiero" else "Financial Control",
                         question = if (isSpanish) "¿CÓMO ESTÁ MI PATRIMONIO?" else "HOW IS MY NET WORTH?",
                         value = "$formattedFlujo $flujoLabel",
-                        detail = "$ingresosLabel: $formattedIngresos • $gastosLabel: -$formattedGastos • $patrimonioLabel: $formattedPatrimonio",
+                        detail = "$ingresosLabel: $formattedIngresos • $gastosLabel: $formattedGastos • $patrimonioLabel: $formattedPatrimonio",
                         icon = Icons.Default.AccountBalanceWallet,
                         accentColor = ExecutiveSecondaryAmber,
                         onClick = { onNavigate(AppNavTab.FINANCE) }

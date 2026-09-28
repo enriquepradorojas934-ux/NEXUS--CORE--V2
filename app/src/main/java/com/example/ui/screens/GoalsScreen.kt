@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -211,6 +212,7 @@ fun GoalsScreen(
 // TARJETA DE META: FORMATO INTERMEDIO (TIPO LISTA DE TAREAS / NOTAS)
 // =========================================================================
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun GoalCard(
     item: GoalWithSubGoals,
@@ -222,20 +224,16 @@ private fun GoalCard(
     onDeleteGoal: () -> Unit,
     onToggleHabit: (Long) -> Unit = {}
 ) {
-    if (isCompleted) {
-        CompletedGoalCard(
-            item = item,
-            modifier = modifier,
-            onToggleGoalCompletion = onToggleGoalCompletion,
-            onDeleteGoal = onDeleteGoal,
-            onToggleSubGoal = onToggleSubGoal
-        )
-        return
+    val totalSubs = item.subGoals.size
+    val doneSubs = if (isCompleted && item.subGoals.isNotEmpty() && item.subGoals.all { it.isCompleted }) {
+        totalSubs
+    } else {
+        item.subGoals.count { it.isCompleted }
     }
 
-    var isExpanded by remember { mutableStateOf(false) }
+    val effectiveProgress = if (isCompleted) 1.0f else item.progressPercent
+    val percentInt = (effectiveProgress * 100).toInt().coerceIn(0, 100)
 
-    val effectiveProgress = item.progressPercent
     val animatedProgress by animateFloatAsState(
         targetValue = effectiveProgress,
         animationSpec = spring(stiffness = Spring.StiffnessLow),
@@ -246,10 +244,10 @@ private fun GoalCard(
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
-        shape = RoundedCornerShape(12.dp),
-        border = androidx.compose.foundation.BorderStroke(
+        shape = RoundedCornerShape(14.dp),
+        border = BorderStroke(
             1.dp,
-            ExecutivePurple.copy(alpha = 0.22f)
+            if (isCompleted) ExecutiveSuccessGreen.copy(alpha = 0.35f) else ExecutivePurple.copy(alpha = 0.25f)
         ),
         modifier = modifier
             .fillMaxWidth()
@@ -258,444 +256,141 @@ private fun GoalCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 10.dp)
-        ) {
-            // Fila principal compacta estilo checklist / nota ejecutiva
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Checkbox / Toggle de completado directo
-                IconButton(
-                    onClick = onToggleGoalCompletion,
-                    modifier = Modifier
-                        .size(36.dp)
-                        .testTag("goal_complete_toggle_${item.goal.id}")
-                ) {
-                    Icon(
-                        imageVector = if (isCompleted) Icons.Default.CheckCircle else Icons.Default.RadioButtonUnchecked,
-                        contentDescription = if (isCompleted) "Desmarcar meta" else "Completar meta",
-                        tint = if (isCompleted) ExecutiveSuccessGreen else MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(22.dp)
-                    )
-                }
-
-                Spacer(modifier = Modifier.width(6.dp))
-
-                // Contenido central: Título en negrita (+ tachado si completada), subtítulo y metadatos
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clickable { isExpanded = !isExpanded }
-                ) {
-                    Text(
-                        text = item.goal.title,
-                        style = MaterialTheme.typography.bodyLarge.copy(
-                            fontWeight = if (isCompleted) FontWeight.Bold else FontWeight.Normal,
-                            textDecoration = if (isCompleted) TextDecoration.LineThrough else TextDecoration.None
-                        ),
-                        color = if (isCompleted) {
-                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.65f)
-                        } else {
-                            MaterialTheme.colorScheme.onSurface
-                        },
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
-                    )
-
-                    if (item.goal.description.isNotBlank()) {
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text(
-                            text = item.goal.description,
-                            style = MaterialTheme.typography.bodySmall.copy(
-                                fontWeight = if (isCompleted) FontWeight.Bold else FontWeight.Normal,
-                                textDecoration = if (isCompleted) TextDecoration.LineThrough else TextDecoration.None
-                            ),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(6.dp))
-
-                    // Badges de metadatos en formato intermedio
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Surface(
-                            color = if (isCompleted) MaterialTheme.colorScheme.surfaceVariant else ExecutivePurple.copy(alpha = 0.15f),
-                            shape = RoundedCornerShape(4.dp)
-                        ) {
-                            Text(
-                                text = item.goal.category,
-                                style = MaterialTheme.typography.labelSmall.copy(
-                                    fontWeight = FontWeight.SemiBold,
-                                    fontSize = 10.sp
-                                ),
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                color = if (isCompleted) MaterialTheme.colorScheme.onSurfaceVariant else ExecutivePurple,
-                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 1.dp)
-                            )
-                        }
-
-                        if (item.subGoals.isNotEmpty()) {
-                            val doneSubs = if (isCompleted) item.subGoals.size else item.subGoals.count { it.isCompleted }
-                            Text(
-                                text = "$doneSubs/${item.subGoals.size} hitos",
-                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-                                maxLines = 1,
-                                softWrap = false,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Text("•", style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp), color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
-
-                        if (item.goal.targetDate.isNotBlank()) {
-                            Text(
-                                text = item.goal.targetDate,
-                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Text("•", style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp), color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
-
-                        Spacer(modifier = Modifier.weight(1f, fill = false))
-
-                        Surface(
-                            color = ExecutivePurple.copy(alpha = 0.15f),
-                            shape = RoundedCornerShape(4.dp),
-                            modifier = Modifier.defaultMinSize(minWidth = 38.dp)
-                        ) {
-                            Text(
-                                text = "${(effectiveProgress * 100).toInt()}%",
-                                style = MaterialTheme.typography.labelSmall.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 11.sp,
-                                    color = ExecutivePurple
-                                ),
-                                maxLines = 1,
-                                softWrap = false,
-                                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(6.dp))
-
-                    // Barra de progreso compacta (4dp de espesor)
-                    LinearProgressIndicator(
-                        progress = { animatedProgress },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(4.dp)
-                            .clip(CircleShape),
-                        color = if (isCompleted) ExecutiveSuccessGreen else ExecutivePurple,
-                        trackColor = MaterialTheme.colorScheme.surfaceVariant
-                    )
-                }
-
-                Spacer(modifier = Modifier.width(4.dp))
-
-                // Acciones a la derecha: Desplegar detalles y eliminar
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(
-                        onClick = { isExpanded = !isExpanded },
-                        modifier = Modifier.size(32.dp).testTag("goal_expand_${item.goal.id}")
-                    ) {
-                        Icon(
-                            imageVector = if (isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                            contentDescription = if (isExpanded) "Colapsar" else "Ver detalles",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
-
-                    IconButton(
-                        onClick = onDeleteGoal,
-                        modifier = Modifier.size(32.dp).testTag("goal_delete_${item.goal.id}")
-                    ) {
-                        Icon(
-                            Icons.Default.DeleteOutline,
-                            contentDescription = "Eliminar",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
-                }
-            }
-
-            // Vista expandida con detalles de submetas y hábitos (Acordeón limpio y compacto)
-            AnimatedVisibility(visible = isExpanded) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 10.dp, start = 6.dp, end = 4.dp)
-                ) {
-                    HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    // Hábitos vinculados si existen
-                    if (item.associatedHabits.isNotEmpty()) {
-                        Text(
-                            text = "Hábitos vinculados:",
-                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                            color = ExecutiveSuccessGreen
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        item.associatedHabits.forEach { habitItem ->
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 2.dp)
-                                    .clickable { onToggleHabit(habitItem.habit.id) },
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Icon(
-                                    imageVector = if (habitItem.isCompletedToday) Icons.Default.CheckCircle else Icons.Default.RadioButtonUnchecked,
-                                    contentDescription = null,
-                                    tint = if (habitItem.isCompletedToday) ExecutiveSuccessGreen else MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text(
-                                    text = habitItem.habit.title,
-                                    style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
-                                    color = if (habitItem.isCompletedToday) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface
-                                )
-                            }
-                        }
-                        Spacer(modifier = Modifier.height(8.dp))
-                    }
-
-                    // Lista de Subobjetivos / Hitos
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "Hitos y Subobjetivos:",
-                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        TextButton(
-                            onClick = onAddSubGoalClick,
-                            contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp)
-                        ) {
-                            Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(14.dp))
-                            Spacer(modifier = Modifier.width(2.dp))
-                            Text("Agregar hito", style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp))
-                        }
-                    }
-
-                    if (item.subGoals.isEmpty()) {
-                        Text(
-                            text = "Sin subobjetivos definidos. Pulsa 'Agregar hito' para desglosar la meta.",
-                            style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    } else {
-                        item.subGoals.forEach { sub ->
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 2.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Checkbox(
-                                    checked = sub.isCompleted,
-                                    onCheckedChange = { onToggleSubGoal(sub) },
-                                    colors = CheckboxDefaults.colors(checkedColor = ExecutivePurple),
-                                    modifier = Modifier.size(20.dp).testTag("subgoal_checkbox_${sub.id}")
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(
-                                    text = sub.title,
-                                    style = MaterialTheme.typography.bodySmall.copy(
-                                        fontSize = 12.sp,
-                                        textDecoration = if (sub.isCompleted) TextDecoration.LineThrough else TextDecoration.None,
-                                        color = if (sub.isCompleted) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface
-                                    ),
-                                    modifier = Modifier.weight(1f)
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-// =========================================================================
-// TARJETA DE META COMPLETADA: REDISEÑO SEGÚN ESPECIFICACIÓN Y REFERENCIA VISUAL
-// =========================================================================
-
-@Composable
-private fun CompletedGoalCard(
-    item: GoalWithSubGoals,
-    modifier: Modifier = Modifier,
-    onToggleGoalCompletion: () -> Unit,
-    onDeleteGoal: () -> Unit,
-    onToggleSubGoal: (SubGoalEntity) -> Unit
-) {
-    Card(
-        colors = CardDefaults.cardColors(
-            containerColor = ExecutiveDarkSurface
-        ),
-        shape = RoundedCornerShape(16.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, ExecutiveSuccessGreen.copy(alpha = 0.35f)),
-        modifier = modifier
-            .fillMaxWidth()
-            .testTag("completed_goal_card_${item.goal.id}")
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            // 1. Ícono circular de check en verde + 2. Título de la meta en texto grande y en negrita + Botón de eliminar
+            // Cabecera: Círculo de completado + Título y Descripción + Papelera arriba a la derecha
             Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.Top,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(34.dp)
-                        .background(ExecutiveSuccessGreen, CircleShape)
-                        .clickable { onToggleGoalCompletion() }
-                        .testTag("goal_complete_toggle_${item.goal.id}"),
-                    contentAlignment = Alignment.Center
+                Row(
+                    modifier = Modifier.weight(1f),
+                    verticalAlignment = Alignment.Top
                 ) {
-                    Icon(
-                        Icons.Default.Check,
-                        contentDescription = "Meta completada",
-                        tint = ExecutiveDarkBg,
-                        modifier = Modifier.size(20.dp)
-                    )
+                    // Círculo interactivo junto al título:
+                    // Verde con check si completada; círculo vacío (solo borde) si activa/pendiente
+                    IconButton(
+                        onClick = onToggleGoalCompletion,
+                        modifier = Modifier
+                            .size(36.dp)
+                            .testTag("goal_complete_toggle_${item.goal.id}")
+                    ) {
+                        if (isCompleted) {
+                            Icon(
+                                imageVector = Icons.Default.CheckCircle,
+                                contentDescription = "Desmarcar meta",
+                                tint = ExecutiveSuccessGreen,
+                                modifier = Modifier.size(28.dp)
+                            )
+                        } else {
+                            Icon(
+                                imageVector = Icons.Default.RadioButtonUnchecked,
+                                contentDescription = "Completar meta",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                                modifier = Modifier.size(28.dp)
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.width(10.dp))
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = item.goal.title,
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 17.sp
+                            ),
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+
+                        if (item.goal.description.isNotBlank()) {
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = item.goal.description,
+                                style = MaterialTheme.typography.bodyMedium.copy(fontSize = 13.sp),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
                 }
 
-                Spacer(modifier = Modifier.width(12.dp))
-
-                Text(
-                    text = item.goal.title,
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 0.3.sp
-                    ),
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.weight(1f)
-                )
-
+                // Ícono de eliminar (papelera) arriba a la derecha
                 IconButton(
                     onClick = onDeleteGoal,
-                    modifier = Modifier.size(28.dp).testTag("goal_delete_${item.goal.id}")
+                    modifier = Modifier
+                        .size(36.dp)
+                        .testTag("goal_delete_${item.goal.id}")
                 ) {
                     Icon(
                         Icons.Default.DeleteOutline,
                         contentDescription = "Eliminar meta",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                        modifier = Modifier.size(18.dp)
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(20.dp)
                     )
                 }
             }
 
-            // 3. Debajo, la descripción de la meta en texto normal
-            if (item.goal.description.isNotBlank()) {
-                Spacer(modifier = Modifier.height(6.dp))
-                Text(
-                    text = item.goal.description,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    lineHeight = 20.sp
-                )
-            }
+            Spacer(modifier = Modifier.height(12.dp))
 
-            Spacer(modifier = Modifier.height(14.dp))
-
-            // 4. Fila de chips/badges: categoría, conteo de hitos completados, fecha objetivo y porcentaje ("100%")
-            Row(
+            // Fila de chips con FlowRow: categoría, conteo de hitos, fecha objetivo y porcentaje
+            FlowRow(
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                // Categoría
+                // Chip de categoría
                 Surface(
-                    color = ExecutivePurple.copy(alpha = 0.22f),
-                    shape = RoundedCornerShape(8.dp)
+                    color = ExecutivePurple.copy(alpha = 0.15f),
+                    shape = RoundedCornerShape(6.dp)
                 ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            Icons.Default.Work,
-                            contentDescription = null,
-                            tint = ExecutivePurple,
-                            modifier = Modifier.size(12.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = item.goal.category,
-                            style = MaterialTheme.typography.labelSmall.copy(
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 11.sp
-                            ),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            color = ExecutivePurple
-                        )
-                    }
+                    Text(
+                        text = item.goal.category,
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 11.sp
+                        ),
+                        color = ExecutivePurple,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                    )
                 }
 
-                // Hitos completados (ej: "3/3 hitos")
-                val totalHitos = item.subGoals.size
-                val completedHitos = if (totalHitos == 0) 1 else item.subGoals.count { it.isCompleted }.coerceAtLeast(totalHitos)
-                val displayTotal = if (totalHitos == 0) 1 else totalHitos
-                Surface(
-                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            Icons.Default.Checklist,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(12.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = "$completedHitos/$displayTotal hitos",
-                            style = MaterialTheme.typography.labelSmall.copy(
-                                fontWeight = FontWeight.SemiBold,
-                                fontSize = 11.sp
-                            ),
-                            maxLines = 1,
-                            softWrap = false,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-
-                // Fecha objetivo
-                if (item.goal.targetDate.isNotBlank()) {
+                // Chip de conteo de hitos
+                if (totalSubs > 0) {
                     Surface(
-                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
-                        shape = RoundedCornerShape(8.dp)
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+                        shape = RoundedCornerShape(6.dp)
                     ) {
                         Row(
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        ) {
+                            Icon(
+                                Icons.Default.Flag,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(12.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = "$doneSubs/$totalSubs hitos",
+                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+
+                // Chip de fecha objetivo
+                if (item.goal.targetDate.isNotBlank()) {
+                    Surface(
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+                        shape = RoundedCornerShape(6.dp)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                         ) {
                             Icon(
                                 Icons.Default.CalendarToday,
@@ -706,68 +401,47 @@ private fun CompletedGoalCard(
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
                                 text = item.goal.targetDate,
-                                style = MaterialTheme.typography.labelSmall.copy(
-                                    fontWeight = FontWeight.SemiBold,
-                                    fontSize = 11.sp
-                                ),
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
+                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
                 }
 
-                Spacer(modifier = Modifier.weight(1f, fill = false))
-
-                // Porcentaje 100% (completamente legible, sin cortes ni recortes)
+                // Chip de porcentaje: 100% en verde, avance real en violeta
+                val isFullyComplete = isCompleted || percentInt >= 100
                 Surface(
-                    color = ExecutiveSuccessGreen.copy(alpha = 0.20f),
-                    shape = RoundedCornerShape(8.dp),
-                    modifier = Modifier.defaultMinSize(minWidth = 52.dp)
+                    color = if (isFullyComplete) ExecutiveSuccessGreen.copy(alpha = 0.2f) else ExecutivePurple.copy(alpha = 0.2f),
+                    shape = RoundedCornerShape(6.dp)
                 ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Icon(
-                            Icons.Default.AutoAwesome,
-                            contentDescription = null,
-                            tint = ExecutiveSuccessGreen,
-                            modifier = Modifier.size(12.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = "100%",
-                            style = MaterialTheme.typography.labelSmall.copy(
-                                fontWeight = FontWeight.ExtraBold,
-                                fontSize = 11.sp
-                            ),
-                            color = ExecutiveSuccessGreen,
-                            maxLines = 1,
-                            softWrap = false
-                        )
-                    }
+                    Text(
+                        text = "$percentInt%",
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 11.sp
+                        ),
+                        color = if (isFullyComplete) ExecutiveSuccessGreen else ExecutivePurple,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                    )
                 }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
-            // 5. Una barra de progreso debajo de los chips (llena y en verde cuando está al 100%)
+            // Barra de progreso: verde si 100%, violeta si < 100%
             LinearProgressIndicator(
-                progress = { 1.0f },
+                progress = { animatedProgress },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(6.dp)
-                    .clip(CircleShape),
-                color = ExecutiveSuccessGreen,
-                trackColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                    .clip(RoundedCornerShape(3.dp)),
+                color = if (isCompleted || effectiveProgress >= 1f) ExecutiveSuccessGreen else ExecutivePurple,
+                trackColor = MaterialTheme.colorScheme.surfaceVariant
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
-            // 6. Sección "Hitos y Subobjetivos" que liste cada hito de esa meta con su propio check si está completado
+            // Sección "Hitos y Subobjetivos" SIEMPRE VISIBLE
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -775,98 +449,131 @@ private fun CompletedGoalCard(
             ) {
                 Text(
                     text = "Hitos y Subobjetivos",
-                    style = MaterialTheme.typography.titleMedium.copy(
+                    style = MaterialTheme.typography.labelMedium.copy(
                         fontWeight = FontWeight.Bold,
-                        fontSize = 15.sp
+                        fontSize = 13.sp
                     ),
                     color = MaterialTheme.colorScheme.onSurface
                 )
-                Icon(
-                    Icons.Default.FormatListBulleted,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(18.dp)
-                )
+                TextButton(
+                    onClick = onAddSubGoalClick,
+                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp)
+                ) {
+                    Icon(
+                        Icons.Default.Add,
+                        contentDescription = null,
+                        tint = ExecutivePurple,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        "+ Agregar hito",
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 12.sp
+                        ),
+                        color = ExecutivePurple
+                    )
+                }
             }
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(6.dp))
 
             if (item.subGoals.isEmpty()) {
                 Surface(
-                    shape = RoundedCornerShape(10.dp),
                     color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, TacticalNeonCyan.copy(alpha = 0.3f)),
+                    shape = RoundedCornerShape(8.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(24.dp)
-                                .background(ExecutivePurple, CircleShape),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(Icons.Default.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(15.dp))
-                        }
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text(
-                            text = "Meta principal completada",
-                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
+                    Text(
+                        text = "Sin subobjetivos definidos. Pulsa '+ Agregar hito' para desglosar la meta.",
+                        style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+                    )
                 }
             } else {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     item.subGoals.forEach { sub ->
                         Surface(
-                            shape = RoundedCornerShape(10.dp),
-                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
-                            border = androidx.compose.foundation.BorderStroke(
-                                1.dp,
-                                if (sub.isCompleted) TacticalNeonCyan.copy(alpha = 0.4f) else MaterialTheme.colorScheme.surfaceVariant
-                            ),
-                            modifier = Modifier.fillMaxWidth().clickable { onToggleSubGoal(sub) }
+                            shape = RoundedCornerShape(8.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { onToggleSubGoal(sub) }
+                                .testTag("subgoal_row_${sub.id}")
                         ) {
                             Row(
-                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 10.dp, vertical = 8.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(24.dp)
-                                        .background(
-                                            if (sub.isCompleted) ExecutivePurple else Color.Transparent,
-                                            CircleShape
-                                        )
-                                        .border(
-                                            1.dp,
-                                            if (sub.isCompleted) ExecutivePurple else MaterialTheme.colorScheme.onSurfaceVariant,
-                                            CircleShape
-                                        ),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    if (sub.isCompleted) {
-                                        Icon(
-                                            Icons.Default.Check,
-                                            contentDescription = null,
-                                            tint = Color.White,
-                                            modifier = Modifier.size(15.dp)
-                                        )
-                                    }
+                                // Círculo violeta con check si completado, círculo vacío si pendiente
+                                if (sub.isCompleted) {
+                                    Icon(
+                                        imageVector = Icons.Default.CheckCircle,
+                                        contentDescription = "Hito completado",
+                                        tint = ExecutivePurple,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                } else {
+                                    Icon(
+                                        imageVector = Icons.Default.RadioButtonUnchecked,
+                                        contentDescription = "Hito pendiente",
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                                        modifier = Modifier.size(20.dp)
+                                    )
                                 }
-                                Spacer(modifier = Modifier.width(12.dp))
+
+                                Spacer(modifier = Modifier.width(10.dp))
+
+                                // Texto limpio sin tachado
                                 Text(
                                     text = sub.title,
-                                    style = MaterialTheme.typography.bodyMedium.copy(
-                                        fontWeight = FontWeight.Medium
-                                    ),
-                                    color = MaterialTheme.colorScheme.onSurface
+                                    style = MaterialTheme.typography.bodyMedium.copy(fontSize = 13.sp),
+                                    color = if (sub.isCompleted) {
+                                        MaterialTheme.colorScheme.onSurfaceVariant
+                                    } else {
+                                        MaterialTheme.colorScheme.onSurface
+                                    },
+                                    modifier = Modifier.weight(1f)
                                 )
                             }
                         }
+                    }
+                }
+            }
+
+            // Hábitos vinculados si existen
+            if (item.associatedHabits.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(10.dp))
+                Text(
+                    text = "Hábitos vinculados:",
+                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                    color = ExecutiveSuccessGreen
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                item.associatedHabits.forEach { habitItem ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 2.dp)
+                            .clickable { onToggleHabit(habitItem.habit.id) },
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = if (habitItem.isCompletedToday) Icons.Default.CheckCircle else Icons.Default.RadioButtonUnchecked,
+                            contentDescription = null,
+                            tint = if (habitItem.isCompletedToday) ExecutiveSuccessGreen else MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = habitItem.habit.title,
+                            style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
+                            color = if (habitItem.isCompletedToday) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface
+                        )
                     }
                 }
             }

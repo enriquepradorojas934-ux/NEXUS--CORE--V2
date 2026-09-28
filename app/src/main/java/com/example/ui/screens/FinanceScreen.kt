@@ -5,6 +5,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -136,30 +137,66 @@ fun FinanceScreen(
             }
         )
 
-        // Selector Segmentado de Secciones (Patrimonio vs Gastos)
+        // Cabecera de pestañas con Chip pequeño de Moneda activa
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .background(MaterialTheme.colorScheme.surface)
-                .padding(4.dp),
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                .padding(horizontal = 16.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            FinanceTabButton(
-                selected = activeTab == FinanceSectionTab.PATRIMONIO,
-                title = "Patrimonio",
-                icon = Icons.Default.PieChart,
-                modifier = Modifier.weight(1f).testTag("tab_patrimonio"),
-                onClick = { activeTab = FinanceSectionTab.PATRIMONIO }
-            )
-            FinanceTabButton(
-                selected = activeTab == FinanceSectionTab.GASTOS,
-                title = "Gastos",
-                icon = Icons.Default.ReceiptLong,
-                modifier = Modifier.weight(1f).testTag("tab_gastos"),
-                onClick = { activeTab = FinanceSectionTab.GASTOS }
-            )
+            // Selector Segmentado de Secciones (Patrimonio vs Gastos)
+            Row(
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.surface)
+                    .padding(4.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                FinanceTabButton(
+                    selected = activeTab == FinanceSectionTab.PATRIMONIO,
+                    title = "Patrimonio",
+                    icon = Icons.Default.PieChart,
+                    modifier = Modifier.weight(1f).testTag("tab_patrimonio"),
+                    onClick = { activeTab = FinanceSectionTab.PATRIMONIO }
+                )
+                FinanceTabButton(
+                    selected = activeTab == FinanceSectionTab.GASTOS,
+                    title = "Gastos",
+                    icon = Icons.Default.ReceiptLong,
+                    modifier = Modifier.weight(1f).testTag("tab_gastos"),
+                    onClick = { activeTab = FinanceSectionTab.GASTOS }
+                )
+            }
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            // Chip pequeño en la cabecera que muestra la moneda activa (ej: "COP")
+            Surface(
+                color = ExecutivePrimaryTeal.copy(alpha = 0.15f),
+                shape = RoundedCornerShape(8.dp),
+                border = BorderStroke(1.dp, ExecutivePrimaryTeal.copy(alpha = 0.35f)),
+                modifier = Modifier.testTag("chip_active_currency")
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp)
+                ) {
+                    Icon(
+                        Icons.Default.MonetizationOn,
+                        contentDescription = null,
+                        tint = ExecutivePrimaryTeal,
+                        modifier = Modifier.size(14.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = state.selectedCurrencyCode,
+                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                        color = ExecutivePrimaryTeal
+                    )
+                }
+            }
         }
 
         LazyColumn(
@@ -176,7 +213,8 @@ fun FinanceScreen(
                         assets = activeAssets,
                         totalPatrimonio = totalPatrimonio,
                         onAddAssetClick = { showAddAssetDialog = true },
-                        currencySymbol = state.selectedCurrencySymbol
+                        currencySymbol = state.selectedCurrencySymbol,
+                        currencyCode = state.selectedCurrencyCode
                     )
                 }
 
@@ -251,7 +289,8 @@ fun FinanceScreen(
                             percentage = percentage,
                             onEdit = { assetToEdit = asset },
                             onDelete = { assetToDelete = asset },
-                            currencySymbol = state.selectedCurrencySymbol
+                            currencySymbol = state.selectedCurrencySymbol,
+                            currencyCode = state.selectedCurrencyCode
                         )
                     }
                 }
@@ -264,7 +303,8 @@ fun FinanceScreen(
                         totalIncome = state.totalIncome,
                         netBalance = state.netBalance,
                         onRegisterExpenseClick = { showRegisterExpenseDialog = true },
-                        currencySymbol = state.selectedCurrencySymbol
+                        currencySymbol = state.selectedCurrencySymbol,
+                        currencyCode = state.selectedCurrencyCode
                     )
                 }
 
@@ -419,7 +459,8 @@ fun FinanceScreen(
                         TransactionRowItem(
                             tx = tx,
                             onDelete = { onDeleteTransaction(tx) },
-                            currencySymbol = state.selectedCurrencySymbol
+                            currencySymbol = state.selectedCurrencySymbol,
+                            currencyCode = state.selectedCurrencyCode
                         )
                     }
                 }
@@ -432,6 +473,8 @@ fun FinanceScreen(
         AddEditAssetDialog(
             title = "Nuevo Activo",
             existingAsset = null,
+            currencySymbol = state.selectedCurrencySymbol,
+            currencyCode = state.selectedCurrencyCode,
             onDismiss = { showAddAssetDialog = false },
             onConfirm = { name, category, amount ->
                 onAddAssetDebt("ACTIVO", name, amount, category)
@@ -444,6 +487,8 @@ fun FinanceScreen(
         AddEditAssetDialog(
             title = "Editar Activo",
             existingAsset = assetToEdit,
+            currencySymbol = state.selectedCurrencySymbol,
+            currencyCode = state.selectedCurrencyCode,
             onDismiss = { assetToEdit = null },
             onConfirm = { name, category, amount ->
                 onUpdateAssetDebt(assetToEdit!!.copy(name = name, notes = category, currentAmount = amount))
@@ -482,6 +527,7 @@ fun FinanceScreen(
             isEvaluatingExpense = state.isEvaluatingExpense,
             expenseEvaluationAdvice = state.expenseEvaluationAdvice,
             currencySymbol = state.selectedCurrencySymbol,
+            currencyCode = state.selectedCurrencyCode,
             onDismiss = {
                 onClearExpenseEvaluation()
                 showRegisterExpenseDialog = false
@@ -517,7 +563,8 @@ private fun PatrimonioDonutCard(
     assets: List<AssetDebtEntity>,
     totalPatrimonio: Double,
     onAddAssetClick: () -> Unit,
-    currencySymbol: String = "$"
+    currencySymbol: String = "$",
+    currencyCode: String = "USD"
 ) {
     var selectedAssetId by remember { mutableStateOf<Long?>(null) }
     val selectedAsset = remember(selectedAssetId, assets) {
@@ -582,7 +629,7 @@ private fun PatrimonioDonutCard(
                     }
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text("PATRIMONIO", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Text("${currencySymbol}0.00", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.onSurface)
+                        Text(com.example.util.CurrencyFormatter.format(0.0, currencySymbol, currencyCode), style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.onSurface)
                         Text("Sin activos", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 } else {
@@ -669,7 +716,7 @@ private fun PatrimonioDonutCard(
                             )
                             Spacer(modifier = Modifier.height(2.dp))
                             Text(
-                                text = "${currencySymbol}${String.format("%,.2f", selectedAsset.currentAmount)}",
+                                text = com.example.util.CurrencyFormatter.format(selectedAsset.currentAmount, currencySymbol, currencyCode),
                                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold),
                                 color = AssetPalette[assets.indexOf(selectedAsset) % AssetPalette.size]
                             )
@@ -686,7 +733,7 @@ private fun PatrimonioDonutCard(
                             )
                             Spacer(modifier = Modifier.height(2.dp))
                             Text(
-                                text = "${currencySymbol}${String.format("%,.2f", totalPatrimonio)}",
+                                text = com.example.util.CurrencyFormatter.format(totalPatrimonio, currencySymbol, currencyCode),
                                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold),
                                 color = ExecutivePrimaryTeal
                             )
@@ -724,7 +771,8 @@ private fun AssetItemCard(
     percentage: Double,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
-    currencySymbol: String = "$"
+    currencySymbol: String = "$",
+    currencyCode: String = "USD"
 ) {
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -765,7 +813,7 @@ private fun AssetItemCard(
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = "${currencySymbol}${String.format("%,.2f", asset.currentAmount)}",
+                    text = com.example.util.CurrencyFormatter.format(asset.currentAmount, currencySymbol, currencyCode),
                     style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.ExtraBold),
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -791,7 +839,8 @@ private fun GastosSummaryCard(
     totalIncome: Double,
     netBalance: Double,
     onRegisterExpenseClick: () -> Unit,
-    currencySymbol: String = "$"
+    currencySymbol: String = "$",
+    currencyCode: String = "USD"
 ) {
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -812,7 +861,7 @@ private fun GastosSummaryCard(
                     )
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
-                        text = "${currencySymbol}${String.format("%,.2f", totalExpenses)}",
+                        text = com.example.util.CurrencyFormatter.format(totalExpenses, currencySymbol, currencyCode),
                         style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.ExtraBold),
                         color = ExecutiveDangerRed
                     )
@@ -841,7 +890,7 @@ private fun GastosSummaryCard(
                 Column {
                     Text("Ingresos Registrados", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Text(
-                        text = "+${currencySymbol}${String.format("%,.2f", totalIncome)}",
+                        text = com.example.util.CurrencyFormatter.format(totalIncome, currencySymbol, currencyCode, includePlus = true),
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                         color = ExecutiveSuccessGreen
                     )
@@ -849,7 +898,7 @@ private fun GastosSummaryCard(
                 Column(horizontalAlignment = Alignment.End) {
                     Text("Flujo Neto Actual", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Text(
-                        text = "${if (netBalance >= 0) "+" else ""}${currencySymbol}${String.format("%,.2f", netBalance)}",
+                        text = com.example.util.CurrencyFormatter.format(netBalance, currencySymbol, currencyCode, includePlus = true),
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                         color = if (netBalance >= 0) ExecutiveSuccessGreen else ExecutiveDangerRed
                     )
@@ -881,7 +930,7 @@ private fun AsesorFinancieroIaCard(
                     Icon(
                         imageVector = Icons.Default.AutoAwesome,
                         contentDescription = null,
-                        tint = TacticalLuminousBlue,
+                        tint = ExecutivePrimaryTeal,
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
@@ -891,18 +940,18 @@ private fun AsesorFinancieroIaCard(
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 1.sp
                         ),
-                        color = TacticalLuminousBlue
+                        color = ExecutivePrimaryTeal
                     )
                 }
 
                 Surface(
                     shape = RoundedCornerShape(6.dp),
-                    color = TacticalLuminousBlue.copy(alpha = 0.15f)
+                    color = ExecutivePrimaryTeal.copy(alpha = 0.15f)
                 ) {
                     Text(
                         text = "Gemini 3.5 Flash",
                         fontSize = 10.sp,
-                        color = TacticalLuminousBlue,
+                        color = ExecutivePrimaryTeal,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                     )
@@ -918,7 +967,7 @@ private fun AsesorFinancieroIaCard(
                     horizontalArrangement = Arrangement.Center,
                     modifier = Modifier.fillMaxWidth().padding(14.dp)
                 ) {
-                    CircularProgressIndicator(modifier = Modifier.size(18.dp), color = TacticalLuminousBlue, strokeWidth = 2.dp)
+                    CircularProgressIndicator(modifier = Modifier.size(18.dp), color = ExecutivePrimaryTeal, strokeWidth = 2.dp)
                     Spacer(modifier = Modifier.width(10.dp))
                     Text("Asesor Gemini analizando flujo de caja y patrimonio...", style = MaterialTheme.typography.bodySmall)
                 }
@@ -926,7 +975,7 @@ private fun AsesorFinancieroIaCard(
                 Surface(
                     shape = RoundedCornerShape(10.dp),
                     color = ExecutiveDarkSurfaceElevated,
-                    border = androidx.compose.foundation.BorderStroke(1.dp, TacticalLuminousBlue.copy(alpha = 0.25f)),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, ExecutivePrimaryTeal.copy(alpha = 0.25f)),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
@@ -984,8 +1033,8 @@ private fun AsesorFinancieroIaCard(
                 OutlinedButton(
                     onClick = onAnalyzeFlow,
                     enabled = !state.isAnalyzingFinance,
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = TacticalLuminousBlue),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, TacticalLuminousBlue.copy(alpha = 0.4f)),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = ExecutivePrimaryTeal),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, ExecutivePrimaryTeal.copy(alpha = 0.4f)),
                     modifier = Modifier.weight(1f).testTag("btn_analyze_finance_ai")
                 ) {
                     Icon(Icons.Default.Insights, contentDescription = null, modifier = Modifier.size(16.dp))
@@ -995,8 +1044,8 @@ private fun AsesorFinancieroIaCard(
 
                 Button(
                     onClick = onOpenAskAdvisor,
-                    colors = ButtonDefaults.buttonColors(containerColor = TacticalLuminousBlue.copy(alpha = 0.2f), contentColor = TacticalLuminousBlue),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, TacticalLuminousBlue.copy(alpha = 0.5f)),
+                    colors = ButtonDefaults.buttonColors(containerColor = ExecutivePrimaryTeal.copy(alpha = 0.2f), contentColor = ExecutivePrimaryTeal),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, ExecutivePrimaryTeal.copy(alpha = 0.5f)),
                     modifier = Modifier.weight(1f).testTag("btn_ask_finance_advisor")
                 ) {
                     Icon(Icons.Default.QuestionAnswer, contentDescription = null, modifier = Modifier.size(16.dp))
@@ -1012,7 +1061,8 @@ private fun AsesorFinancieroIaCard(
 private fun TransactionRowItem(
     tx: TransactionEntity,
     onDelete: () -> Unit,
-    currencySymbol: String = "$"
+    currencySymbol: String = "$",
+    currencyCode: String = "USD"
 ) {
     Row(
         modifier = Modifier
@@ -1062,7 +1112,7 @@ private fun TransactionRowItem(
 
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = "${if (tx.type == "INGRESO") "+" else "-"}${currencySymbol}${String.format("%,.2f", tx.amount)}",
+                text = com.example.util.CurrencyFormatter.format(tx.amount, currencySymbol, currencyCode, includePlus = (tx.type == "INGRESO")),
                 style = MaterialTheme.typography.bodyMedium.copy(
                     fontWeight = FontWeight.Bold,
                     color = if (tx.type == "INGRESO") ExecutiveSuccessGreen else ExecutiveDangerRed
@@ -1088,7 +1138,8 @@ private fun RegisterExpenseWithAiDialog(
     onDismiss: () -> Unit,
     onEvaluateWithAi: (String, String, Double, String, String, (String) -> Unit) -> Unit,
     onConfirmExpense: (String, String, Double, String, String) -> Unit,
-    currencySymbol: String = "$"
+    currencySymbol: String = "$",
+    currencyCode: String = "USD"
 ) {
     val context = LocalContext.current
 
@@ -1178,8 +1229,10 @@ private fun RegisterExpenseWithAiDialog(
                     OutlinedTextField(
                         value = amountText,
                         onValueChange = { amountText = it },
-                        label = { Text("Monto") },
+                        label = { Text("Monto ($currencyCode)") },
                         placeholder = { Text("0.00") },
+                        suffix = { Text(currencyCode, color = ExecutivePrimaryTeal, fontWeight = FontWeight.Bold) },
+                        supportingText = { Text("Monto expresado en $currencyCode ($currencySymbol)") },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth().testTag("input_expense_amount")
                     )
@@ -1203,7 +1256,7 @@ private fun RegisterExpenseWithAiDialog(
                     Spacer(modifier = Modifier.height(4.dp))
                     Card(
                         colors = CardDefaults.cardColors(containerColor = ExecutiveDarkSurfaceElevated),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, TacticalLuminousBlue.copy(alpha = 0.4f)),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, ExecutivePrimaryTeal.copy(alpha = 0.4f)),
                         shape = RoundedCornerShape(12.dp),
                         modifier = Modifier.fillMaxWidth()
                     ) {
@@ -1214,17 +1267,17 @@ private fun RegisterExpenseWithAiDialog(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = TacticalLuminousBlue, modifier = Modifier.size(16.dp))
+                                    Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = ExecutivePrimaryTeal, modifier = Modifier.size(16.dp))
                                     Spacer(modifier = Modifier.width(6.dp))
                                     Text(
                                         "CONSULTA CON ASESOR IA",
                                         style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                                        color = TacticalLuminousBlue
+                                        color = ExecutivePrimaryTeal
                                     )
                                 }
 
                                 if (isEvaluatingExpense) {
-                                    CircularProgressIndicator(modifier = Modifier.size(14.dp), strokeWidth = 2.dp, color = TacticalLuminousBlue)
+                                    CircularProgressIndicator(modifier = Modifier.size(14.dp), strokeWidth = 2.dp, color = ExecutivePrimaryTeal)
                                 }
                             }
 
@@ -1238,7 +1291,7 @@ private fun RegisterExpenseWithAiDialog(
                                 )
                             } else {
                                 Text(
-                                    text = "Antes de confirmar, el Asesor Financiero evaluará cómo impacta este desembolso en tus ${currencySymbol}${String.format("%,.0f", totalPatrimonio)} de patrimonio y tus hábitos de gasto.",
+                                    text = "Antes de confirmar, el Asesor Financiero evaluará cómo impacta este desembolso en tus ${com.example.util.CurrencyFormatter.format(totalPatrimonio, currencySymbol, currencyCode)} de patrimonio y tus hábitos de gasto.",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -1251,7 +1304,7 @@ private fun RegisterExpenseWithAiDialog(
                                         onEvaluateWithAi(name, category, parsedAmount, selectedDate, description) {}
                                     },
                                     enabled = isFormValid && !isEvaluatingExpense,
-                                    colors = ButtonDefaults.buttonColors(containerColor = TacticalLuminousBlue.copy(alpha = 0.25f), contentColor = TacticalLuminousBlue),
+                                    colors = ButtonDefaults.buttonColors(containerColor = ExecutivePrimaryTeal.copy(alpha = 0.25f), contentColor = ExecutivePrimaryTeal),
                                     modifier = Modifier.fillMaxWidth().testTag("btn_consult_expense_ai")
                                 ) {
                                     Icon(Icons.Default.AutoAwesome, contentDescription = null, modifier = Modifier.size(16.dp))
@@ -1292,6 +1345,8 @@ private fun RegisterExpenseWithAiDialog(
 private fun AddEditAssetDialog(
     title: String,
     existingAsset: AssetDebtEntity?,
+    currencySymbol: String = "$",
+    currencyCode: String = "USD",
     onDismiss: () -> Unit,
     onConfirm: (String, String, Double) -> Unit
 ) {
@@ -1325,8 +1380,10 @@ private fun AddEditAssetDialog(
                 OutlinedTextField(
                     value = amountText,
                     onValueChange = { amountText = it },
-                    label = { Text("Monto") },
+                    label = { Text("Monto ($currencyCode)") },
                     placeholder = { Text("0.00") },
+                    suffix = { Text(currencyCode, color = ExecutivePrimaryTeal, fontWeight = FontWeight.Bold) },
+                    supportingText = { Text("Valor expresado en $currencyCode ($currencySymbol)") },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth().testTag("input_asset_value")
                 )
@@ -1374,7 +1431,7 @@ private fun AskFinancialAdvisorDialog(
         onDismissRequest = onDismiss,
         title = {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.QuestionAnswer, contentDescription = null, tint = TacticalLuminousBlue)
+                Icon(Icons.Default.QuestionAnswer, contentDescription = null, tint = ExecutivePrimaryTeal)
                 Spacer(modifier = Modifier.width(8.dp))
                 Text("Consulta con Asesor Financiero")
             }
@@ -1415,7 +1472,7 @@ private fun AskFinancialAdvisorDialog(
                     }
                 },
                 enabled = questionText.isNotBlank() && !isAsking,
-                colors = ButtonDefaults.buttonColors(containerColor = TacticalLuminousBlue)
+                colors = ButtonDefaults.buttonColors(containerColor = ExecutivePrimaryTeal)
             ) {
                 Text("Enviar Consulta", color = Color.Black, fontWeight = FontWeight.Bold)
             }
