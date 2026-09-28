@@ -202,6 +202,9 @@ fun PersonalOsApp() {
                     },
                     onDeleteWorkout = { viewModel.deleteWorkoutSession(it) },
                     onAnalyzeAi = { viewModel.analyzeWorkoutWithAi() },
+                    onSuggestTacticalNote = { name, goal, mins, summary, callback ->
+                        viewModel.suggestTacticalWorkoutNote(name, goal, mins, summary, callback)
+                    },
                     onClose = { showFitnessOverlay = false }
                 )
             }

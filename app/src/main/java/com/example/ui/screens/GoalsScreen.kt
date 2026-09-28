@@ -561,44 +561,7 @@ private fun CompletedGoalCard(
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            // Header: Estado 2: META COMPLETADA
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Surface(
-                    color = ExecutiveSuccessGreen.copy(alpha = 0.18f),
-                    shape = RoundedCornerShape(6.dp)
-                ) {
-                    Text(
-                        text = "ESTADO 2: META COMPLETADA",
-                        style = MaterialTheme.typography.labelSmall.copy(
-                            fontWeight = FontWeight.ExtraBold,
-                            fontSize = 11.sp,
-                            letterSpacing = 0.6.sp
-                        ),
-                        color = ExecutiveSuccessGreen,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                    )
-                }
-
-                IconButton(
-                    onClick = onDeleteGoal,
-                    modifier = Modifier.size(28.dp).testTag("goal_delete_${item.goal.id}")
-                ) {
-                    Icon(
-                        Icons.Default.DeleteOutline,
-                        contentDescription = "Eliminar meta",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                        modifier = Modifier.size(18.dp)
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // 1. Ícono circular de check en verde + 2. Título de la meta en texto grande y en negrita (ej: "GRADUARME")
+            // 1. Ícono circular de check en verde + 2. Título de la meta en texto grande y en negrita + Botón de eliminar
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
@@ -622,14 +585,26 @@ private fun CompletedGoalCard(
                 Spacer(modifier = Modifier.width(12.dp))
 
                 Text(
-                    text = item.goal.title.uppercase(),
+                    text = item.goal.title,
                     style = MaterialTheme.typography.titleLarge.copy(
-                        fontWeight = FontWeight.Black,
-                        letterSpacing = 0.5.sp
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 0.3.sp
                     ),
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.weight(1f)
                 )
+
+                IconButton(
+                    onClick = onDeleteGoal,
+                    modifier = Modifier.size(28.dp).testTag("goal_delete_${item.goal.id}")
+                ) {
+                    Icon(
+                        Icons.Default.DeleteOutline,
+                        contentDescription = "Eliminar meta",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
             }
 
             // 3. Debajo, la descripción de la meta en texto normal
@@ -645,11 +620,11 @@ private fun CompletedGoalCard(
 
             Spacer(modifier = Modifier.height(14.dp))
 
-            // 4. Una fila de chips/badges compactos con: categoría, conteo de hitos completados, fecha objetivo y porcentaje ("100%")
+            // 4. Fila de chips/badges: categoría, conteo de hitos completados, fecha objetivo y porcentaje ("100%")
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 // Categoría
                 Surface(
@@ -657,14 +632,14 @@ private fun CompletedGoalCard(
                     shape = RoundedCornerShape(8.dp)
                 ) {
                     Row(
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
                             Icons.Default.Work,
                             contentDescription = null,
                             tint = ExecutivePurple,
-                            modifier = Modifier.size(13.dp)
+                            modifier = Modifier.size(12.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
@@ -673,6 +648,8 @@ private fun CompletedGoalCard(
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 11.sp
                             ),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
                             color = ExecutivePurple
                         )
                     }
@@ -687,14 +664,14 @@ private fun CompletedGoalCard(
                     shape = RoundedCornerShape(8.dp)
                 ) {
                     Row(
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
                             Icons.Default.Checklist,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(13.dp)
+                            modifier = Modifier.size(12.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
@@ -703,6 +680,8 @@ private fun CompletedGoalCard(
                                 fontWeight = FontWeight.SemiBold,
                                 fontSize = 11.sp
                             ),
+                            maxLines = 1,
+                            softWrap = false,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -715,14 +694,14 @@ private fun CompletedGoalCard(
                         shape = RoundedCornerShape(8.dp)
                     ) {
                         Row(
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Icon(
                                 Icons.Default.CalendarToday,
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(13.dp)
+                                modifier = Modifier.size(12.dp)
                             )
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
@@ -731,26 +710,32 @@ private fun CompletedGoalCard(
                                     fontWeight = FontWeight.SemiBold,
                                     fontSize = 11.sp
                                 ),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
                 }
 
-                // Porcentaje 100% (completamente legible, sin recortes)
+                Spacer(modifier = Modifier.weight(1f, fill = false))
+
+                // Porcentaje 100% (completamente legible, sin cortes ni recortes)
                 Surface(
                     color = ExecutiveSuccessGreen.copy(alpha = 0.20f),
-                    shape = RoundedCornerShape(8.dp)
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.defaultMinSize(minWidth = 52.dp)
                 ) {
                     Row(
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
                     ) {
                         Icon(
                             Icons.Default.AutoAwesome,
                             contentDescription = null,
                             tint = ExecutiveSuccessGreen,
-                            modifier = Modifier.size(13.dp)
+                            modifier = Modifier.size(12.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
@@ -760,6 +745,7 @@ private fun CompletedGoalCard(
                                 fontSize = 11.sp
                             ),
                             color = ExecutiveSuccessGreen,
+                            maxLines = 1,
                             softWrap = false
                         )
                     }

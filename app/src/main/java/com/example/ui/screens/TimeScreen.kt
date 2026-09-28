@@ -452,12 +452,23 @@ private fun getCategoryColor(category: String): Color {
     }
 }
 
+private fun parseTimeToMinutes(timeStr: String): Int {
+    val clean = timeStr.trim().uppercase()
+    val isPm = clean.contains("PM")
+    val isAm = clean.contains("AM")
+    val stripped = clean.replace("AM", "").replace("PM", "").trim()
+    val parts = stripped.split(":")
+    var h = parts.getOrNull(0)?.trim()?.toIntOrNull() ?: 0
+    val m = parts.getOrNull(1)?.trim()?.toIntOrNull() ?: 0
+    if (isPm && h < 12) h += 12
+    if (isAm && h == 12) h = 0
+    return h * 60 + m
+}
+
 private fun calculateDuration(startTime: String, endTime: String): Int {
     return try {
-        val sParts = startTime.split(":")
-        val eParts = endTime.split(":")
-        val sMin = sParts[0].trim().toInt() * 60 + sParts[1].trim().toInt()
-        val eMin = eParts[0].trim().toInt() * 60 + eParts[1].trim().toInt()
+        val sMin = parseTimeToMinutes(startTime)
+        val eMin = parseTimeToMinutes(endTime)
         val diff = eMin - sMin
         if (diff > 0) diff else 60
     } catch (_: Exception) {
@@ -954,76 +965,182 @@ private fun AddTimeBlockDialog(
 ) {
     val context = LocalContext.current
     var title by remember { mutableStateOf("") }
-    var startTime by remember { mutableStateOf("09:00") }
-    var endTime by remember { mutableStateOf("10:30") }
+    var startHourMin by remember { mutableStateOf("09:00") }
+    var startAmPm by remember { mutableStateOf("AM") }
+    var endHourMin by remember { mutableStateOf("10:30") }
+    var endAmPm by remember { mutableStateOf("AM") }
     var category by remember { mutableStateOf("FOCO") }
+
+    val showStartTimePicker = {
+        val sParts = startHourMin.split(":")
+        var h = sParts.getOrNull(0)?.trim()?.toIntOrNull() ?: 9
+        val m = sParts.getOrNull(1)?.trim()?.toIntOrNull() ?: 0
+        if (startAmPm == "PM" && h < 12) h += 12
+        if (startAmPm == "AM" && h == 12) h = 0
+
+        android.app.TimePickerDialog(
+            context,
+            { _, pickedHour, pickedMinute ->
+                val isPm = pickedHour >= 12
+                val h12 = when {
+                    pickedHour == 0 -> 12
+                    pickedHour > 12 -> pickedHour - 12
+                    else -> pickedHour
+                }
+                startHourMin = "%02d:%02d".format(h12, pickedMinute)
+                startAmPm = if (isPm) "PM" else "AM"
+            },
+            h, m, false
+        ).show()
+    }
+
+    val showEndTimePicker = {
+        val eParts = endHourMin.split(":")
+        var h = eParts.getOrNull(0)?.trim()?.toIntOrNull() ?: 10
+        val m = eParts.getOrNull(1)?.trim()?.toIntOrNull() ?: 30
+        if (endAmPm == "PM" && h < 12) h += 12
+        if (endAmPm == "AM" && h == 12) h = 0
+
+        android.app.TimePickerDialog(
+            context,
+            { _, pickedHour, pickedMinute ->
+                val isPm = pickedHour >= 12
+                val h12 = when {
+                    pickedHour == 0 -> 12
+                    pickedHour > 12 -> pickedHour - 12
+                    else -> pickedHour
+                }
+                endHourMin = "%02d:%02d".format(h12, pickedMinute)
+                endAmPm = if (isPm) "PM" else "AM"
+            },
+            h, m, false
+        ).show()
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Crear Bloque de Tiempo", fontWeight = FontWeight.Bold) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedTextField(
                     value = title,
                     onValueChange = { title = it },
                     label = { Text("Actividad o Enfoque") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth().testTag("input_block_title")
                 )
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(
-                        value = startTime,
-                        onValueChange = { startTime = it },
-                        label = { Text("Inicio") },
-                        readOnly = true,
-                        trailingIcon = {
-                            IconButton(onClick = {
-                                val sParts = startTime.split(":")
-                                val h = sParts.getOrNull(0)?.trim()?.toIntOrNull() ?: 9
-                                val m = sParts.getOrNull(1)?.trim()?.toIntOrNull() ?: 0
-                                android.app.TimePickerDialog(
-                                    context,
-                                    { _, hourOfDay, minute ->
-                                        startTime = "%02d:%02d".format(hourOfDay, minute)
-                                    },
-                                    h, m, true
-                                ).show()
-                            }) {
-                                Icon(
-                                    Icons.Default.Schedule,
-                                    contentDescription = "Seleccionar hora de inicio",
-                                    tint = ExecutivePurple
-                                )
-                            }
-                        },
-                        modifier = Modifier.weight(1f)
+
+                // Campo Inicio: Reloj interactivo 12h + chips AM / PM
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(
+                        text = "Inicio",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    OutlinedTextField(
-                        value = endTime,
-                        onValueChange = { endTime = it },
-                        label = { Text("Fin") },
-                        readOnly = true,
-                        trailingIcon = {
-                            IconButton(onClick = {
-                                val eParts = endTime.split(":")
-                                val h = eParts.getOrNull(0)?.trim()?.toIntOrNull() ?: 10
-                                val m = eParts.getOrNull(1)?.trim()?.toIntOrNull() ?: 30
-                                android.app.TimePickerDialog(
-                                    context,
-                                    { _, hourOfDay, minute ->
-                                        endTime = "%02d:%02d".format(hourOfDay, minute)
-                                    },
-                                    h, m, true
-                                ).show()
-                            }) {
-                                Icon(
-                                    Icons.Default.Schedule,
-                                    contentDescription = "Seleccionar hora de fin",
-                                    tint = ExecutivePurple
-                                )
-                            }
-                        },
-                        modifier = Modifier.weight(1f)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        OutlinedTextField(
+                            value = "$startHourMin $startAmPm",
+                            onValueChange = {},
+                            readOnly = true,
+                            singleLine = true,
+                            trailingIcon = {
+                                IconButton(onClick = { showStartTimePicker() }) {
+                                    Icon(
+                                        Icons.Default.Schedule,
+                                        contentDescription = "Abrir selector de hora de inicio",
+                                        tint = ExecutivePurple
+                                    )
+                                }
+                            },
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable { showStartTimePicker() }
+                                .testTag("input_block_start_time")
+                        )
+
+                        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            FilterChip(
+                                selected = startAmPm == "AM",
+                                onClick = { startAmPm = "AM" },
+                                label = { Text("AM", fontWeight = FontWeight.Bold, fontSize = 11.sp) },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = ExecutivePurple.copy(alpha = 0.25f),
+                                    selectedLabelColor = ExecutivePurple
+                                ),
+                                modifier = Modifier.testTag("chip_start_am")
+                            )
+                            FilterChip(
+                                selected = startAmPm == "PM",
+                                onClick = { startAmPm = "PM" },
+                                label = { Text("PM", fontWeight = FontWeight.Bold, fontSize = 11.sp) },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = ExecutivePurple.copy(alpha = 0.25f),
+                                    selectedLabelColor = ExecutivePurple
+                                ),
+                                modifier = Modifier.testTag("chip_start_pm")
+                            )
+                        }
+                    }
+                }
+
+                // Campo Fin: Reloj interactivo 12h + chips AM / PM
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(
+                        text = "Fin",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        OutlinedTextField(
+                            value = "$endHourMin $endAmPm",
+                            onValueChange = {},
+                            readOnly = true,
+                            singleLine = true,
+                            trailingIcon = {
+                                IconButton(onClick = { showEndTimePicker() }) {
+                                    Icon(
+                                        Icons.Default.Schedule,
+                                        contentDescription = "Abrir selector de hora de fin",
+                                        tint = ExecutivePurple
+                                    )
+                                }
+                            },
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable { showEndTimePicker() }
+                                .testTag("input_block_end_time")
+                        )
+
+                        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            FilterChip(
+                                selected = endAmPm == "AM",
+                                onClick = { endAmPm = "AM" },
+                                label = { Text("AM", fontWeight = FontWeight.Bold, fontSize = 11.sp) },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = ExecutivePurple.copy(alpha = 0.25f),
+                                    selectedLabelColor = ExecutivePurple
+                                ),
+                                modifier = Modifier.testTag("chip_end_am")
+                            )
+                            FilterChip(
+                                selected = endAmPm == "PM",
+                                onClick = { endAmPm = "PM" },
+                                label = { Text("PM", fontWeight = FontWeight.Bold, fontSize = 11.sp) },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = ExecutivePurple.copy(alpha = 0.25f),
+                                    selectedLabelColor = ExecutivePurple
+                                ),
+                                modifier = Modifier.testTag("chip_end_pm")
+                            )
+                        }
+                    }
                 }
 
                 OutlinedTextField(
@@ -1038,7 +1155,7 @@ private fun AddTimeBlockDialog(
         },
         confirmButton = {
             Button(
-                onClick = { onConfirm(title, startTime, endTime, category) },
+                onClick = { onConfirm(title, "$startHourMin $startAmPm", "$endHourMin $endAmPm", category) },
                 colors = ButtonDefaults.buttonColors(containerColor = ExecutiveAccentBlue)
             ) {
                 Text("Guardar Bloque")
