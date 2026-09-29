@@ -50,12 +50,14 @@ class HabitReminderWorker(
             val habitLogs = dao.getHabitLogsByCycle(cycleDate).first()
             val completedHabitIds = habitLogs.filter { it.isCompleted }.map { it.habitId }.toSet()
             val pendingHabits = activeHabits.filter { it.id !in completedHabitIds }
+            val savedLanguage = configs.find { it.configKey == "app_language" }?.configValue ?: "Español"
 
             // 3. Crear y emitir notificación del sistema
             sendNotification(
                 pendingCount = pendingHabits.size,
                 totalCount = activeHabits.size,
-                sampleHabitNames = pendingHabits.take(3).map { it.title }
+                sampleHabitNames = pendingHabits.take(3).map { it.title },
+                language = savedLanguage
             )
 
             Result.success()
@@ -68,7 +70,8 @@ class HabitReminderWorker(
     private fun sendNotification(
         pendingCount: Int,
         totalCount: Int,
-        sampleHabitNames: List<String>
+        sampleHabitNames: List<String>,
+        language: String = "Español"
     ) {
         val notificationManager = appContext.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
             ?: return
@@ -97,19 +100,27 @@ class HabitReminderWorker(
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
 
+        val isSpanish = com.example.util.AppStrings.isSpanish(language)
         val (title, content) = if (pendingCount > 0) {
             val habitsPreview = sampleHabitNames.joinToString(", ")
-            val titleText = "¡Momento de tus hábitos! ($pendingCount pendientes)"
-            val contentText = if (habitsPreview.isNotBlank()) {
-                "Pendientes: $habitsPreview. ¡Mantén tu racha activa hoy!"
+            val titleText = if (isSpanish) {
+                "¡Momento de tus hábitos! ($pendingCount pendientes)"
             } else {
-                "Tienes $pendingCount hábitos pendientes de completar hoy."
+                "Habits check-in! ($pendingCount pending)"
+            }
+            val contentText = if (habitsPreview.isNotBlank()) {
+                if (isSpanish) "Pendientes: $habitsPreview. ¡Mantén tu racha activa hoy!"
+                else "Pending: $habitsPreview. Keep your daily streak alive!"
+            } else {
+                if (isSpanish) "Tienes $pendingCount hábitos pendientes de completar hoy."
+                else "You have $pendingCount habits pending for today."
             }
             Pair(titleText, contentText)
         } else {
             Pair(
-                "¡Excelente consistencia!",
-                "Has completado todos tus $totalCount hábitos del día. ¡Gran trabajo!"
+                if (isSpanish) "¡Excelente consistencia!" else "Outstanding consistency!",
+                if (isSpanish) "Has completado todos tus $totalCount hábitos del día. ¡Gran trabajo!"
+                else "You have completed all $totalCount habits today. Great execution!"
             )
         }
 

@@ -214,7 +214,8 @@ fun FinanceScreen(
                         totalPatrimonio = totalPatrimonio,
                         onAddAssetClick = { showAddAssetDialog = true },
                         currencySymbol = state.selectedCurrencySymbol,
-                        currencyCode = state.selectedCurrencyCode
+                        currencyCode = state.selectedCurrencyCode,
+                        language = state.selectedLanguage
                     )
                 }
 
@@ -564,8 +565,10 @@ private fun PatrimonioDonutCard(
     totalPatrimonio: Double,
     onAddAssetClick: () -> Unit,
     currencySymbol: String = "$",
-    currencyCode: String = "USD"
+    currencyCode: String = "USD",
+    language: String = "Español"
 ) {
+    val isSpanish = com.example.util.AppStrings.isSpanish(language)
     var selectedAssetId by remember { mutableStateOf<Long?>(null) }
     val selectedAsset = remember(selectedAssetId, assets) {
         assets.find { it.id == selectedAssetId }
@@ -624,13 +627,36 @@ private fun PatrimonioDonutCard(
                     Canvas(modifier = Modifier.fillMaxSize()) {
                         drawCircle(
                             color = Color.DarkGray.copy(alpha = 0.35f),
-                            style = Stroke(width = 30.dp.toPx())
+                            style = Stroke(width = 24.dp.toPx())
                         )
                     }
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("PATRIMONIO", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Text(com.example.util.CurrencyFormatter.format(0.0, currencySymbol, currencyCode), style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.onSurface)
-                        Text("Sin activos", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.padding(28.dp)
+                    ) {
+                        Text(
+                            text = "PATRIMONIO TOTAL",
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 1.sp, fontSize = 10.sp),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = com.example.util.CurrencyFormatter.formatWithoutCode(0.0, currencySymbol, currencyCode),
+                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold),
+                            color = MaterialTheme.colorScheme.onSurface,
+                            maxLines = 1,
+                            softWrap = false
+                        )
+                        Text(
+                            text = currencyCode,
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, fontSize = 11.sp),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = "0 activos registrados",
+                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 } else {
                     // Segmentos de la dona calculados
@@ -679,14 +705,15 @@ private fun PatrimonioDonutCard(
                                 }
                             }
                     ) {
-                        val strokeWidth = 32.dp.toPx()
+                        // Anillo más delgado para mayor espacio interior útil
+                        val strokeWidth = 24.dp.toPx()
                         val padding = strokeWidth / 2f + 4.dp.toPx()
                         val arcSize = Size(size.width - padding * 2, size.height - padding * 2)
                         val arcTopLeft = Offset(padding, padding)
 
                         slices.forEach { slice ->
                             val isSelected = slice.asset.id == selectedAssetId
-                            val currentStroke = if (isSelected) strokeWidth + 10.dp.toPx() else strokeWidth
+                            val currentStroke = if (isSelected) strokeWidth + 6.dp.toPx() else strokeWidth
 
                             drawArc(
                                 color = if (selectedAssetId == null || isSelected) slice.color else slice.color.copy(alpha = 0.35f),
@@ -701,45 +728,112 @@ private fun PatrimonioDonutCard(
                     }
 
                     // Información central de la dona (Total o detalle interactivo)
+                    // Todo centrado, dentro del hueco y sin tocar el anillo
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.padding(32.dp)
+                        modifier = Modifier.padding(28.dp)
                     ) {
                         if (selectedAsset != null) {
                             val selPercentage = (selectedAsset.currentAmount / totalPatrimonio * 100)
                             Text(
                                 text = selectedAsset.name,
-                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
                                 color = MaterialTheme.colorScheme.onSurface,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
                             Spacer(modifier = Modifier.height(2.dp))
+
+                            // Monto del activo en una sola línea sin código de divisa
+                            val selAmountStr = if (selectedAsset.currentAmount >= 1_000_000.0) {
+                                com.example.util.CurrencyFormatter.formatCompactWithoutCode(
+                                    selectedAsset.currentAmount, currencySymbol, currencyCode, isSpanish = isSpanish
+                                )
+                            } else {
+                                com.example.util.CurrencyFormatter.formatWithoutCode(
+                                    selectedAsset.currentAmount, currencySymbol, currencyCode
+                                )
+                            }
+                            val selFontSize = when {
+                                selAmountStr.length <= 6 -> 24.sp
+                                selAmountStr.length <= 9 -> 20.sp
+                                selAmountStr.length <= 12 -> 16.sp
+                                else -> 13.sp
+                            }
                             Text(
-                                text = com.example.util.CurrencyFormatter.format(selectedAsset.currentAmount, currencySymbol, currencyCode),
-                                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold),
-                                color = AssetPalette[assets.indexOf(selectedAsset) % AssetPalette.size]
+                                text = selAmountStr,
+                                fontSize = selFontSize,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = AssetPalette[assets.indexOf(selectedAsset) % AssetPalette.size],
+                                maxLines = 1,
+                                softWrap = false
                             )
+
+                            // Código de moneda en su propia línea
                             Text(
-                                text = "${String.format("%.1f", selPercentage)}% del patrimonio",
-                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
+                                text = currencyCode,
+                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, fontSize = 11.sp),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+
+                            Text(
+                                text = "${String.format(if (isSpanish) java.util.Locale("es", "CO") else java.util.Locale.US, "%.1f", selPercentage)}% ${if (isSpanish) "del patrimonio" else "of net worth"}",
+                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold, fontSize = 10.sp),
                                 color = ExecutiveSecondaryAmber
                             )
                         } else {
                             Text(
-                                text = "PATRIMONIO TOTAL",
-                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 1.sp),
+                                text = if (isSpanish) "PATRIMONIO TOTAL" else "TOTAL NET WORTH",
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    letterSpacing = 1.sp,
+                                    fontSize = 10.sp
+                                ),
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Spacer(modifier = Modifier.height(2.dp))
+
+                            // Monto en UNA sola línea, tamaño reducido automáticamente, sin código
+                            val amountStr = if (totalPatrimonio >= 1_000_000.0) {
+                                com.example.util.CurrencyFormatter.formatCompactWithoutCode(
+                                    totalPatrimonio, currencySymbol, currencyCode, isSpanish = isSpanish
+                                )
+                            } else {
+                                com.example.util.CurrencyFormatter.formatWithoutCode(
+                                    totalPatrimonio, currencySymbol, currencyCode
+                                )
+                            }
+                            val dynamicFontSize = when {
+                                amountStr.length <= 6 -> 24.sp
+                                amountStr.length <= 9 -> 20.sp
+                                amountStr.length <= 12 -> 16.sp
+                                else -> 13.sp
+                            }
                             Text(
-                                text = com.example.util.CurrencyFormatter.format(totalPatrimonio, currencySymbol, currencyCode),
-                                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold),
-                                color = ExecutivePrimaryTeal
+                                text = amountStr,
+                                fontSize = dynamicFontSize,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = ExecutivePrimaryTeal,
+                                maxLines = 1,
+                                softWrap = false
                             )
+
+                            // Código de la moneda en su propia línea debajo, en tamaño pequeño
                             Text(
-                                text = "${assets.size} activos registrados",
-                                style = MaterialTheme.typography.labelSmall,
+                                text = currencyCode,
+                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, fontSize = 11.sp),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+
+                            // Conteo de activos con concordancia de número (1 activo vs N activos)
+                            val assetCountText = if (assets.size == 1) {
+                                if (isSpanish) "1 activo registrado" else "1 asset recorded"
+                            } else {
+                                if (isSpanish) "${assets.size} activos registrados" else "${assets.size} assets recorded"
+                            }
+                            Text(
+                                text = assetCountText,
+                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
@@ -747,9 +841,26 @@ private fun PatrimonioDonutCard(
                 }
             }
 
+            // Cifra completa y exacta visible justo debajo de la dona si el patrimonio es >= 1 millón
+            if (totalPatrimonio >= 1_000_000.0) {
+                Spacer(modifier = Modifier.height(10.dp))
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = ExecutivePrimaryTeal.copy(alpha = 0.12f),
+                    border = BorderStroke(1.dp, ExecutivePrimaryTeal.copy(alpha = 0.3f))
+                ) {
+                    Text(
+                        text = "Total: ${com.example.util.CurrencyFormatter.format(totalPatrimonio, currencySymbol, currencyCode)}",
+                        style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
+                        color = ExecutivePrimaryTeal,
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                    )
+                }
+            }
+
             Spacer(modifier = Modifier.height(12.dp))
             Text(
-                text = "Toca cualquier segmento de la rueda para inspeccionar su peso relativo.",
+                text = if (isSpanish) "Toca cualquier segmento de la rueda para inspeccionar su peso relativo." else "Tap any segment to inspect relative weight.",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -788,7 +899,7 @@ private fun AssetItemCard(
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f, fill = false).padding(end = 8.dp)
             ) {
                 Box(
                     modifier = Modifier
@@ -801,7 +912,9 @@ private fun AssetItemCard(
                     Text(
                         text = asset.name,
                         style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                     Text(
                         text = "${String.format("%.1f", percentage)}% de tu cartera",
@@ -814,8 +927,9 @@ private fun AssetItemCard(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = com.example.util.CurrencyFormatter.format(asset.currentAmount, currencySymbol, currencyCode),
-                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.ExtraBold),
-                    color = MaterialTheme.colorScheme.onSurface
+                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.ExtraBold),
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1
                 )
                 Spacer(modifier = Modifier.width(6.dp))
                 IconButton(onClick = onEdit, modifier = Modifier.size(32.dp)) {
@@ -1075,7 +1189,7 @@ private fun TransactionRowItem(
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f, fill = false).padding(end = 8.dp)
         ) {
             Box(
                 modifier = Modifier
@@ -1094,7 +1208,7 @@ private fun TransactionRowItem(
                 )
             }
             Spacer(modifier = Modifier.width(10.dp))
-            Column(modifier = Modifier.weight(1f)) {
+            Column(modifier = Modifier.weight(1f, fill = false)) {
                 Text(
                     text = tx.description.ifBlank { tx.category },
                     style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
@@ -1116,7 +1230,8 @@ private fun TransactionRowItem(
                 style = MaterialTheme.typography.bodyMedium.copy(
                     fontWeight = FontWeight.Bold,
                     color = if (tx.type == "INGRESO") ExecutiveSuccessGreen else ExecutiveDangerRed
-                )
+                ),
+                maxLines = 1
             )
             IconButton(onClick = onDelete) {
                 Icon(Icons.Default.DeleteOutline, contentDescription = "Eliminar", tint = MaterialTheme.colorScheme.onSurfaceVariant)

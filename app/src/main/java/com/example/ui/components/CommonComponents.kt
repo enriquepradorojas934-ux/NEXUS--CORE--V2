@@ -123,9 +123,10 @@ fun ExecutiveHeader(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
+                        val isSpanish = androidx.compose.ui.platform.LocalConfiguration.current.locales[0].language.startsWith("es") || java.util.Locale.getDefault().language.startsWith("es")
                         Column {
                             Text(
-                                text = "CICLO ACTIVO",
+                                text = if (isSpanish) "CICLO ACTIVO" else "ACTIVE CYCLE",
                                 style = MaterialTheme.typography.labelSmall.copy(
                                     fontSize = 10.sp,
                                     fontWeight = FontWeight.Bold,
@@ -141,7 +142,7 @@ fun ExecutiveHeader(
                         }
 
                         Text(
-                            text = "Reinicio en $timeUntilReset",
+                            text = if (isSpanish) "Reinicio en $timeUntilReset" else "Resets in $timeUntilReset",
                             style = MaterialTheme.typography.labelMedium.copy(
                                 fontWeight = FontWeight.Bold,
                                 letterSpacing = 0.5.sp
@@ -598,7 +599,7 @@ fun ExecutiveMetricCard(
                 )
                 Text(
                     text = detail,
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.bodySmall.copy(lineHeight = 16.sp),
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }

@@ -67,6 +67,15 @@ fun PersonalOsApp() {
         com.example.util.LocaleHelper.getLocaleForLanguage(state.selectedLanguage)
     }
 
+    val localizedContext = remember(currentLocale, context) {
+        com.example.util.LocaleHelper.applyLocale(context, state.selectedLanguage)
+    }
+    val localizedConfiguration = remember(currentLocale, context) {
+        val cfg = android.content.res.Configuration(context.resources.configuration)
+        cfg.setLocale(currentLocale)
+        cfg
+    }
+
     DisposableEffect(currentLocale) {
         java.util.Locale.setDefault(currentLocale)
         val config = context.resources.configuration
@@ -75,7 +84,11 @@ fun PersonalOsApp() {
         onDispose { }
     }
 
-    com.example.ui.theme.MyApplicationTheme(accentColorName = state.accentColorName) {
+    CompositionLocalProvider(
+        androidx.compose.ui.platform.LocalContext provides localizedContext,
+        androidx.compose.ui.platform.LocalConfiguration provides localizedConfiguration
+    ) {
+        com.example.ui.theme.MyApplicationTheme(accentColorName = state.accentColorName) {
         Scaffold(
         modifier = Modifier.fillMaxSize(),
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
@@ -221,5 +234,6 @@ fun PersonalOsApp() {
             }
         }
     }
+}
 }
 }

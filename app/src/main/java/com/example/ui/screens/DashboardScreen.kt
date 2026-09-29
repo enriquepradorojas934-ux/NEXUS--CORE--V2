@@ -58,7 +58,8 @@ fun DashboardScreen(
     var customQuestionText by remember { mutableStateOf("") }
     var showQuickActions by remember { mutableStateOf(false) }
     var showProgressionDialog by remember { mutableStateOf(false) }
-    val todayAphorism = remember { ExecutiveAphorisms.getTodayAphorism() }
+    val isSpanish = remember(state.selectedLanguage) { com.example.util.AppStrings.isSpanish(state.selectedLanguage) }
+    val todayAphorism = remember(state.selectedLanguage) { ExecutiveAphorisms.getTodayAphorism(state.selectedLanguage) }
 
     Box(modifier = Modifier.fillMaxSize().background(ExecutiveDarkBg)) {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -66,8 +67,8 @@ fun DashboardScreen(
             // 1. ESTADO DEL SISTEMA (HUD SUPERIOR)
             // ========================================
             ExecutiveHeader(
-                title = "Centro de Mando",
-                subtitle = "Extensión digital y control operativo",
+                title = if (isSpanish) "Centro de Mando" else "Command Center",
+                subtitle = if (isSpanish) "Extensión digital y control operativo" else "Digital extension and operational control",
                 cycleDate = state.currentCycleDate,
                 timeUntilReset = state.timeUntilNextCycle,
                 cycleProgress = state.cycleProgress,
@@ -525,7 +526,6 @@ fun DashboardScreen(
                     val formattedGastos = com.example.util.CurrencyFormatter.format(gastosTotal, state.selectedCurrencySymbol, state.selectedCurrencyCode)
                     val formattedPatrimonio = com.example.util.CurrencyFormatter.format(patrimonioDona, state.selectedCurrencySymbol, state.selectedCurrencyCode)
 
-                    val isSpanish = com.example.util.AppStrings.isSpanish(state.selectedLanguage)
                     val flujoLabel = if (isSpanish) "flujo neto" else "net cash flow"
                     val ingresosLabel = if (isSpanish) "Ingresos" else "Income"
                     val gastosLabel = if (isSpanish) "Gastos" else "Expenses"
