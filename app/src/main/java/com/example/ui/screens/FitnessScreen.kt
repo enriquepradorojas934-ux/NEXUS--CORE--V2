@@ -90,8 +90,8 @@ fun FitnessScreen(
         Column(modifier = Modifier.fillMaxSize()) {
             // Header táctico
             ExecutiveHeader(
-                title = "Módulo de Entrenamiento",
-                subtitle = "Sobrecarga progresiva y rendimiento físico",
+                title = androidx.compose.ui.res.stringResource(com.example.R.string.fitness_title),
+                subtitle = androidx.compose.ui.res.stringResource(com.example.R.string.fitness_subtitle),
                 cycleDate = state.currentCycleDate,
                 timeUntilReset = state.timeUntilNextCycle,
                 cycleProgress = state.cycleProgress,

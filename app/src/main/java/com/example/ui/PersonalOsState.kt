@@ -131,7 +131,7 @@ data class PersonalOsUiState(
     val isGeneratingDailySummary: Boolean = false,
 
     // Configuración Global (Idioma y Moneda)
-    val selectedLanguage: String = "Español (Latinoamérica)",
+    val selectedLanguage: String = com.example.util.LocaleHelper.SYSTEM_DEFAULT,
     val selectedCurrencySymbol: String = "$",
     val selectedCurrencyCode: String = "USD"
 )

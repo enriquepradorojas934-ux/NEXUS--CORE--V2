@@ -77,8 +77,8 @@ fun GoalsScreen(
 
     Column(modifier = Modifier.fillMaxSize()) {
         ExecutiveHeader(
-            title = "Módulo de Metas",
-            subtitle = "Objetivos estratégicos y desglose de submetas",
+            title = androidx.compose.ui.res.stringResource(com.example.R.string.goals_title),
+            subtitle = androidx.compose.ui.res.stringResource(com.example.R.string.goals_subtitle),
             cycleDate = state.currentCycleDate,
             timeUntilReset = state.timeUntilNextCycle,
             cycleProgress = state.cycleProgress,
@@ -374,7 +374,7 @@ private fun GoalCard(
                             )
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
-                                text = "$doneSubs/$totalSubs hitos",
+                                text = androidx.compose.ui.res.pluralStringResource(com.example.R.plurals.milestones_count, totalSubs, "$doneSubs/$totalSubs"),
                                 style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -448,7 +448,7 @@ private fun GoalCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Hitos y Subobjetivos",
+                    text = androidx.compose.ui.res.stringResource(com.example.R.string.goals_milestones_title),
                     style = MaterialTheme.typography.labelMedium.copy(
                         fontWeight = FontWeight.Bold,
                         fontSize = 13.sp
@@ -467,7 +467,7 @@ private fun GoalCard(
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        "+ Agregar hito",
+                        androidx.compose.ui.res.stringResource(com.example.R.string.goals_add_milestone),
                         style = MaterialTheme.typography.labelSmall.copy(
                             fontWeight = FontWeight.SemiBold,
                             fontSize = 12.sp

@@ -57,8 +57,8 @@ fun TimeScreen(
 
     Column(modifier = Modifier.fillMaxSize().background(ExecutiveDarkBg)) {
         ExecutiveHeader(
-            title = "Gestión del Tiempo",
-            subtitle = "Línea temporal, bloques y cronómetro operativo",
+            title = androidx.compose.ui.res.stringResource(com.example.R.string.time_title),
+            subtitle = androidx.compose.ui.res.stringResource(com.example.R.string.time_subtitle),
             cycleDate = state.currentCycleDate,
             timeUntilReset = state.timeUntilNextCycle,
             cycleProgress = state.cycleProgress,
@@ -76,10 +76,10 @@ fun TimeScreen(
             divider = { HorizontalDivider(color = ExecutiveBorderSubtle) }
         ) {
             val tabs = listOf(
-                "Línea Temporal (${state.timeBlocks.size})",
-                "Tareas (${state.tasks.count { !it.isCompleted }})",
-                "Tracker",
-                "Métricas"
+                androidx.compose.ui.res.stringResource(com.example.R.string.time_tab_timeline, state.timeBlocks.size),
+                androidx.compose.ui.res.stringResource(com.example.R.string.time_tab_tasks, state.tasks.count { !it.isCompleted }),
+                androidx.compose.ui.res.stringResource(com.example.R.string.time_tab_tracker),
+                androidx.compose.ui.res.stringResource(com.example.R.string.time_tab_metrics)
             )
             val mapping = listOf(1, 0, 2, 3)
 

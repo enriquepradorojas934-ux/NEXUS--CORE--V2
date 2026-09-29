@@ -88,8 +88,9 @@ fun PersonalOsApp() {
         androidx.compose.ui.platform.LocalContext provides localizedContext,
         androidx.compose.ui.platform.LocalConfiguration provides localizedConfiguration
     ) {
-        com.example.ui.theme.MyApplicationTheme(accentColorName = state.accentColorName) {
-        Scaffold(
+        key(currentLocale) {
+            com.example.ui.theme.MyApplicationTheme(accentColorName = state.accentColorName) {
+            Scaffold(
         modifier = Modifier.fillMaxSize(),
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         bottomBar = {
@@ -234,6 +235,7 @@ fun PersonalOsApp() {
             }
         }
     }
+}
 }
 }
 }

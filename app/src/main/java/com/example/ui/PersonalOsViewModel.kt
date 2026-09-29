@@ -47,7 +47,7 @@ class PersonalOsViewModel(
             val savedAccent = repository.getConfig("accent_color") ?: "Teal"
 
             val cycleDate = DailyCycleEngine.getCurrentCycleDate(savedStartTime)
-            val savedLanguage = repository.getConfig("app_language") ?: "Español (Latinoamérica)"
+            val savedLanguage = repository.getConfig("app_language") ?: com.example.util.LocaleHelper.SYSTEM_DEFAULT
             val savedCurrencySymbol = repository.getConfig("app_currency_symbol") ?: "$"
             val savedCurrencyCode = repository.getConfig("app_currency_code") ?: "USD"
 

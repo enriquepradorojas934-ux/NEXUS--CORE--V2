@@ -8,7 +8,7 @@
     <string name="nav_goals">Metas</string>
     <string name="nav_finance">Finanzas</string>
 
-    <!-- Common Actions -->
+    <!-- Common Actions & Buttons -->
     <string name="action_save">Guardar</string>
     <string name="action_cancel">Cancelar</string>
     <string name="action_confirm">Confirmar</string>
@@ -18,47 +18,160 @@
     <string name="action_add">Añadir</string>
     <string name="action_select">Seleccionar</string>
     <string name="action_apply">Aplicar</string>
+    <string name="action_open">Abrir</string>
+    <string name="action_manage">GESTIONAR</string>
+    <string name="action_connect">CONECTAR</string>
+    <string name="action_ask">Preguntar</string>
+    <string name="action_consult">Consultar</string>
+    <string name="action_diagnostic">Diagnóstico</string>
+    <string name="action_clear">Limpiar</string>
+    <string name="action_send">Enviar</string>
+    <string name="action_quick_action">Acción Rápida</string>
+    <string name="action_completed">Completado</string>
+    <string name="action_pending">Pendiente</string>
 
-    <!-- Hub Screen -->
+    <!-- Cycle HUD & Header -->
+    <string name="header_hud_tag">LIFEOS // PRECISION EXECUTIVE</string>
+    <string name="active_cycle">CICLO ACTIVO</string>
+    <string name="cycle_reset_in">Reinicio en %1$s</string>
+    <string name="cycle_time_range">05:00 → 04:59  •  %1$s</string>
+    <string name="day_completed">DÍA COMPLETADO</string>
+    <string name="daily_progress">PROGRESO DIARIO</string>
+    <string name="completed_tasks_count">%1$d / %2$d completadas</string>
+    <string name="cycle_objectives_achieved">Objetivos del ciclo cumplidos al 100%</string>
+
+    <!-- Cloud Sync Status Bar -->
+    <string name="cloud_offline_storage">Almacenamiento Local Offline</string>
+    <string name="cloud_profile">Perfil Cloud</string>
+    <string name="cloud_anonymous_session">Sesión Anónima Nube</string>
+    <string name="cloud_sync_active">Sincronización Cloud Firestore activa</string>
+    <string name="cloud_link_in_settings">Vincular cuenta en Configuración</string>
+
+    <!-- Hub (Command Center) Screen -->
     <string name="hub_title">Centro de Mando Ejecutivo</string>
-    <string name="hub_subtitle">Monitoreo integral de tu sistema personal</string>
-    <string name="hub_next_task">Siguiente Tarea Prioritaria</string>
-    <string name="hub_active_block">Bloque Activo</string>
-    <string name="hub_productive_time">Tiempo Productivo</string>
-    <string name="hub_habits_today">Hábitos de Hoy</string>
-    <string name="hub_goals_overview">Panorama de Metas</string>
-    <string name="hub_finance_summary">Resumen Financiero</string>
-    <string name="hub_vitality_summary">Entrenamiento y Vitalidad</string>
-    <string name="hub_quick_actions">Acciones Tácticas Rápidas</string>
-    <string name="hub_no_tasks">No hay tareas pendientes en este ciclo.</string>
-    <string name="hub_no_active_block">No hay bloque programado en este momento.</string>
+    <string name="hub_subtitle">Extensión digital y control operativo</string>
+    <string name="hub_operational_principle">PRINCIPIO OPERATIVO</string>
+    <string name="hub_immediate_focus">ENFOQUE INMEDIATO</string>
+    <string name="hub_timeline_arrow">Línea Temporal →</string>
+    <string name="hub_all_tasks_completed">Todas las tareas del ciclo han sido completadas.</string>
+    <string name="hub_active_block_label">BLOQUE ACTIVO: %1$s - %2$s</string>
+    <string name="hub_productive_time_today">Tiempo productivo registrado hoy: %1$dh %2$dm</string>
+    <string name="hub_daily_compliance">CUMPLIMIENTO DIARIO</string>
+    <string name="hub_full_matrix_arrow">Matriz Completa →</string>
+    <string name="hub_strategic_goals_title">Objetivos Estratégicos</string>
+    <string name="hub_strategic_goals_question">¿CÓMO VOY CON MIS METAS?</string>
+    <string name="hub_goals_progress_val">%1$d%% de avance global</string>
+    <string name="hub_goals_detail">%1$d metas activas • %2$d key results alcanzados</string>
+    <string name="hub_financial_control_title">Control Financiero</string>
+    <string name="hub_financial_control_question">¿CÓMO ESTÁ MI PATRIMONIO?</string>
+    <string name="hub_net_cash_flow_label">flujo neto</string>
+    <string name="hub_income_label">Ingresos</string>
+    <string name="hub_expenses_label">Gastos</string>
+    <string name="hub_net_worth_label">Patrimonio</string>
+    <string name="hub_workout_section_title">Entrenamiento</string>
+    <string name="hub_workout_subtag">Sobrecarga &amp; Vitalidad</string>
+    <string name="hub_workout_view_module">Ver Módulo</string>
+    <string name="hub_workout_no_routine_today">Sin rutina registrada hoy</string>
+    <string name="hub_workout_routine_meta">%1$d min • Meta: %2$s</string>
+    <string name="hub_workout_tap_to_log">Pulsa para registrar una rutina o planificar series</string>
+    <string name="hub_ai_advisor_title">ASESOR EJECUTIVO GEMINI</string>
+    <string name="hub_ai_analyzing">Analizando métricas operativas del ciclo…</string>
+    <string name="hub_ai_subtitle">Diagnóstico inteligente de tu ciclo con Gemini.</string>
+    <string name="hub_ai_open_chat">Abrir Chatbot Multiturno con Gemini</string>
+    <string name="hub_custom_ai_dialog_title">Consulta a LifeOS AI</string>
+    <string name="hub_custom_ai_dialog_desc">Realiza una consulta sobre tu desempeño, hábitos o enfoque en este ciclo:</string>
+    <string name="hub_custom_ai_dialog_placeholder">Ej: ¿En qué debería enfocarme esta tarde?</string>
 
-    <!-- Goals Module -->
-    <string name="goals_title">Metas de Alto Impacto</string>
-    <string name="goals_subtitle">Sistema OKR y seguimiento de resultados clave</string>
-    <string name="goals_create_title">Crear Nueva Meta</string>
-    <string name="goals_name_label">Nombre de la meta</string>
-    <string name="goals_desc_label">Descripción o propósito</string>
-    <string name="goals_category_label">Categoría de meta</string>
-    <string name="goals_date_label">Fecha</string>
-    <string name="goals_create_button">Crear Meta</string>
-    <string name="goals_completed_state">ESTADO 2: META COMPLETADA</string>
-    <string name="goals_milestones_title">Hitos y Subobjetivos</string>
-    <string name="goals_new_subgoal">Nuevo Subobjetivo</string>
-    <string name="goals_subgoal_label">Descripción del hito o submeta</string>
-    <string name="goals_add_milestone">Añadir Hito</string>
-
-    <!-- Time Module -->
+    <!-- Time Screen -->
     <string name="time_title">Gestión del Tiempo</string>
     <string name="time_subtitle">Bloques de foco profundo, tareas y temporizador ejecutivo</string>
+    <string name="time_tab_timeline">Línea Temporal (%1$d)</string>
+    <string name="time_tab_tasks">Tareas (%1$d)</string>
+    <string name="time_tab_tracker">Tracker</string>
+    <string name="time_tab_metrics">Métricas</string>
     <string name="time_create_block_title">Crear Bloque de Tiempo</string>
     <string name="time_block_activity_label">Actividad o Enfoque</string>
     <string name="time_block_start_label">Inicio</string>
     <string name="time_block_end_label">Fin</string>
     <string name="time_block_category_label">Categoría</string>
     <string name="time_block_save_button">Guardar Bloque</string>
+    <string name="time_create_task_title">Crear Tarea Prioritaria</string>
+    <string name="time_task_title_label">Título de la tarea</string>
+    <string name="time_task_priority_label">Prioridad</string>
+    <string name="time_task_est_minutes_label">Minutos estimados</string>
+    <string name="time_no_tasks_pending">No hay tareas pendientes. Agrega una con +</string>
+    <string name="time_no_blocks_scheduled">No hay bloques programados para hoy.</string>
+    <string name="time_tracker_title">Temporizador Ejecutivo de Enfoque</string>
+    <string name="time_tracker_subtitle">Sesiones de trabajo profundo con registro en tiempo real</string>
+    <string name="time_tracker_activity_label">Actividad en Curso</string>
+    <string name="time_tracker_btn_start">Iniciar Foco</string>
+    <string name="time_tracker_btn_pause">Pausar</string>
+    <string name="time_tracker_btn_finish">Finalizar Sesión</string>
 
-    <!-- Workout / Fitness Module -->
+    <!-- Habits Screen -->
+    <string name="habits_title">Módulo de Hábitos</string>
+    <string name="habits_subtitle">Consistencia, objetivos y registro de rachas</string>
+    <string name="habits_daily_reminder">RECORDATORIO DIARIO</string>
+    <string name="habits_daily_reminder_desc">Recibe una alerta programada para revisar y marcar tus hábitos pendientes.</string>
+    <string name="habits_reminder_time_label">Hora programada</string>
+    <string name="habits_test_reminder_btn">Probar Notificación</string>
+    <string name="habits_create_title">Crear Nuevo Hábito</string>
+    <string name="habits_name_label">Nombre del hábito</string>
+    <string name="habits_category_label">Categoría</string>
+    <string name="habits_frequency_label">Frecuencia</string>
+    <string name="habits_streak_active">Racha Activa: %1$d días</string>
+    <string name="habits_empty_state">No hay hábitos creados aún. Toca + para iniciar tu consistencia diaria.</string>
+
+    <!-- Goals Screen -->
+    <string name="goals_title">Metas de Alto Impacto</string>
+    <string name="goals_subtitle">Sistema OKR y seguimiento de resultados clave</string>
+    <string name="goals_section_registered">METAS REGISTRADAS</string>
+    <string name="goals_subtag_okrs">OKRs de Alto Impacto</string>
+    <string name="goals_create_title">Crear Nueva Meta</string>
+    <string name="goals_name_label">Nombre de la meta</string>
+    <string name="goals_desc_label">Descripción o propósito</string>
+    <string name="goals_category_label">Categoría de meta</string>
+    <string name="goals_date_label">Fecha objetivo</string>
+    <string name="goals_create_button">Crear Meta</string>
+    <string name="goals_milestones_title">Hitos y Subobjetivos</string>
+    <string name="goals_add_milestone">+ Agregar hito</string>
+    <string name="goals_new_milestone_title">Agregar Hito</string>
+    <string name="goals_milestone_desc_label">Descripción del hito o submeta</string>
+    <string name="goals_empty_state">No hay metas registradas aún. Define tus objetivos estratégicos con +.</string>
+
+    <!-- Finance Screen -->
+    <string name="finance_title">Finanzas Personales &amp; Patrimonio</string>
+    <string name="finance_subtitle">Balance patrimonial en dona, gastos y flujo de caja</string>
+    <string name="finance_tab_net_worth">Patrimonio &amp; Activos</string>
+    <string name="finance_tab_cash_flow">Flujo de Caja &amp; Gastos</string>
+    <string name="finance_patrimonio_total">PATRIMONIO TOTAL</string>
+    <string name="finance_exact_total_label">Total: %1$s %2$s</string>
+    <string name="finance_selected_asset_pct">%1$s%% del patrimonio</string>
+    <string name="finance_net_flow">Flujo Neto Actual</string>
+    <string name="finance_registered_income">Ingresos Registrados</string>
+    <string name="finance_total_expenses">Total Gastos</string>
+    <string name="finance_register_expense">Registrar Gasto</string>
+    <string name="finance_new_asset">+ Nuevo Activo</string>
+    <string name="finance_evaluate_ai_btn">Evaluar con IA</string>
+    <string name="finance_ask_advisor_btn">Consultar al Asesor</string>
+    <string name="finance_dialog_register_expense">Registrar Gasto con Evaluación IA</string>
+    <string name="finance_dialog_expense_name">Concepto / Nombre del gasto</string>
+    <string name="finance_dialog_amount_label">Monto (%1$s)</string>
+    <string name="finance_dialog_justification_label">Motivo o justificación de compra</string>
+    <string name="finance_dialog_ai_verdict">VEREDICTO PREVIO DE LA IA</string>
+    <string name="finance_dialog_confirm_expense">Confirmar Gasto</string>
+    <string name="finance_dialog_new_asset_title">Nuevo Activo</string>
+    <string name="finance_dialog_asset_name">Nombre del Activo</string>
+    <string name="finance_dialog_asset_category">Categoría</string>
+    <string name="finance_dialog_asset_value">Valor / Saldo Actual (%1$s)</string>
+    <string name="finance_no_assets">No hay activos registrados. Toca \"+ Nuevo Activo\" para armar tu dona patrimonial.</string>
+    <string name="finance_no_transactions">No hay movimientos registrados en este ciclo.</string>
+    <string name="finance_filter_all">TODOS</string>
+    <string name="finance_filter_expenses">GASTOS</string>
+    <string name="finance_filter_income">INGRESOS</string>
+    <string name="finance_search_placeholder">Buscar por concepto o categoría…</string>
+
+    <!-- Workout / Fitness Screen -->
     <string name="fitness_title">Módulo de Entrenamiento</string>
     <string name="fitness_subtitle">Sobrecarga progresiva y rendimiento físico</string>
     <string name="fitness_dialog_title">Registrar Sesión de Entrenamiento</string>
@@ -74,25 +187,92 @@
     <string name="fitness_kg_label">KG</string>
     <string name="fitness_save_session">Guardar Sesión</string>
     <string name="fitness_analyze_ai">Analizar Volumen</string>
+    <string name="fitness_no_workouts">No hay rutinas registradas. Toca + para crear tu primera sesión de entrenamiento.</string>
 
-    <!-- Settings Module -->
+    <!-- Chat Screen -->
+    <string name="chat_title">Gemini LifeOS AI</string>
+    <string name="chat_input_placeholder">Escribe una consulta táctica o comando…</string>
+    <string name="chat_persona_strategist">Estratega Ejecutivo</string>
+    <string name="chat_persona_fitness">Coach de Rendimiento</string>
+    <string name="chat_persona_finance">Arquitecto Patrimonial</string>
+    <string name="chat_persona_attention">Guardián de Atención</string>
+    <string name="chat_welcome_title">Chat Ejecutivo con Gemini</string>
+    <string name="chat_welcome_subtitle">Orientación estratégica en productividad, finanzas, fitness y enfoque mental.</string>
+
+    <!-- Settings Screen -->
     <string name="settings_title">Configuración del Sistema</string>
     <string name="settings_subtitle">Configuración global, regionalización y respaldo soberano</string>
+    <string name="settings_cloud_sync_title">SINCRONIZACIÓN CLOUD (FIRESTORE)</string>
+    <string name="settings_cloud_sync_desc">Respaldo en tiempo real y multidispositivo mediante Google Firebase.</string>
+    <string name="settings_cloud_signed_in">Sesión iniciada como %1$s</string>
+    <string name="settings_cloud_sign_in_google">Iniciar Sesión con Google</string>
+    <string name="settings_cloud_sign_out">Cerrar Sesión</string>
+    <string name="settings_cloud_upload_backup">Subir Respaldo</string>
+    <string name="settings_cloud_restore_backup">Restaurar Nube</string>
+    <string name="settings_cycle_start_title">PARÁMETRO: INICIO DEL CICLO DIARIO</string>
+    <string name="settings_cycle_start_desc">Configuración del corte diario del sistema. Por defecto: 05:00 AM.</string>
+    <string name="settings_cycle_time_label">Hora del ciclo</string>
+    <string name="settings_visual_identity_title">IDENTIDAD VISUAL Y COLOR EJECUTIVO</string>
+    <string name="settings_visual_identity_desc">Selecciona tu tono de acento operativo para personalizar la estética del sistema:</string>
     <string name="settings_regional_title">MONEDA E IDIOMA</string>
     <string name="settings_regional_desc">Personaliza la divisa para tus finanzas y el idioma preferido para tu sistema ejecutivo.</string>
     <string name="settings_currency_label">Moneda de Finanzas</string>
     <string name="settings_language_label">Idioma del Sistema</string>
     <string name="settings_select_currency">Seleccionar Moneda</string>
     <string name="settings_select_language">Seleccionar Idioma</string>
-    <string name="settings_search_currency">Buscar país o moneda (ej: Colombia, Pesos)...</string>
-    <string name="settings_search_language">Buscar país o idioma (ej: Colombia, Español)...</string>
+    <string name="settings_search_currency">Buscar país o moneda (ej: Colombia, Pesos)…</string>
+    <string name="settings_search_language">Buscar país o idioma (ej: Colombia, Español)…</string>
+    <string name="settings_no_languages_found">No se encontraron idiomas</string>
+    <string name="settings_no_currencies_found">No se encontraron monedas</string>
+    <string name="settings_language_system_default">Idioma del sistema</string>
+    <string name="settings_language_system_default_subtitle">Sigue el idioma del teléfono (Español o Inglés)</string>
+    <string name="settings_backup_title">COPIA DE SEGURIDAD LOCAL (JSON)</string>
+    <string name="settings_backup_desc">Exporta todos tus datos a un archivo de texto JSON independiente para tener control absoluto o transferir a otro dispositivo.</string>
+    <string name="settings_export_json">Exportar JSON</string>
+    <string name="settings_restore_json">Restaurar JSON</string>
+    <string name="settings_app_name">Sistema Personal</string>
+    <string name="settings_version_info">Versión %1$s (Build %2$s) • Producción</string>
+    <string name="settings_tagline">Diseñado para consistencia y enfoque ejecutivo</string>
+    <string name="settings_view_onboarding">Ver Bienvenida y Tutorial</string>
 
-    <!-- Finance Module -->
-    <string name="finance_title">Finanzas Personales &amp; Patrimonio</string>
-    <string name="finance_subtitle">Balance patrimonial en dona, gastos y flujo de caja</string>
-    <string name="finance_register_expense">Registrar Gasto</string>
-    <string name="finance_net_flow">Flujo Neto Actual</string>
-    <string name="finance_registered_income">Ingresos Registrados</string>
-    <string name="finance_total_expenses">Total Gastos</string>
-    <string name="finance_net_worth">PATRIMONIO</string>
+    <!-- Quick Action BottomSheet -->
+    <string name="qa_title">Acción Rápida Ejecutiva</string>
+    <string name="qa_subtitle">Captura sin fricción para no interrumpir tu estado de flujo</string>
+    <string name="qa_add_task_title">Añadir Tarea Prioritaria</string>
+    <string name="qa_add_task_desc">Agrega un pendiente al ciclo actual</string>
+    <string name="qa_add_habit_title">Registrar Hábito Diario</string>
+    <string name="qa_add_habit_desc">Inicia una nueva racha de consistencia</string>
+    <string name="qa_add_tx_title">Movimiento Financiero Rápido</string>
+    <string name="qa_add_tx_desc">Registra un gasto o ingreso con su divisa</string>
+    <string name="qa_start_timer_title">Iniciar Temporizador de Foco</string>
+    <string name="qa_start_timer_desc">Lanza una sesión de trabajo profundo</string>
+    <string name="qa_open_fitness_title">Registrar Rutina de Entrenamiento</string>
+    <string name="qa_open_fitness_desc">Series, cargas y sobrecarga progresiva</string>
+    <string name="qa_open_chat_title">Chat con Gemini AI</string>
+    <string name="qa_open_chat_desc">Asesor estratégico multiturno</string>
+
+    <!-- Notifications -->
+    <string name="notification_channel_name">Recordatorios de Hábitos LifeOS</string>
+    <string name="notification_channel_desc">Notificaciones diarias para mantener la consistencia de tus hábitos en LifeOS</string>
+    <string name="notification_habits_pending_title">¡Momento de tus hábitos! (%1$d pendientes)</string>
+    <string name="notification_habits_pending_preview">Pendientes: %1$s. ¡Mantén tu racha activa hoy!</string>
+    <string name="notification_habits_pending_simple">Tienes %1$d hábitos pendientes de completar hoy.</string>
+    <string name="notification_habits_done_title">¡Excelente consistencia!</string>
+    <string name="notification_habits_done_content">Has completado todos tus %1$d hábitos del día. ¡Gran trabajo!</string>
+
+    <!-- Android Plurals -->
+    <plurals name="assets_count">
+        <item quantity="one">%1$d activo registrado</item>
+        <item quantity="other">%1$d activos registrados</item>
+    </plurals>
+
+    <plurals name="milestones_count">
+        <item quantity="one">%1$s hito</item>
+        <item quantity="other">%1$s hitos</item>
+    </plurals>
+
+    <plurals name="habits_pending_count">
+        <item quantity="one">%1$d hábito pendiente</item>
+        <item quantity="other">%1$d hábitos pendientes</item>
+    </plurals>
 </resources>

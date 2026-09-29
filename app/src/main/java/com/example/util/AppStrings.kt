@@ -8,15 +8,14 @@ package com.example.util
 object AppStrings {
 
     fun isSpanish(language: String): Boolean {
-        val l = language.lowercase()
-        return l.contains("español") || l.contains("espanol")
+        return LocaleHelper.isSpanish(language)
     }
 
     fun get(key: String, language: String): String {
         val spanish = isSpanish(language)
         return when (key) {
             // Tabs
-            "nav_hub" -> if (spanish) "Hub" else "Hub"
+            "nav_hub" -> "Hub"
             "nav_time" -> if (spanish) "Tiempo" else "Time"
             "nav_habits" -> if (spanish) "Hábitos" else "Habits"
             "nav_goals" -> if (spanish) "Metas" else "Goals"
@@ -34,7 +33,7 @@ object AppStrings {
 
             // Hub
             "hub_title" -> if (spanish) "Centro de Mando Ejecutivo" else "Executive Command Center"
-            "hub_subtitle" -> if (spanish) "Monitoreo integral de tu sistema personal" else "Comprehensive personal system monitoring"
+            "hub_subtitle" -> if (spanish) "Extensión digital y control operativo" else "Digital extension and operational control"
             "hub_next_task" -> if (spanish) "SIGUIENTE TAREA PRIORITARIA" else "NEXT PRIORITY TASK"
             "hub_active_block" -> if (spanish) "BLOQUE ACTIVO" else "ACTIVE BLOCK"
             "hub_no_block" -> if (spanish) "Sin bloque activo programado" else "No active block scheduled"
@@ -47,14 +46,13 @@ object AppStrings {
             // Metas
             "goals_title" -> if (spanish) "Metas de Alto Impacto" else "High Impact Goals"
             "goals_subtitle" -> if (spanish) "Sistema OKR y seguimiento de resultados clave" else "OKR system and key results tracking"
-            "goals_completed_badge" -> if (spanish) "ESTADO 2: META COMPLETADA" else "STATUS 2: GOAL COMPLETED"
             "goals_milestones_section" -> if (spanish) "Hitos y Subobjetivos" else "Milestones & Sub-goals"
-            "goals_add_milestone" -> if (spanish) "+ Añadir hito" else "+ Add milestone"
+            "goals_add_milestone" -> if (spanish) "+ Agregar hito" else "+ Add milestone"
             "goals_create_title" -> if (spanish) "Crear Nueva Meta" else "Create New Goal"
             "goals_name_label" -> if (spanish) "Nombre de la meta" else "Goal Name"
             "goals_desc_label" -> if (spanish) "Descripción o propósito" else "Description or purpose"
             "goals_cat_label" -> if (spanish) "Categoría de meta" else "Goal Category"
-            "goals_date_label" -> if (spanish) "Fecha" else "Date"
+            "goals_date_label" -> if (spanish) "Fecha objetivo" else "Target Date"
 
             // Tiempo
             "time_title" -> if (spanish) "Gestión del Tiempo" else "Time Management"
@@ -77,9 +75,9 @@ object AppStrings {
             "fitness_ai_suggest" -> if (spanish) "Sugerencia IA" else "AI Suggestion"
             "fitness_add_day" -> if (spanish) "+ Agregar día" else "+ Add Day"
             "fitness_add_exercise" -> if (spanish) "+ Agregar ejercicio" else "+ Add Exercise"
-            "fitness_series" -> if (spanish) "SERIES" else "SERIES"
-            "fitness_reps" -> if (spanish) "REPS" else "REPS"
-            "fitness_kg" -> if (spanish) "KG" else "KG"
+            "fitness_series" -> "SERIES"
+            "fitness_reps" -> "REPS"
+            "fitness_kg" -> "KG"
             "fitness_save_session" -> if (spanish) "Guardar Sesión" else "Save Session"
 
             // Finanzas

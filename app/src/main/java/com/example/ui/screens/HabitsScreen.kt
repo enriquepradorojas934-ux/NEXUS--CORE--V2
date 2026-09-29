@@ -133,8 +133,8 @@ fun HabitsScreen(
 
     Column(modifier = Modifier.fillMaxSize()) {
         ExecutiveHeader(
-            title = "Módulo de Hábitos",
-            subtitle = "Consistencia, objetivos y registro de rachas",
+            title = androidx.compose.ui.res.stringResource(com.example.R.string.habits_title),
+            subtitle = androidx.compose.ui.res.stringResource(com.example.R.string.habits_subtitle),
             cycleDate = state.currentCycleDate,
             timeUntilReset = state.timeUntilNextCycle,
             cycleProgress = state.cycleProgress,
@@ -168,7 +168,7 @@ fun HabitsScreen(
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    text = "RECORDATORIO DIARIO",
+                                    text = androidx.compose.ui.res.stringResource(com.example.R.string.habits_daily_reminder),
                                     style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
                                     color = ExecutiveSecondaryAmber
                                 )
@@ -184,7 +184,7 @@ fun HabitsScreen(
 
                         Spacer(modifier = Modifier.height(6.dp))
                         Text(
-                            text = "Recibe una alerta programada para revisar y marcar tus hábitos pendientes.",
+                            text = androidx.compose.ui.res.stringResource(com.example.R.string.habits_daily_reminder_desc),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )

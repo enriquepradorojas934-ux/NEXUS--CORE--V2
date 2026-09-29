@@ -100,27 +100,23 @@ class HabitReminderWorker(
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
 
-        val isSpanish = com.example.util.AppStrings.isSpanish(language)
+        val localizedContext = com.example.util.LocaleHelper.applyLocale(appContext, language)
+
+        createNotificationChannel(notificationManager, localizedContext)
+
         val (title, content) = if (pendingCount > 0) {
             val habitsPreview = sampleHabitNames.joinToString(", ")
-            val titleText = if (isSpanish) {
-                "¡Momento de tus hábitos! ($pendingCount pendientes)"
-            } else {
-                "Habits check-in! ($pendingCount pending)"
-            }
+            val titleText = localizedContext.getString(com.example.R.string.notification_habits_pending_title, pendingCount)
             val contentText = if (habitsPreview.isNotBlank()) {
-                if (isSpanish) "Pendientes: $habitsPreview. ¡Mantén tu racha activa hoy!"
-                else "Pending: $habitsPreview. Keep your daily streak alive!"
+                localizedContext.getString(com.example.R.string.notification_habits_pending_preview, habitsPreview)
             } else {
-                if (isSpanish) "Tienes $pendingCount hábitos pendientes de completar hoy."
-                else "You have $pendingCount habits pending for today."
+                localizedContext.getString(com.example.R.string.notification_habits_pending_simple, pendingCount)
             }
             Pair(titleText, contentText)
         } else {
             Pair(
-                if (isSpanish) "¡Excelente consistencia!" else "Outstanding consistency!",
-                if (isSpanish) "Has completado todos tus $totalCount hábitos del día. ¡Gran trabajo!"
-                else "You have completed all $totalCount habits today. Great execution!"
+                localizedContext.getString(com.example.R.string.notification_habits_done_title),
+                localizedContext.getString(com.example.R.string.notification_habits_done_content, totalCount)
             )
         }
 
@@ -137,14 +133,14 @@ class HabitReminderWorker(
         notificationManager.notify(NOTIFICATION_ID, notification)
     }
 
-    private fun createNotificationChannel(manager: NotificationManager) {
+    private fun createNotificationChannel(manager: NotificationManager, context: Context = appContext) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
-                "Recordatorios de Hábitos",
+                context.getString(com.example.R.string.notification_channel_name),
                 NotificationManager.IMPORTANCE_DEFAULT
             ).apply {
-                description = "Notificaciones diarias programadas para revisar y marcar hábitos en el Sistema Personal."
+                description = context.getString(com.example.R.string.notification_channel_desc)
                 enableVibration(true)
             }
             manager.createNotificationChannel(channel)

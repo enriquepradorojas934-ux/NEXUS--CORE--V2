@@ -222,8 +222,8 @@ fun SettingsScreen(
 
     Column(modifier = Modifier.fillMaxSize()) {
         ExecutiveHeader(
-            title = "Configuración del Sistema",
-            subtitle = "Reglas personales, sincronización en la nube y arquitectura",
+            title = androidx.compose.ui.res.stringResource(com.example.R.string.settings_title),
+            subtitle = androidx.compose.ui.res.stringResource(com.example.R.string.settings_subtitle),
             cycleDate = state.currentCycleDate,
             timeUntilReset = state.timeUntilNextCycle,
             cycleProgress = state.cycleProgress
@@ -598,14 +598,14 @@ fun SettingsScreen(
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = "MONEDA E IDIOMA",
+                                text = androidx.compose.ui.res.stringResource(com.example.R.string.settings_regional_title),
                                 style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
                                 color = ExecutivePrimaryTeal
                             )
                         }
                         Spacer(modifier = Modifier.height(6.dp))
                         Text(
-                            text = "Personaliza la divisa para tus finanzas y el idioma preferido para tu sistema ejecutivo.",
+                            text = androidx.compose.ui.res.stringResource(com.example.R.string.settings_regional_desc),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -631,7 +631,7 @@ fun SettingsScreen(
                                 Spacer(modifier = Modifier.width(12.dp))
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
-                                        text = "Moneda de Finanzas",
+                                        text = androidx.compose.ui.res.stringResource(com.example.R.string.settings_currency_label),
                                         style = MaterialTheme.typography.labelSmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
@@ -673,12 +673,17 @@ fun SettingsScreen(
                                 Spacer(modifier = Modifier.width(12.dp))
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
-                                        text = "Idioma del Sistema",
+                                        text = androidx.compose.ui.res.stringResource(com.example.R.string.settings_language_label),
                                         style = MaterialTheme.typography.labelSmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
+                                    val displayLang = if (state.selectedLanguage.contains("sistema", ignoreCase = true) || state.selectedLanguage.contains("system", ignoreCase = true)) {
+                                        androidx.compose.ui.res.stringResource(com.example.R.string.settings_language_system_default)
+                                    } else {
+                                        state.selectedLanguage
+                                    }
                                     Text(
-                                        text = state.selectedLanguage,
+                                        text = displayLang,
                                         style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
@@ -1045,7 +1050,7 @@ fun SettingsScreen(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Default.Translate, contentDescription = null, tint = ExecutiveAccentBlue)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Seleccionar Idioma", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
+                    Text(androidx.compose.ui.res.stringResource(com.example.R.string.settings_select_language), style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
                 }
             },
             text = {
@@ -1053,12 +1058,12 @@ fun SettingsScreen(
                     OutlinedTextField(
                         value = searchQuery,
                         onValueChange = { searchQuery = it },
-                        placeholder = { Text("Buscar país o idioma (ej: Colombia, Español)...", fontSize = 12.sp) },
+                        placeholder = { Text(androidx.compose.ui.res.stringResource(com.example.R.string.settings_search_language), fontSize = 12.sp) },
                         leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, modifier = Modifier.size(18.dp)) },
                         trailingIcon = {
                             if (searchQuery.isNotEmpty()) {
                                 IconButton(onClick = { searchQuery = "" }) {
-                                    Icon(Icons.Default.Close, contentDescription = "Limpiar", modifier = Modifier.size(16.dp))
+                                    Icon(Icons.Default.Close, contentDescription = androidx.compose.ui.res.stringResource(com.example.R.string.action_clear), modifier = Modifier.size(16.dp))
                                 }
                             }
                         },
@@ -1073,7 +1078,7 @@ fun SettingsScreen(
                         if (filtered.isEmpty()) {
                             item {
                                 Box(modifier = Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
-                                    Text("No se encontraron idiomas", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    Text(androidx.compose.ui.res.stringResource(com.example.R.string.settings_no_languages_found), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
                             }
                         } else {
@@ -1169,48 +1174,18 @@ private val availableCurrencies = listOf(
 
 private val availableLanguages = listOf(
     LanguageOption(
+        name = "Idioma del sistema",
+        subtitle = "Sigue el idioma del teléfono / Follows phone language",
+        searchTerms = listOf("sistema", "system", "default", "predeterminado", "telefono", "phone", "dispositivo")
+    ),
+    LanguageOption(
         name = "Español (Latinoamérica)",
         subtitle = "Colombia, México, Argentina, Chile, Perú, etc.",
         searchTerms = listOf("español", "espanol", "latinoamerica", "latinoamérica", "latam", "colombia", "mexico", "méxico", "argentina", "chile", "peru", "perú", "venezuela", "ecuador", "bolivia", "uruguay", "paraguay", "costa rica", "panama", "panamá", "guatemala", "republica dominicana", "honduras", "nicaragua", "el salvador")
     ),
     LanguageOption(
-        name = "Español (España)",
-        subtitle = "España, Europa",
-        searchTerms = listOf("español", "espanol", "españa", "espana", "castellano", "madrid", "barcelona", "europa")
-    ),
-    LanguageOption(
         name = "English (United States)",
         subtitle = "United States, North America",
         searchTerms = listOf("english", "ingles", "inglés", "united states", "usa", "us", "estados unidos", "america")
-    ),
-    LanguageOption(
-        name = "English (United Kingdom)",
-        subtitle = "United Kingdom, Europe",
-        searchTerms = listOf("english", "ingles", "inglés", "united kingdom", "uk", "reino unido", "inglaterra", "britain")
-    ),
-    LanguageOption(
-        name = "Português (Brasil)",
-        subtitle = "Brasil, América do Sul",
-        searchTerms = listOf("portugues", "português", "brasil", "brazil", "america do sul")
-    ),
-    LanguageOption(
-        name = "Português (Portugal)",
-        subtitle = "Portugal, Europa",
-        searchTerms = listOf("portugues", "português", "portugal", "europa")
-    ),
-    LanguageOption(
-        name = "Français",
-        subtitle = "France, Canada, Belgique",
-        searchTerms = listOf("francais", "français", "frances", "francés", "france", "francia", "canada", "belgique")
-    ),
-    LanguageOption(
-        name = "Deutsch",
-        subtitle = "Deutschland, Österreich, Schweiz",
-        searchTerms = listOf("deutsch", "aleman", "alemán", "germany", "alemania", "austria", "suiza")
-    ),
-    LanguageOption(
-        name = "Italiano",
-        subtitle = "Italia, Europa",
-        searchTerms = listOf("italiano", "italian", "italia", "italy", "europa")
     )
 )

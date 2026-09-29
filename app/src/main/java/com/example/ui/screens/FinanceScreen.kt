@@ -776,14 +776,15 @@ private fun PatrimonioDonutCard(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
 
+                            val formattedPct = String.format(if (isSpanish) java.util.Locale("es", "CO") else java.util.Locale.US, "%.1f", selPercentage)
                             Text(
-                                text = "${String.format(if (isSpanish) java.util.Locale("es", "CO") else java.util.Locale.US, "%.1f", selPercentage)}% ${if (isSpanish) "del patrimonio" else "of net worth"}",
+                                text = androidx.compose.ui.res.stringResource(com.example.R.string.finance_selected_asset_pct, formattedPct),
                                 style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold, fontSize = 10.sp),
                                 color = ExecutiveSecondaryAmber
                             )
                         } else {
                             Text(
-                                text = if (isSpanish) "PATRIMONIO TOTAL" else "TOTAL NET WORTH",
+                                text = androidx.compose.ui.res.stringResource(com.example.R.string.finance_patrimonio_total),
                                 style = MaterialTheme.typography.labelSmall.copy(
                                     fontWeight = FontWeight.Bold,
                                     letterSpacing = 1.sp,
@@ -825,12 +826,12 @@ private fun PatrimonioDonutCard(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
 
-                            // Conteo de activos con concordancia de número (1 activo vs N activos)
-                            val assetCountText = if (assets.size == 1) {
-                                if (isSpanish) "1 activo registrado" else "1 asset recorded"
-                            } else {
-                                if (isSpanish) "${assets.size} activos registrados" else "${assets.size} assets recorded"
-                            }
+                            // Conteo de activos con concordancia de número usando plurales de Android
+                            val assetCountText = androidx.compose.ui.res.pluralStringResource(
+                                com.example.R.plurals.assets_count,
+                                assets.size,
+                                assets.size
+                            )
                             Text(
                                 text = assetCountText,
                                 style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
