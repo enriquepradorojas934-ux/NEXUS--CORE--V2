@@ -26,6 +26,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -47,12 +48,15 @@ fun OnboardingDialog(
     val totalSteps = 3
 
     var selectedCycleTime by remember { mutableStateOf("05:00") }
+    val habit1 = stringResource(R.string.onboarding_habit_1_title)
+    val habit2 = stringResource(R.string.onboarding_habit_2_title)
+    val habit3 = stringResource(R.string.onboarding_habit_3_title)
     val availableHabits = listOf(
-        "Ejercicio 30 min" to "Salud y energía corporal",
-        "Lectura diaria" to "Crecimiento personal y estudio",
-        "Planificación matutina" to "Prioridades del ciclo diario"
+        habit1 to stringResource(R.string.onboarding_habit_1_desc),
+        habit2 to stringResource(R.string.onboarding_habit_2_desc),
+        habit3 to stringResource(R.string.onboarding_habit_3_desc)
     )
-    val selectedHabits = remember { mutableStateListOf("Ejercicio 30 min", "Lectura diaria") }
+    val selectedHabits = remember { mutableStateListOf(habit1, habit2) }
     var reminderEnabled by remember { mutableStateOf(false) }
 
     val notificationLauncher = rememberLauncherForActivityResult(
@@ -88,7 +92,7 @@ fun OnboardingDialog(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Paso $currentStep de $totalSteps",
+                        text = stringResource(R.string.onboarding_step_count, currentStep, totalSteps),
                         style = MaterialTheme.typography.labelMedium,
                         color = ExecutivePurple
                     )
@@ -96,7 +100,7 @@ fun OnboardingDialog(
                         onClick = onDismiss,
                         modifier = Modifier.size(28.dp).testTag("btn_close_onboarding")
                     ) {
-                        Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Icon(Icons.Default.Close, contentDescription = stringResource(R.string.action_close), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
 
@@ -186,14 +190,14 @@ fun OnboardingDialog(
                         ) {
                             Icon(Icons.Default.ArrowBack, contentDescription = null, modifier = Modifier.size(16.dp))
                             Spacer(modifier = Modifier.width(4.dp))
-                            Text("Atrás")
+                            Text(stringResource(R.string.onboarding_back))
                         }
                     } else {
                         TextButton(
                             onClick = onDismiss,
                             modifier = Modifier.testTag("btn_onboarding_skip")
                         ) {
-                            Text("Omitir", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(stringResource(R.string.onboarding_skip), color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
 
@@ -203,7 +207,7 @@ fun OnboardingDialog(
                             colors = ButtonDefaults.buttonColors(containerColor = ExecutivePurple),
                             modifier = Modifier.testTag("btn_onboarding_next")
                         ) {
-                            Text("Siguiente")
+                            Text(stringResource(R.string.onboarding_next))
                             Spacer(modifier = Modifier.width(4.dp))
                             Icon(Icons.Default.ArrowForward, contentDescription = null, modifier = Modifier.size(16.dp))
                         }
@@ -217,7 +221,7 @@ fun OnboardingDialog(
                         ) {
                             Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(16.dp))
                             Spacer(modifier = Modifier.width(6.dp))
-                            Text("Comenzar mi Sistema")
+                            Text(stringResource(R.string.onboarding_start_system))
                         }
                     }
                 }
@@ -244,7 +248,7 @@ private fun OnboardingStepWelcome() {
         ) {
             Image(
                 painter = painterResource(id = R.drawable.img_onboarding_hero),
-                contentDescription = "Ilustración de Bienvenida",
+                contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize()
             )
@@ -253,7 +257,7 @@ private fun OnboardingStepWelcome() {
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "Bienvenido a tu Sistema Personal",
+            text = stringResource(R.string.onboarding_welcome_title),
             style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
             color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center
@@ -262,7 +266,7 @@ private fun OnboardingStepWelcome() {
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "Diseñado para profesionales que buscan claridad, consistencia y enfoque sin distracciones. Todos tus datos se almacenan 100% en tu dispositivo (Offline-first).",
+            text = stringResource(R.string.onboarding_welcome_desc),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
@@ -276,9 +280,9 @@ private fun OnboardingStepWelcome() {
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            PillarBadge(title = "Ciclo 24h", subtitle = "Sin reset a medianoche", modifier = Modifier.weight(1f))
-            PillarBadge(title = "Privacidad", subtitle = "Room SQLite Local", modifier = Modifier.weight(1f))
-            PillarBadge(title = "Consistencia", subtitle = "Rachas y enfoque", modifier = Modifier.weight(1f))
+            PillarBadge(title = stringResource(R.string.onboarding_pillar_cycle_title), subtitle = stringResource(R.string.onboarding_pillar_cycle_sub), modifier = Modifier.weight(1f))
+            PillarBadge(title = stringResource(R.string.onboarding_pillar_privacy_title), subtitle = stringResource(R.string.onboarding_pillar_privacy_sub), modifier = Modifier.weight(1f))
+            PillarBadge(title = stringResource(R.string.onboarding_pillar_consistency_title), subtitle = stringResource(R.string.onboarding_pillar_consistency_sub), modifier = Modifier.weight(1f))
         }
     }
 }
@@ -320,12 +324,12 @@ private fun OnboardingStepCycle(
             Spacer(modifier = Modifier.width(10.dp))
             Column {
                 Text(
-                    text = "Configura tu Ciclo Diario",
+                    text = stringResource(R.string.onboarding_cycle_title),
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
-                    text = "Tu día termina cuando tú descansas, no a medianoche",
+                    text = stringResource(R.string.onboarding_cycle_subtitle),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -335,7 +339,7 @@ private fun OnboardingStepCycle(
         Spacer(modifier = Modifier.height(14.dp))
 
         Text(
-            text = "¿A qué hora suele comenzar tu jornada diaria productiva?",
+            text = stringResource(R.string.onboarding_cycle_question),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurface
         )
@@ -343,10 +347,10 @@ private fun OnboardingStepCycle(
         Spacer(modifier = Modifier.height(12.dp))
 
         val options = listOf(
-            "04:00" to "Madrugador ejecutivo",
-            "05:00" to "Recomendado (Estándar 05:00 a 04:59)",
-            "06:00" to "Jornada matutina tradicional",
-            "07:00" to "Horario flexible"
+            "04:00" to stringResource(R.string.onboarding_opt_0400),
+            "05:00" to stringResource(R.string.onboarding_opt_0500),
+            "06:00" to stringResource(R.string.onboarding_opt_0600),
+            "07:00" to stringResource(R.string.onboarding_opt_0700)
         )
 
         options.forEach { (time, desc) ->
@@ -414,12 +418,12 @@ private fun OnboardingStepHabits(
             Spacer(modifier = Modifier.width(10.dp))
             Column {
                 Text(
-                    text = "Tus Primeros Hábitos Clave",
+                    text = stringResource(R.string.onboarding_habits_title),
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
-                    text = "Selecciona con cuáles deseas arrancar hoy",
+                    text = stringResource(R.string.onboarding_habits_subtitle),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -486,12 +490,12 @@ private fun OnboardingStepHabits(
                 Spacer(modifier = Modifier.width(10.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "Recordatorio diario a las 20:00",
+                        text = stringResource(R.string.onboarding_reminder_title),
                         style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        text = if (reminderEnabled) "Activado con éxito" else "Te avisa para no perder tus rachas",
+                        text = if (reminderEnabled) stringResource(R.string.onboarding_reminder_active) else stringResource(R.string.onboarding_reminder_inactive),
                         style = MaterialTheme.typography.labelSmall,
                         color = if (reminderEnabled) ExecutiveSuccessGreen else MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -501,7 +505,7 @@ private fun OnboardingStepHabits(
                         onClick = onRequestNotifications,
                         modifier = Modifier.testTag("btn_onboarding_enable_notif")
                     ) {
-                        Text("Activar", color = ExecutivePurple)
+                        Text(stringResource(R.string.onboarding_reminder_activate), color = ExecutivePurple)
                     }
                 } else {
                     Icon(Icons.Default.Check, contentDescription = null, tint = ExecutiveSuccessGreen, modifier = Modifier.size(20.dp))

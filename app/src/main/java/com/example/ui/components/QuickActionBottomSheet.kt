@@ -18,9 +18,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.example.R
 import com.example.ui.theme.*
 
 enum class QuickActionType {
@@ -61,12 +63,12 @@ fun QuickActionBottomSheet(
             when (activeAction) {
                 QuickActionType.NONE -> {
                     Text(
-                        text = "Acción Rápida Ejecutiva",
+                        text = stringResource(R.string.qa_title),
                         style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        text = "Captura sin fricción para no interrumpir tu estado de flujo",
+                        text = stringResource(R.string.qa_subtitle),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -76,8 +78,8 @@ fun QuickActionBottomSheet(
                     QuickActionTile(
                         icon = Icons.Default.Checklist,
                         iconTint = ExecutivePrimaryTeal,
-                        title = "Añadir Tarea Prioritaria",
-                        subtitle = "Agrega un pendiente al ciclo actual",
+                        title = stringResource(R.string.qa_add_task_title),
+                        subtitle = stringResource(R.string.qa_add_task_desc),
                         onClick = { activeAction = QuickActionType.ADD_TASK }
                     )
 
@@ -86,8 +88,8 @@ fun QuickActionBottomSheet(
                     QuickActionTile(
                         icon = Icons.Default.FitnessCenter,
                         iconTint = ExecutiveSecondaryAmber,
-                        title = "Registrar Nuevo Hábito",
-                        subtitle = "Establece una rutina diaria o semanal",
+                        title = stringResource(R.string.qa_add_habit_title),
+                        subtitle = stringResource(R.string.qa_add_habit_desc),
                         onClick = { activeAction = QuickActionType.ADD_HABIT }
                     )
 
@@ -96,8 +98,8 @@ fun QuickActionBottomSheet(
                     QuickActionTile(
                         icon = Icons.Default.SportsScore,
                         iconTint = ExecutiveElectricViolet,
-                        title = "Entrenamiento Táctico",
-                        subtitle = "Abrir módulo de ejercicios, series y sobrecarga",
+                        title = stringResource(R.string.qa_open_fitness_title),
+                        subtitle = stringResource(R.string.qa_open_fitness_desc),
                         onClick = {
                             onDismiss()
                             onOpenFitness()
@@ -109,8 +111,8 @@ fun QuickActionBottomSheet(
                     QuickActionTile(
                         icon = Icons.Default.AccountBalanceWallet,
                         iconTint = ExecutiveSuccessGreen,
-                        title = "Registrar Transacción",
-                        subtitle = "Anota un gasto o ingreso al instante",
+                        title = stringResource(R.string.qa_add_tx_title),
+                        subtitle = stringResource(R.string.qa_add_tx_desc),
                         onClick = { activeAction = QuickActionType.ADD_TRANSACTION }
                     )
 
@@ -119,10 +121,10 @@ fun QuickActionBottomSheet(
                     QuickActionTile(
                         icon = Icons.Default.Timer,
                         iconTint = ExecutivePurple,
-                        title = "Iniciar Enfoque Profundo (25m)",
-                        subtitle = "Activa el temporizador de concentración",
+                        title = stringResource(R.string.qa_start_timer_title),
+                        subtitle = stringResource(R.string.qa_start_timer_desc),
                         onClick = {
-                            onStartTimer("Sesión de Enfoque Profundo")
+                            onStartTimer("Focus")
                             onDismiss()
                         }
                     )
@@ -132,8 +134,8 @@ fun QuickActionBottomSheet(
                     QuickActionTile(
                         icon = Icons.Default.AutoAwesome,
                         iconTint = ExecutiveCyan,
-                        title = "Chatbot Gemini LifeOS",
-                        subtitle = "Conversación multiturno con roles y modelos avanzados",
+                        title = stringResource(R.string.qa_open_chat_title),
+                        subtitle = stringResource(R.string.qa_open_chat_desc),
                         onClick = {
                             onDismiss()
                             onOpenChat()
@@ -232,10 +234,10 @@ private fun FormAddTask(
 
     Row(verticalAlignment = Alignment.CenterVertically) {
         IconButton(onClick = onBack) {
-            Icon(Icons.Default.ArrowBack, contentDescription = "Atrás")
+            Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.onboarding_back))
         }
         Text(
-            text = "Nueva Tarea Prioritaria",
+            text = stringResource(R.string.qa_new_priority_task),
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
         )
     }
@@ -245,14 +247,14 @@ private fun FormAddTask(
     OutlinedTextField(
         value = title,
         onValueChange = { title = it },
-        label = { Text("¿En qué te enfocarás?") },
+        label = { Text(stringResource(R.string.qa_task_focus_question)) },
         singleLine = true,
         modifier = Modifier.fillMaxWidth().testTag("input_quick_task_title")
     )
 
     Spacer(modifier = Modifier.height(12.dp))
 
-    Text("Nivel de Prioridad:", style = MaterialTheme.typography.labelMedium)
+    Text(stringResource(R.string.qa_priority_level), style = MaterialTheme.typography.labelMedium)
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth().padding(top = 4.dp)) {
         listOf("ALTA", "MEDIA", "BAJA").forEach { p ->
             FilterChip(
@@ -265,7 +267,7 @@ private fun FormAddTask(
 
     Spacer(modifier = Modifier.height(12.dp))
 
-    Text("Duración estimada:", style = MaterialTheme.typography.labelMedium)
+    Text(stringResource(R.string.qa_estimated_duration), style = MaterialTheme.typography.labelMedium)
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth().padding(top = 4.dp)) {
         listOf(15 to "15m", 30 to "30m", 45 to "45m", 60 to "1h").forEach { (m, label) ->
             FilterChip(
@@ -286,7 +288,7 @@ private fun FormAddTask(
     ) {
         Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(16.dp))
         Spacer(modifier = Modifier.width(6.dp))
-        Text("Agregar Tarea")
+        Text(stringResource(R.string.qa_btn_add_task))
     }
 }
 
@@ -300,10 +302,10 @@ private fun FormAddHabit(
 
     Row(verticalAlignment = Alignment.CenterVertically) {
         IconButton(onClick = onBack) {
-            Icon(Icons.Default.ArrowBack, contentDescription = "Atrás")
+            Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.onboarding_back))
         }
         Text(
-            text = "Registrar Hábito",
+            text = stringResource(R.string.qa_register_habit_title),
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
         )
     }
@@ -313,7 +315,7 @@ private fun FormAddHabit(
     OutlinedTextField(
         value = title,
         onValueChange = { title = it },
-        label = { Text("Nombre del hábito") },
+        label = { Text(stringResource(R.string.habits_name_label)) },
         singleLine = true,
         modifier = Modifier.fillMaxWidth().testTag("input_quick_habit_title")
     )
@@ -323,8 +325,8 @@ private fun FormAddHabit(
     OutlinedTextField(
         value = category,
         onValueChange = { category = it },
-        label = { Text("Categoría") },
-        placeholder = { Text("Escribe la categoría que desees...") },
+        label = { Text(stringResource(R.string.habits_category_label)) },
+        placeholder = { Text(stringResource(R.string.qa_habit_category_placeholder)) },
         singleLine = true,
         modifier = Modifier.fillMaxWidth().testTag("input_quick_habit_category")
     )
@@ -339,7 +341,7 @@ private fun FormAddHabit(
     ) {
         Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(16.dp))
         Spacer(modifier = Modifier.width(6.dp))
-        Text("Guardar Hábito")
+        Text(stringResource(R.string.qa_btn_save_habit))
     }
 }
 
@@ -355,10 +357,10 @@ private fun FormAddTransaction(
 
     Row(verticalAlignment = Alignment.CenterVertically) {
         IconButton(onClick = onBack) {
-            Icon(Icons.Default.ArrowBack, contentDescription = "Atrás")
+            Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.onboarding_back))
         }
         Text(
-            text = "Registrar Finanzas",
+            text = stringResource(R.string.qa_register_tx_title),
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
         )
     }
@@ -373,7 +375,7 @@ private fun FormAddTransaction(
             ),
             modifier = Modifier.weight(1f)
         ) {
-            Text("Gasto")
+            Text(stringResource(R.string.hub_expenses_label))
         }
         Button(
             onClick = { type = "INGRESO" },
@@ -382,7 +384,7 @@ private fun FormAddTransaction(
             ),
             modifier = Modifier.weight(1f)
         ) {
-            Text("Ingreso")
+            Text(stringResource(R.string.hub_income_label))
         }
     }
 
@@ -391,7 +393,7 @@ private fun FormAddTransaction(
     OutlinedTextField(
         value = amountText,
         onValueChange = { amountText = it },
-        label = { Text("Monto") },
+        label = { Text(stringResource(R.string.qa_tx_amount_hint, "$")) },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
         singleLine = true,
         modifier = Modifier.fillMaxWidth().testTag("input_quick_amount")
@@ -402,7 +404,7 @@ private fun FormAddTransaction(
     OutlinedTextField(
         value = desc,
         onValueChange = { desc = it },
-        label = { Text("Concepto o detalle") },
+        label = { Text(stringResource(R.string.qa_tx_concept)) },
         singleLine = true,
         modifier = Modifier.fillMaxWidth()
     )
@@ -412,8 +414,8 @@ private fun FormAddTransaction(
     OutlinedTextField(
         value = category,
         onValueChange = { category = it },
-        label = { Text("Categoría") },
-        placeholder = { Text("Escribe la categoría que desees...") },
+        label = { Text(stringResource(R.string.habits_category_label)) },
+        placeholder = { Text(stringResource(R.string.qa_habit_category_placeholder)) },
         singleLine = true,
         modifier = Modifier.fillMaxWidth().testTag("input_quick_category")
     )
@@ -436,6 +438,6 @@ private fun FormAddTransaction(
     ) {
         Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(16.dp))
         Spacer(modifier = Modifier.width(6.dp))
-        Text("Registrar $type")
+        Text(stringResource(R.string.qa_tx_btn_record))
     }
 }

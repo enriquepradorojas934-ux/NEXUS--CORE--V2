@@ -18,10 +18,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.R
 import com.example.data.model.AchievementItem
 import com.example.data.model.UserProgression
 import com.example.ui.theme.*
@@ -76,7 +78,7 @@ fun TacticalProgressionWidget(
                             letterSpacing = 1.sp
                         )
                         Text(
-                            text = "${progression.totalXp} XP TOTALES",
+                            text = stringResource(R.string.progression_total_xp, progression.totalXp),
                             fontSize = 11.sp,
                             color = ExecutiveTextSecondary
                         )
@@ -92,7 +94,7 @@ fun TacticalProgressionWidget(
                     contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
                     modifier = Modifier.testTag("btn_view_progression_details")
                 ) {
-                    Text("Detalles", fontSize = 11.sp, color = TacticalLuminousBlue, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.progression_details), fontSize = 11.sp, color = TacticalLuminousBlue, fontWeight = FontWeight.Bold)
                 }
             }
 
@@ -102,7 +104,7 @@ fun TacticalProgressionWidget(
             DailyProgressBar(
                 progress = progression.progressPercent,
                 modifier = Modifier.fillMaxWidth(),
-                label = "PROGRESO NIVEL ${progression.level}",
+                label = stringResource(R.string.progression_level_progress, progression.level),
                 valueText = "${progression.currentLevelXp} / ${progression.nextLevelXp} XP",
                 fillColor = TacticalNeonCyan
             )
@@ -131,7 +133,7 @@ fun TacticalProgressionDialog(
             ) {
                 Column {
                     Text(
-                        text = "ESTADO DEL OPERADOR",
+                        text = stringResource(R.string.progression_operator_status),
                         fontFamily = FontFamily.Monospace,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
@@ -139,14 +141,14 @@ fun TacticalProgressionDialog(
                         letterSpacing = 1.sp
                     )
                     Text(
-                        text = "Nivel ${progression.level}: ${progression.rankTitle}",
+                        text = stringResource(R.string.progression_level_title, progression.level, progression.rankTitle),
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = ExecutiveTextPrimary
                     )
                 }
                 IconButton(onClick = onDismiss) {
-                    Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = ExecutiveTextSecondary)
+                    Icon(Icons.Default.Close, contentDescription = stringResource(R.string.action_close), tint = ExecutiveTextSecondary)
                 }
             }
         },
@@ -158,7 +160,7 @@ fun TacticalProgressionDialog(
                 // SECCIÓN DE ATRIBUTOS TÁCTICOS
                 item {
                     Text(
-                        text = "ATRIBUTOS PRIMARIOS (0 - 100)",
+                        text = stringResource(R.string.progression_primary_attributes),
                         fontFamily = FontFamily.Monospace,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
@@ -169,7 +171,7 @@ fun TacticalProgressionDialog(
 
                     DailyProgressBar(
                         progress = progression.disciplineScore / 100f,
-                        label = "DISCIPLINA (Rachas y Hábitos)",
+                        label = stringResource(R.string.attr_discipline),
                         valueText = "${progression.disciplineScore}/100",
                         fillColor = TacticalSuccessGreen
                     )
@@ -177,7 +179,7 @@ fun TacticalProgressionDialog(
 
                     DailyProgressBar(
                         progress = progression.productivityScore / 100f,
-                        label = "PRODUCTIVIDAD (Tareas y Metas)",
+                        label = stringResource(R.string.attr_productivity),
                         valueText = "${progression.productivityScore}/100",
                         fillColor = TacticalLuminousBlue
                     )
@@ -185,7 +187,7 @@ fun TacticalProgressionDialog(
 
                     DailyProgressBar(
                         progress = progression.focusScore / 100f,
-                        label = "ENFOQUE (Minutos Cronometrados)",
+                        label = stringResource(R.string.attr_focus),
                         valueText = "${progression.focusScore}/100",
                         fillColor = TacticalNeonCyan
                     )
@@ -193,7 +195,7 @@ fun TacticalProgressionDialog(
 
                     DailyProgressBar(
                         progress = progression.vitalityScore / 100f,
-                        label = "VITALIDAD (Entrenamientos)",
+                        label = stringResource(R.string.attr_vitality),
                         valueText = "${progression.vitalityScore}/100",
                         fillColor = TacticalVioletIdentity
                     )
@@ -201,7 +203,7 @@ fun TacticalProgressionDialog(
 
                     DailyProgressBar(
                         progress = progression.financialScore / 100f,
-                        label = "SALUD PATRIMONIAL (Finanzas)",
+                        label = stringResource(R.string.attr_finance),
                         valueText = "${progression.financialScore}/100",
                         fillColor = TacticalWarningAmber
                     )
@@ -211,7 +213,7 @@ fun TacticalProgressionDialog(
                 item {
                     val unlockedCount = achievements.count { it.isUnlocked }
                     Text(
-                        text = "LOGROS TÁCTICOS ($unlockedCount / ${achievements.size})",
+                        text = stringResource(R.string.progression_tactical_achievements, unlockedCount, achievements.size),
                         fontFamily = FontFamily.Monospace,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
@@ -287,7 +289,7 @@ fun TacticalProgressionDialog(
                 onClick = onDismiss,
                 colors = ButtonDefaults.buttonColors(containerColor = TacticalNeonCyan)
             ) {
-                Text("Cerrar", color = ExecutiveDarkBg, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.action_close), color = ExecutiveDarkBg, fontWeight = FontWeight.Bold)
             }
         }
     )

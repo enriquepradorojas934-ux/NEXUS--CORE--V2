@@ -123,10 +123,9 @@ fun ExecutiveHeader(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        val isSpanish = androidx.compose.ui.platform.LocalConfiguration.current.locales[0].language.startsWith("es") || java.util.Locale.getDefault().language.startsWith("es")
                         Column {
                             Text(
-                                text = if (isSpanish) "CICLO ACTIVO" else "ACTIVE CYCLE",
+                                text = androidx.compose.ui.res.stringResource(com.example.R.string.active_cycle),
                                 style = MaterialTheme.typography.labelSmall.copy(
                                     fontSize = 10.sp,
                                     fontWeight = FontWeight.Bold,
@@ -142,7 +141,7 @@ fun ExecutiveHeader(
                         }
 
                         Text(
-                            text = if (isSpanish) "Reinicio en $timeUntilReset" else "Resets in $timeUntilReset",
+                            text = androidx.compose.ui.res.stringResource(com.example.R.string.cycle_reset_in, timeUntilReset),
                             style = MaterialTheme.typography.labelMedium.copy(
                                 fontWeight = FontWeight.Bold,
                                 letterSpacing = 0.5.sp
@@ -371,7 +370,7 @@ fun CircularCompletionControl(
         if (isCompleted) {
             Icon(
                 imageVector = Icons.Default.Check,
-                contentDescription = "Completado",
+                contentDescription = androidx.compose.ui.res.stringResource(com.example.R.string.action_completed),
                 tint = Color.Black,
                 modifier = Modifier.size(size * 0.65f)
             )
@@ -427,7 +426,7 @@ fun DailyProgressBar(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = if (isAllDone) "DÍA COMPLETADO" else "PROGRESO DIARIO",
+                        text = if (isAllDone) androidx.compose.ui.res.stringResource(com.example.R.string.day_completed) else androidx.compose.ui.res.stringResource(com.example.R.string.daily_progress),
                         style = MaterialTheme.typography.labelSmall.copy(
                             fontWeight = FontWeight.Bold,
                             fontFamily = FontFamily.Monospace,
@@ -439,7 +438,7 @@ fun DailyProgressBar(
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = "$completed / $total completadas",
+                        text = androidx.compose.ui.res.stringResource(com.example.R.string.completed_tasks_count, completed, total),
                         style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace),
                         color = ExecutiveTextMuted
                     )
@@ -482,7 +481,7 @@ fun DailyProgressBar(
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = "Objetivos del ciclo cumplidos al 100%",
+                        text = androidx.compose.ui.res.stringResource(com.example.R.string.cycle_objectives_achieved),
                         style = MaterialTheme.typography.labelSmall.copy(
                             fontWeight = FontWeight.SemiBold,
                             fontFamily = FontFamily.Monospace
@@ -626,11 +625,11 @@ fun ExecutiveBottomNav(
         tonalElevation = 6.dp
     ) {
         val items = listOf(
-            Triple(AppNavTab.DASHBOARD, Icons.Default.Dashboard, com.example.util.AppStrings.get("nav_hub", language)),
-            Triple(AppNavTab.TIME, Icons.Default.Schedule, com.example.util.AppStrings.get("nav_time", language)),
-            Triple(AppNavTab.HABITS, Icons.Default.CheckCircle, com.example.util.AppStrings.get("nav_habits", language)),
-            Triple(AppNavTab.GOALS, Icons.Default.Flag, com.example.util.AppStrings.get("nav_goals", language)),
-            Triple(AppNavTab.FINANCE, Icons.Default.AccountBalanceWallet, com.example.util.AppStrings.get("nav_finance", language))
+            Triple(AppNavTab.DASHBOARD, Icons.Default.Dashboard, androidx.compose.ui.res.stringResource(com.example.R.string.nav_hub)),
+            Triple(AppNavTab.TIME, Icons.Default.Schedule, androidx.compose.ui.res.stringResource(com.example.R.string.nav_time)),
+            Triple(AppNavTab.HABITS, Icons.Default.CheckCircle, androidx.compose.ui.res.stringResource(com.example.R.string.nav_habits)),
+            Triple(AppNavTab.GOALS, Icons.Default.Flag, androidx.compose.ui.res.stringResource(com.example.R.string.nav_goals)),
+            Triple(AppNavTab.FINANCE, Icons.Default.AccountBalanceWallet, androidx.compose.ui.res.stringResource(com.example.R.string.nav_finance))
         )
 
         items.forEach { (tab, icon, label) ->

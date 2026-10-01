@@ -260,6 +260,205 @@
     <string name="notification_habits_done_title">¡Excelente consistencia!</string>
     <string name="notification_habits_done_content">Has completado todos tus %1$d hábitos del día. ¡Gran trabajo!</string>
 
+    <!-- Global Command Input -->
+    <string name="global_command_title">COMANDO GLOBAL INTELIGENTE</string>
+    <string name="global_command_daily_summary">RESUMEN DEL DÍA</string>
+    <string name="global_command_ai_badge">IA LifeOS</string>
+    <string name="global_command_synthesizing">Sintetizando actividades del ciclo diario…</string>
+    <string name="global_command_placeholder">Ej: Hoy entrené una hora, estudié 2 horas y gasté 15.000 en comida</string>
+    <string name="global_command_preview">VISTA PREVIA DE ACCIONES DETECTADAS (%1$d):</string>
+    <string name="global_command_confirm_count">Confirmar y Registrar (%1$d)</string>
+    <string name="action_discard">Descartar</string>
+    <string name="type_workout">ENTRENAMIENTO</string>
+    <string name="type_focus">ENFOQUE</string>
+    <string name="type_expense">GASTO</string>
+    <string name="type_income">INGRESO</string>
+    <string name="type_task">TAREA</string>
+
+    <!-- Tactical Progression -->
+    <string name="progression_total_xp">%1$d XP TOTALES</string>
+    <string name="progression_details">Detalles</string>
+    <string name="progression_level_progress">PROGRESO NIVEL %1$d</string>
+    <string name="progression_operator_status">ESTADO DEL OPERADOR</string>
+    <string name="progression_level_title">Nivel %1$d: %2$s</string>
+    <string name="progression_primary_attributes">ATRIBUTOS PRIMARIOS (0 - 100)</string>
+    <string name="attr_discipline">DISCIPLINA (Rachas y Hábitos)</string>
+    <string name="attr_productivity">PRODUCTIVIDAD (Tareas y Metas)</string>
+    <string name="attr_focus">ENFOQUE (Minutos Cronometrados)</string>
+    <string name="attr_vitality">VITALIDAD (Entrenamientos)</string>
+    <string name="attr_finance">SALUD PATRIMONIAL (Finanzas)</string>
+    <string name="progression_tactical_achievements">LOGROS TÁCTICOS (%1$d / %2$d)</string>
+
+    <!-- Onboarding Tutorial -->
+    <string name="onboarding_step_count">Paso %1$d de %2$d</string>
+    <string name="onboarding_back">Atrás</string>
+    <string name="onboarding_skip">Omitir</string>
+    <string name="onboarding_next">Siguiente</string>
+    <string name="onboarding_start_system">Comenzar mi Sistema</string>
+    <string name="onboarding_welcome_title">Bienvenido a tu Sistema Personal</string>
+    <string name="onboarding_welcome_desc">Diseñado para profesionales que buscan claridad, consistencia y enfoque sin distracciones. Todos tus datos se almacenan 100% en tu dispositivo (Offline-first).</string>
+    <string name="onboarding_pillar_cycle_title">Ciclo 24h</string>
+    <string name="onboarding_pillar_cycle_sub">Sin reset a medianoche</string>
+    <string name="onboarding_pillar_privacy_title">Privacidad</string>
+    <string name="onboarding_pillar_privacy_sub">Room SQLite Local</string>
+    <string name="onboarding_pillar_consistency_title">Consistencia</string>
+    <string name="onboarding_pillar_consistency_sub">Rachas y enfoque</string>
+    <string name="onboarding_cycle_title">Configura tu Ciclo Diario</string>
+    <string name="onboarding_cycle_subtitle">Tu día termina cuando tú descansas, no a medianoche</string>
+    <string name="onboarding_cycle_question">¿A qué hora suele comenzar tu jornada diaria productiva?</string>
+    <string name="onboarding_opt_0400">Madrugador ejecutivo</string>
+    <string name="onboarding_opt_0500">Recomendado (Estándar 05:00 a 04:59)</string>
+    <string name="onboarding_opt_0600">Jornada matutina tradicional</string>
+    <string name="onboarding_opt_0700">Horario flexible</string>
+    <string name="onboarding_habits_title">Tus Primeros Hábitos Clave</string>
+    <string name="onboarding_habits_subtitle">Selecciona con cuáles deseas arrancar hoy</string>
+    <string name="onboarding_habit_1_title">Ejercicio 30 min</string>
+    <string name="onboarding_habit_1_desc">Salud y energía corporal</string>
+    <string name="onboarding_habit_2_title">Lectura diaria</string>
+    <string name="onboarding_habit_2_desc">Crecimiento personal y estudio</string>
+    <string name="onboarding_habit_3_title">Planificación matutina</string>
+    <string name="onboarding_habit_3_desc">Prioridades del ciclo diario</string>
+    <string name="onboarding_reminder_title">Recordatorio diario a las 20:00</string>
+    <string name="onboarding_reminder_active">Activado con éxito</string>
+    <string name="onboarding_reminder_inactive">Te avisa para no perder tus rachas</string>
+    <string name="onboarding_reminder_activate">Activar</string>
+
+    <!-- Quick Action Add Forms -->
+    <string name="qa_new_priority_task">Nueva Tarea Prioritaria</string>
+    <string name="qa_task_focus_question">¿En qué te enfocarás?</string>
+    <string name="qa_priority_level">Nivel de Prioridad:</string>
+    <string name="qa_estimated_duration">Duración estimada:</string>
+    <string name="qa_btn_add_task">Agregar Tarea</string>
+    <string name="qa_register_habit_title">Registrar Hábito</string>
+    <string name="qa_habit_category_placeholder">Escribe la categoría que desees…</string>
+    <string name="qa_btn_save_habit">Guardar Hábito</string>
+    <string name="qa_register_tx_title">Movimiento Financiero Rápido</string>
+    <string name="qa_tx_type">Tipo:</string>
+    <string name="qa_tx_concept">Concepto / Nombre</string>
+    <string name="qa_tx_amount_hint">Monto (%1$s)</string>
+    <string name="qa_tx_btn_record">Registrar Movimiento</string>
+
+    <!-- Missing Phase 1 Audit Strings -->
+    <string name="backup_json_title">Copia de Seguridad (JSON)</string>
+    <string name="copy_to_clipboard">Copiar al Portapapeles</string>
+    <string name="restore_backup_title">Restaurar Copia de Seguridad</string>
+    <string name="paste_json_hint">Pega el JSON aquí…</string>
+    <string name="restore_data_btn">Restaurar Datos</string>
+    <string name="privacy_policy_title">Política de Privacidad y Seguridad</string>
+    <string name="understood">Entendido</string>
+    <string name="test_sensory_alert">Probar Alerta Táctil y Sonora</string>
+    <string name="force_cycle_reset">Forzar Reinicio de Ciclo Diario</string>
+    <string name="view_privacy_statement">Consultar Declaración de Privacidad</string>
+
+    <string name="habits_compliance_title">CUMPLIMIENTO DE HÁBITOS DE HOY</string>
+    <string name="habits_all_done">🎯 ¡Todos los hábitos completados!</string>
+    <string name="habits_good_pace">Buen ritmo, continúa con los pendientes</string>
+    <string name="habits_start_cycle">Inicia tu ciclo marcando tu primer hábito</string>
+    <string name="habits_count_of">%1$d de %2$d</string>
+    <string name="habits_success_rate">Tasa de éxito</string>
+    <string name="habits_max_streak">Racha máxima</string>
+    <string name="habits_empty_title">No tienes hábitos registrados hoy</string>
+    <string name="habits_empty_desc">Agrega tus primeros hábitos clave (ej: Ejercicio, Lectura, Meditación) para comenzar a medir tu consistencia.</string>
+    <string name="habits_add_first">Agregar Primer Hábito</string>
+    <string name="filter_all_count">Todos (%1$d)</string>
+    <string name="filter_pending_count">Pendientes (%1$d)</string>
+    <string name="filter_completed_count">Completados (%1$d)</string>
+    <string name="habit_target_frequency">Meta: %1$d %2$s • %3$s</string>
+    <string name="streak_label">Racha</string>
+    <string name="streak_days">%1$d d</string>
+    <string name="habit_done_badge">✓ Listo</string>
+    <string name="delete_habit_desc">Eliminar hábito</string>
+
+    <string name="finance_add_asset">Agregar Activo</string>
+    <string name="finance_quick_hint">Ej: Gasté 15000 en comida o Cobré 50000</string>
+    <string name="finance_delete_asset_title">Eliminar Activo</string>
+    <string name="finance_delete_asset_msg">¿Deseas eliminar el activo \'%1$s\' de tu patrimonio? Esta acción recalculará los porcentajes de la dona.</string>
+    <string name="finance_see_total">Ver total</string>
+    <string name="finance_ai_analyzing">Asesor Gemini analizando flujo de caja y patrimonio…</string>
+    <string name="finance_advisor_response">Respuesta del Asesor:</string>
+    <string name="finance_analyze_flow">Analizar Flujo</string>
+    <string name="finance_ask_ai">Preguntar a IA</string>
+    <string name="finance_expense_name_label">Nombre del gasto</string>
+    <string name="finance_category_label">Categoría</string>
+    <string name="finance_date_label">Fecha</string>
+    <string name="finance_amount_label">Monto (%1$s)</string>
+    <string name="finance_amount_supporting">Monto expresado en %1$s (%2$s)</string>
+    <string name="finance_desc_label">Descripción</string>
+    <string name="finance_desc_placeholder">Detalle o motivo del gasto</string>
+    <string name="finance_consult_advisor">Consultar con Asesor Financiero</string>
+    <string name="finance_asset_name_label">Nombre del activo</string>
+    <string name="finance_asset_cat_label">Categoría del activo</string>
+    <string name="finance_asset_cat_hint">Ej: Bienes raíces, Cripto, Acciones, etc.</string>
+    <string name="finance_asset_val_supporting">Valor expresado en %1$s (%2$s)</string>
+    <string name="finance_save_asset">Guardar Activo</string>
+    <string name="finance_advisor_query_title">Consulta con Asesor Financiero</string>
+    <string name="finance_query_placeholder">Escribe tu consulta aquí…</string>
+    <string name="finance_send_query">Enviar Consulta</string>
+    <string name="finance_new_goal_title">Nueva Meta de Ahorro</string>
+    <string name="finance_goal_concept">Concepto</string>
+    <string name="finance_goal_target_amount">Monto objetivo</string>
+    <string name="finance_save_goal">Guardar Meta</string>
+    <string name="finance_contribute_title">Aportar a: %1$s</string>
+    <string name="finance_contribute_amount">Monto a aportar</string>
+    <string name="finance_contribute_btn">Aportar</string>
+
+    <string name="fitness_register_btn">Registrar</string>
+    <string name="fitness_analyze_vol_btn">Analizar Volumen</string>
+    <string name="fitness_routine_name_label">Nombre de la rutina</string>
+    <string name="fitness_routine_name_hint">ej: Rutina Hipertrofia</string>
+    <string name="fitness_goal_hint">Hipertrofia</string>
+    <string name="fitness_exercise_label">Ejercicio</string>
+    <string name="fitness_exercise_hint">ej: Press de Banca</string>
+    <string name="fitness_sets_label">Series</string>
+    <string name="fitness_add_exercise_count">Añadir Ejercicio (%1$d listos)</string>
+    <string name="fitness_notes_placeholder">Escribe notas tácticas o usa \'Sugerir con IA\'…</string>
+
+    <string name="time_new_block">Nuevo Bloque</string>
+    <string name="time_new_task">Nueva Tarea</string>
+    <string name="time_search_placeholder">Buscar tarea o categoría (#trabajo, etc.)…</string>
+    <string name="time_ongoing_activity">Actividad en curso</string>
+    <string name="time_pause_timer">Pausar</string>
+    <string name="time_resume_timer">Reanudar</string>
+    <string name="time_consolidate_timer">Consolidar Registro</string>
+
+    <string name="goals_new_goal">Nueva Meta</string>
+    <string name="goals_create_goal_btn">Crear Meta</string>
+    <string name="goals_new_subgoal_title">Nuevo Subobjetivo</string>
+    <string name="goals_subgoal_desc_label">Descripción del hito o submeta</string>
+    <string name="goals_add_btn">Agregar</string>
+
+    <string name="habits_scheduled_time">Hora programada</string>
+    <string name="habits_new_habit_btn">Nuevo Hábito</string>
+    <string name="habits_create_habit_title">Crear Hábito</string>
+    <string name="habits_categories_label">Categorías del hábito</string>
+    <string name="habits_quantity_label">Cantidad</string>
+    <string name="habits_unit_minutes">Minutos</string>
+    <string name="habits_unit_hours">Horas</string>
+    <string name="habits_save_btn">Guardar Hábito</string>
+
+    <string name="chat_model_selection_title">Selección de Modelo Gemini</string>
+    <string name="chat_model_selection_desc">Elige el modelo según la complejidad de la tarea:</string>
+    <string name="chat_input_placeholder_alt">Pregunta o conversa con Gemini…</string>
+    <string name="chat_send_desc">Enviar</string>
+    <string name="chat_back_desc">Volver</string>
+    <string name="chat_change_model_desc">Cambiar Modelo</string>
+    <string name="chat_clear_chat_desc">Limpiar Chat</string>
+    <string name="chat_formulating_response">%1$s formulando respuesta…</string>
+    <string name="chat_empty_subtitle">Asesor interactivo multiturno con memoria de conversación en vivo y lectura de métricas del ciclo.</string>
+    <string name="chat_prompts_header">PROMPTS TÁCTICOS RECOMENDADOS:</string>
+
+    <string name="finance_modify_or_cancel">Modificar / Cancelar</string>
+    <string name="finance_ai_advisor_card_title">ASESOR FINANCIERO IA</string>
+    <string name="finance_ai_advisor_intro">Obtén un diagnóstico de tu tasa de ahorro, o consulta dudas de inversión y protección de patrimonio con Gemini.</string>
+    <string name="finance_advisor_prompt_question">Escribe cualquier pregunta sobre estrategia patrimonial, decisiones de compra o inversión:</string>
+    <string name="fitness_add_exercise_to">Agregar Ejercicio a: %1$s</string>
+    <string name="fitness_default_routine">Rutina</string>
+    <string name="fitness_workout_session_default">Sesión de Entrenamiento</string>
+    <string name="time_am">AM</string>
+    <string name="time_pm">PM</string>
+    <string name="unit_hour_short">h</string>
+    <string name="unit_minute_short">m</string>
+
     <!-- Android Plurals -->
     <plurals name="assets_count">
         <item quantity="one">%1$d activo registrado</item>

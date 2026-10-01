@@ -31,11 +31,13 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.R
 import com.example.data.model.AssetDebtEntity
 import com.example.data.model.FinancialGoalEntity
 import com.example.data.model.TransactionEntity
@@ -238,7 +240,7 @@ fun FinanceScreen(
                         ) {
                             Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp), tint = Color.Black)
                             Spacer(modifier = Modifier.width(4.dp))
-                            Text("Agregar Activo", fontSize = 12.sp, color = Color.Black, fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.finance_add_asset), fontSize = 12.sp, color = Color.Black, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -342,7 +344,7 @@ fun FinanceScreen(
                                 OutlinedTextField(
                                     value = naturalTxText,
                                     onValueChange = { naturalTxText = it },
-                                    placeholder = { Text("Ej: Gasté 15000 en comida o Cobré 50000", fontSize = 12.sp) },
+                                    placeholder = { Text(stringResource(R.string.finance_quick_hint), fontSize = 12.sp) },
                                     modifier = Modifier.weight(1f).testTag("input_natural_tx"),
                                     singleLine = true,
                                     shape = RoundedCornerShape(8.dp)
@@ -359,7 +361,7 @@ fun FinanceScreen(
                                     shape = RoundedCornerShape(8.dp),
                                     modifier = Modifier.testTag("btn_submit_natural_tx")
                                 ) {
-                                    Text("Añadir", color = ExecutiveDarkBg, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                    Text(stringResource(R.string.goals_add_btn), color = ExecutiveDarkBg, fontWeight = FontWeight.Bold, fontSize = 12.sp)
                                 }
                             }
                         }
@@ -501,8 +503,8 @@ fun FinanceScreen(
     if (assetToDelete != null) {
         AlertDialog(
             onDismissRequest = { assetToDelete = null },
-            title = { Text("Eliminar Activo") },
-            text = { Text("¿Deseas eliminar el activo '${assetToDelete!!.name}' de tu patrimonio? Esta acción recalculará los porcentajes de la dona.") },
+            title = { Text(stringResource(R.string.finance_delete_asset_title)) },
+            text = { Text(stringResource(R.string.finance_delete_asset_msg, assetToDelete!!.name)) },
             confirmButton = {
                 Button(
                     onClick = {
@@ -511,11 +513,11 @@ fun FinanceScreen(
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = ExecutiveDangerRed)
                 ) {
-                    Text("Eliminar")
+                    Text(stringResource(R.string.action_delete))
                 }
             },
             dismissButton = {
-                TextButton(onClick = { assetToDelete = null }) { Text("Cancelar") }
+                TextButton(onClick = { assetToDelete = null }) { Text(stringResource(R.string.action_cancel)) }
             }
         )
     }
@@ -608,7 +610,7 @@ private fun PatrimonioDonutCard(
                         onClick = { selectedAssetId = null },
                         contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp)
                     ) {
-                        Text("Ver total", fontSize = 11.sp, color = ExecutivePrimaryTeal)
+                        Text(stringResource(R.string.finance_see_total), fontSize = 11.sp, color = ExecutivePrimaryTeal)
                     }
                 }
             }
@@ -990,7 +992,7 @@ private fun GastosSummaryCard(
                 ) {
                     Icon(Icons.Default.AddShoppingCart, contentDescription = null, modifier = Modifier.size(16.dp), tint = Color.White)
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text("Registrar Gasto", color = Color.White, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.finance_register_expense), color = Color.White, fontWeight = FontWeight.Bold)
                 }
             }
 
@@ -1003,7 +1005,7 @@ private fun GastosSummaryCard(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column {
-                    Text("Ingresos Registrados", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(stringResource(R.string.finance_registered_income), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Text(
                         text = com.example.util.CurrencyFormatter.format(totalIncome, currencySymbol, currencyCode, includePlus = true),
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
@@ -1011,7 +1013,7 @@ private fun GastosSummaryCard(
                     )
                 }
                 Column(horizontalAlignment = Alignment.End) {
-                    Text("Flujo Neto Actual", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(stringResource(R.string.finance_net_flow), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Text(
                         text = com.example.util.CurrencyFormatter.format(netBalance, currencySymbol, currencyCode, includePlus = true),
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
@@ -1050,7 +1052,7 @@ private fun AsesorFinancieroIaCard(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "ASESOR FINANCIERO IA",
+                        text = stringResource(R.string.finance_ai_advisor_card_title),
                         style = MaterialTheme.typography.labelMedium.copy(
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 1.sp
@@ -1084,7 +1086,7 @@ private fun AsesorFinancieroIaCard(
                 ) {
                     CircularProgressIndicator(modifier = Modifier.size(18.dp), color = ExecutivePrimaryTeal, strokeWidth = 2.dp)
                     Spacer(modifier = Modifier.width(10.dp))
-                    Text("Asesor Gemini analizando flujo de caja y patrimonio...", style = MaterialTheme.typography.bodySmall)
+                    Text(stringResource(R.string.finance_ai_analyzing), style = MaterialTheme.typography.bodySmall)
                 }
             } else if (!state.aiFinancialAdvice.isNullOrBlank()) {
                 Surface(
@@ -1102,7 +1104,7 @@ private fun AsesorFinancieroIaCard(
                 }
             } else {
                 Text(
-                    text = "Obtén un diagnóstico de tu tasa de ahorro, o consulta dudas de inversión y protección de patrimonio con Gemini.",
+                    text = stringResource(R.string.finance_ai_advisor_intro),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -1123,9 +1125,9 @@ private fun AsesorFinancieroIaCard(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text("Respuesta del Asesor:", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = ExecutiveSecondaryAmber)
+                            Text(stringResource(R.string.finance_advisor_response), style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = ExecutiveSecondaryAmber)
                             IconButton(onClick = onClearCustomAdvice, modifier = Modifier.size(20.dp)) {
-                                Icon(Icons.Default.Close, contentDescription = "Cerrar", modifier = Modifier.size(14.dp))
+                                Icon(Icons.Default.Close, contentDescription = stringResource(R.string.action_close), modifier = Modifier.size(14.dp))
                             }
                         }
                         Spacer(modifier = Modifier.height(4.dp))
@@ -1154,7 +1156,7 @@ private fun AsesorFinancieroIaCard(
                 ) {
                     Icon(Icons.Default.Insights, contentDescription = null, modifier = Modifier.size(16.dp))
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text("Analizar Flujo", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold))
+                    Text(stringResource(R.string.finance_analyze_flow), style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold))
                 }
 
                 Button(
@@ -1165,7 +1167,7 @@ private fun AsesorFinancieroIaCard(
                 ) {
                     Icon(Icons.Default.QuestionAnswer, contentDescription = null, modifier = Modifier.size(16.dp))
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text("Preguntar a IA", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold))
+                    Text(stringResource(R.string.finance_ask_ai), style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold))
                 }
             }
         }
@@ -1292,7 +1294,7 @@ private fun RegisterExpenseWithAiDialog(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Default.ReceiptLong, contentDescription = null, tint = ExecutiveDangerRed, modifier = Modifier.size(20.dp))
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Registrar Gasto", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
+                Text(stringResource(R.string.finance_register_expense), style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
             }
         },
         text = {
@@ -1305,8 +1307,8 @@ private fun RegisterExpenseWithAiDialog(
                     OutlinedTextField(
                         value = name,
                         onValueChange = { name = it },
-                        label = { Text("Nombre del gasto") },
-                        placeholder = { Text("Nombre del gasto") },
+                        label = { Text(stringResource(R.string.finance_expense_name_label)) },
+                        placeholder = { Text(stringResource(R.string.finance_expense_name_label)) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth().testTag("input_expense_name")
                     )
@@ -1317,8 +1319,8 @@ private fun RegisterExpenseWithAiDialog(
                     OutlinedTextField(
                         value = category,
                         onValueChange = { category = it },
-                        label = { Text("Categoría") },
-                        placeholder = { Text("Categoría") },
+                        label = { Text(stringResource(R.string.finance_category_label)) },
+                        placeholder = { Text(stringResource(R.string.finance_category_label)) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth().testTag("input_expense_category")
                     )
@@ -1329,11 +1331,11 @@ private fun RegisterExpenseWithAiDialog(
                     OutlinedTextField(
                         value = selectedDate,
                         onValueChange = { selectedDate = it },
-                        label = { Text("Fecha") },
+                        label = { Text(stringResource(R.string.finance_date_label)) },
                         readOnly = true,
                         trailingIcon = {
                             IconButton(onClick = { datePickerDialog.show() }) {
-                                Icon(Icons.Default.CalendarToday, contentDescription = "Seleccionar fecha", tint = ExecutivePrimaryTeal)
+                                Icon(Icons.Default.CalendarToday, contentDescription = stringResource(R.string.finance_date_label), tint = ExecutivePrimaryTeal)
                             }
                         },
                         modifier = Modifier.fillMaxWidth().clickable { datePickerDialog.show() }.testTag("input_expense_date")
@@ -1345,10 +1347,10 @@ private fun RegisterExpenseWithAiDialog(
                     OutlinedTextField(
                         value = amountText,
                         onValueChange = { amountText = it },
-                        label = { Text("Monto ($currencyCode)") },
+                        label = { Text(stringResource(R.string.finance_amount_label, currencyCode)) },
                         placeholder = { Text("0.00") },
                         suffix = { Text(currencyCode, color = ExecutivePrimaryTeal, fontWeight = FontWeight.Bold) },
-                        supportingText = { Text("Monto expresado en $currencyCode ($currencySymbol)") },
+                        supportingText = { Text(stringResource(R.string.finance_amount_supporting, currencyCode, currencySymbol)) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth().testTag("input_expense_amount")
                     )
@@ -1359,8 +1361,8 @@ private fun RegisterExpenseWithAiDialog(
                     OutlinedTextField(
                         value = description,
                         onValueChange = { description = it },
-                        label = { Text("Descripción") },
-                        placeholder = { Text("Detalle o motivo del gasto") },
+                        label = { Text(stringResource(R.string.finance_desc_label)) },
+                        placeholder = { Text(stringResource(R.string.finance_desc_placeholder)) },
                         minLines = 2,
                         maxLines = 4,
                         modifier = Modifier.fillMaxWidth().testTag("input_expense_description")
@@ -1425,7 +1427,7 @@ private fun RegisterExpenseWithAiDialog(
                                 ) {
                                     Icon(Icons.Default.AutoAwesome, contentDescription = null, modifier = Modifier.size(16.dp))
                                     Spacer(modifier = Modifier.width(6.dp))
-                                    Text("Consultar con Asesor Financiero", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                    Text(stringResource(R.string.finance_consult_advisor), fontSize = 12.sp, fontWeight = FontWeight.Bold)
                                 }
                             }
                         }
@@ -1442,12 +1444,12 @@ private fun RegisterExpenseWithAiDialog(
                 colors = ButtonDefaults.buttonColors(containerColor = ExecutiveSuccessGreen),
                 modifier = Modifier.testTag("btn_confirm_register_expense")
             ) {
-                Text("Confirmar Gasto", color = Color.Black, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.finance_dialog_confirm_expense), color = Color.Black, fontWeight = FontWeight.Bold)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text(if (expenseEvaluationAdvice != null) "Modificar / Cancelar" else "Cancelar")
+                Text(if (expenseEvaluationAdvice != null) stringResource(R.string.finance_modify_or_cancel) else stringResource(R.string.action_cancel))
             }
         }
     )
@@ -1478,8 +1480,8 @@ private fun AddEditAssetDialog(
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
-                    label = { Text("Nombre del activo") },
-                    placeholder = { Text("Nombre del activo") },
+                    label = { Text(stringResource(R.string.finance_asset_name_label)) },
+                    placeholder = { Text(stringResource(R.string.finance_asset_name_label)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth().testTag("input_asset_name")
                 )
@@ -1487,8 +1489,8 @@ private fun AddEditAssetDialog(
                 OutlinedTextField(
                     value = category,
                     onValueChange = { category = it },
-                    label = { Text("Categoría del activo") },
-                    placeholder = { Text("Ej: Bienes raíces, Cripto, Acciones, etc.") },
+                    label = { Text(stringResource(R.string.finance_asset_cat_label)) },
+                    placeholder = { Text(stringResource(R.string.finance_asset_cat_hint)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth().testTag("input_asset_category")
                 )
@@ -1496,10 +1498,10 @@ private fun AddEditAssetDialog(
                 OutlinedTextField(
                     value = amountText,
                     onValueChange = { amountText = it },
-                    label = { Text("Monto ($currencyCode)") },
+                    label = { Text(stringResource(R.string.finance_amount_label, currencyCode)) },
                     placeholder = { Text("0.00") },
                     suffix = { Text(currencyCode, color = ExecutivePrimaryTeal, fontWeight = FontWeight.Bold) },
-                    supportingText = { Text("Valor expresado en $currencyCode ($currencySymbol)") },
+                    supportingText = { Text(stringResource(R.string.finance_asset_val_supporting, currencyCode, currencySymbol)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth().testTag("input_asset_value")
                 )
@@ -1516,11 +1518,11 @@ private fun AddEditAssetDialog(
                 colors = ButtonDefaults.buttonColors(containerColor = ExecutivePrimaryTeal),
                 modifier = Modifier.testTag("btn_save_asset")
             ) {
-                Text("Guardar Activo", color = Color.Black, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.finance_save_asset), color = Color.Black, fontWeight = FontWeight.Bold)
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancelar") }
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) }
         }
     )
 }
@@ -1549,13 +1551,13 @@ private fun AskFinancialAdvisorDialog(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Default.QuestionAnswer, contentDescription = null, tint = ExecutivePrimaryTeal)
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Consulta con Asesor Financiero")
+                Text(stringResource(R.string.finance_advisor_query_title))
             }
         },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Text(
-                    text = "Escribe cualquier pregunta sobre estrategia patrimonial, decisiones de compra o inversión:",
+                    text = stringResource(R.string.finance_advisor_prompt_question),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -1563,7 +1565,7 @@ private fun AskFinancialAdvisorDialog(
                 OutlinedTextField(
                     value = questionText,
                     onValueChange = { questionText = it },
-                    placeholder = { Text("Escribe tu consulta aquí...") },
+                    placeholder = { Text(stringResource(R.string.finance_query_placeholder)) },
                     minLines = 3,
                     maxLines = 5,
                     modifier = Modifier.fillMaxWidth().testTag("input_ask_advisor_question")
@@ -1590,11 +1592,11 @@ private fun AskFinancialAdvisorDialog(
                 enabled = questionText.isNotBlank() && !isAsking,
                 colors = ButtonDefaults.buttonColors(containerColor = ExecutivePrimaryTeal)
             ) {
-                Text("Enviar Consulta", color = Color.Black, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.finance_send_query), color = Color.Black, fontWeight = FontWeight.Bold)
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cerrar") }
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_close)) }
         }
     )
 }
@@ -1614,25 +1616,25 @@ private fun AddFinancialGoalDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Nueva Meta de Ahorro") },
+        title = { Text(stringResource(R.string.finance_new_goal_title)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
-                    label = { Text("Concepto") },
+                    label = { Text(stringResource(R.string.finance_goal_concept)) },
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
                     value = targetText,
                     onValueChange = { targetText = it },
-                    label = { Text("Monto objetivo") },
+                    label = { Text(stringResource(R.string.finance_goal_target_amount)) },
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
                     value = deadline,
                     onValueChange = { deadline = it },
-                    label = { Text("Fecha") },
+                    label = { Text(stringResource(R.string.finance_date_label)) },
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -1642,11 +1644,11 @@ private fun AddFinancialGoalDialog(
                 val target = targetText.toDoubleOrNull() ?: 0.0
                 if (name.isNotBlank() && target > 0) onConfirm(name, target, deadline)
             }) {
-                Text("Guardar Meta")
+                Text(stringResource(R.string.finance_save_goal))
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancelar") }
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) }
         }
     )
 }
@@ -1661,12 +1663,12 @@ private fun ContributeGoalDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Aportar a: ${goal.name}") },
+        title = { Text(stringResource(R.string.finance_contribute_title, goal.name)) },
         text = {
             OutlinedTextField(
                 value = amountText,
                 onValueChange = { amountText = it },
-                label = { Text("Monto a aportar") },
+                label = { Text(stringResource(R.string.finance_contribute_amount)) },
                 modifier = Modifier.fillMaxWidth().testTag("dialog_contribute_amount")
             )
         },
@@ -1675,11 +1677,11 @@ private fun ContributeGoalDialog(
                 val amt = amountText.toDoubleOrNull() ?: 0.0
                 if (amt > 0) onConfirm(amt)
             }) {
-                Text("Aportar")
+                Text(stringResource(R.string.finance_contribute_btn))
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancelar") }
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) }
         }
     )
 }

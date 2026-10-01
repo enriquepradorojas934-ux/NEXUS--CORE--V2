@@ -23,7 +23,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import com.example.R
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -120,7 +122,7 @@ fun GoalsScreen(
                     ) {
                         Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text("Nueva Meta", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.goals_new_goal), fontSize = 12.sp, fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -608,37 +610,37 @@ private fun AddGoalDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Crear Nueva Meta", fontWeight = FontWeight.Bold) },
+        title = { Text(stringResource(R.string.goals_create_title), fontWeight = FontWeight.Bold) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
                     value = title,
                     onValueChange = { title = it },
-                    label = { Text("Nombre de la meta") },
+                    label = { Text(stringResource(R.string.goals_name_label)) },
                     modifier = Modifier.fillMaxWidth().testTag("dialog_goal_title")
                 )
                 OutlinedTextField(
                     value = description,
                     onValueChange = { description = it },
-                    label = { Text("Descripción o propósito") },
+                    label = { Text(stringResource(R.string.goals_desc_label)) },
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
                     value = category,
                     onValueChange = { category = it },
-                    label = { Text("Categoría de meta") },
+                    label = { Text(stringResource(R.string.goals_category_label)) },
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
                     value = targetDate,
                     onValueChange = { targetDate = it },
-                    label = { Text("Fecha") },
+                    label = { Text(stringResource(R.string.goals_date_label)) },
                     readOnly = true,
                     trailingIcon = {
                         IconButton(onClick = { datePickerDialog.show() }) {
                             Icon(
                                 Icons.Default.CalendarToday,
-                                contentDescription = "Seleccionar fecha",
+                                contentDescription = stringResource(R.string.goals_date_label),
                                 tint = ExecutivePurple
                             )
                         }
@@ -656,11 +658,11 @@ private fun AddGoalDialog(
                 colors = ButtonDefaults.buttonColors(containerColor = ExecutivePurple),
                 modifier = Modifier.testTag("dialog_goal_confirm")
             ) {
-                Text("Crear Meta", fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.goals_create_goal_btn), fontWeight = FontWeight.Bold)
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancelar") }
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) }
         }
     )
 }
@@ -674,12 +676,12 @@ private fun AddSubGoalDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Nuevo Subobjetivo", fontWeight = FontWeight.Bold) },
+        title = { Text(stringResource(R.string.goals_new_subgoal_title), fontWeight = FontWeight.Bold) },
         text = {
             OutlinedTextField(
                 value = title,
                 onValueChange = { title = it },
-                label = { Text("Descripción del hito o submeta") },
+                label = { Text(stringResource(R.string.goals_subgoal_desc_label)) },
                 modifier = Modifier.fillMaxWidth().testTag("dialog_subgoal_title")
             )
         },
@@ -689,11 +691,11 @@ private fun AddSubGoalDialog(
                 colors = ButtonDefaults.buttonColors(containerColor = ExecutivePurple),
                 modifier = Modifier.testTag("dialog_subgoal_confirm")
             ) {
-                Text("Agregar", fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.goals_add_btn), fontWeight = FontWeight.Bold)
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancelar") }
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) }
         }
     )
 }

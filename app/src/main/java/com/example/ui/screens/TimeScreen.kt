@@ -19,7 +19,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
+import com.example.R
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -196,7 +198,7 @@ private fun TimeTimelineSection(
                 ) {
                     Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text("Nuevo Bloque", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold))
+                    Text(stringResource(R.string.time_new_block), style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold))
                 }
             }
         }
@@ -533,7 +535,7 @@ private fun TasksListSection(
                 ) {
                     Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text("Nueva Tarea", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold))
+                    Text(stringResource(R.string.time_new_task), style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold))
                 }
             }
         }
@@ -546,9 +548,9 @@ private fun TasksListSection(
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     listOf(
-                        "TODOS" to "Todas",
-                        "PENDIENTES" to "Pendientes",
-                        "COMPLETADAS" to "Hechas",
+                        "TODOS" to stringResource(R.string.finance_filter_all),
+                        "PENDIENTES" to stringResource(R.string.action_pending),
+                        "COMPLETADAS" to stringResource(R.string.action_completed),
                         "ALTA" to "!Alta"
                     ).forEach { (key, label) ->
                         FilterChip(
@@ -569,14 +571,14 @@ private fun TasksListSection(
                 OutlinedTextField(
                     value = taskSearchQuery,
                     onValueChange = { taskSearchQuery = it },
-                    placeholder = { Text("Buscar tarea o categoría (#trabajo, etc.)...", fontSize = 11.sp) },
+                    placeholder = { Text(stringResource(R.string.time_search_placeholder), fontSize = 11.sp) },
                     leadingIcon = {
                         Icon(Icons.Default.Search, contentDescription = null, modifier = Modifier.size(16.dp))
                     },
                     trailingIcon = {
                         if (taskSearchQuery.isNotBlank()) {
                             IconButton(onClick = { taskSearchQuery = "" }) {
-                                Icon(Icons.Default.Close, contentDescription = "Limpiar", modifier = Modifier.size(14.dp))
+                                Icon(Icons.Default.Close, contentDescription = stringResource(R.string.action_clear), modifier = Modifier.size(14.dp))
                             }
                         }
                     },
@@ -698,14 +700,14 @@ private fun FocusTrackerSection(
             OutlinedTextField(
                 value = activityInput,
                 onValueChange = { activityInput = it },
-                label = { Text("Actividad en curso") },
+                label = { Text(stringResource(R.string.time_ongoing_activity)) },
                 modifier = Modifier.fillMaxWidth().testTag("input_timer_activity")
             )
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(
                 value = categoryInput,
                 onValueChange = { categoryInput = it },
-                label = { Text("Categoría") },
+                label = { Text(stringResource(R.string.time_block_category_label)) },
                 modifier = Modifier.fillMaxWidth().testTag("input_timer_category")
             )
             Spacer(modifier = Modifier.height(24.dp))
@@ -754,7 +756,7 @@ private fun FocusTrackerSection(
                 ) {
                     Icon(Icons.Default.PlayArrow, contentDescription = null)
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text(if (timerState.elapsedSeconds > 0) "Reanudar" else "Iniciar Enfoque", fontWeight = FontWeight.Bold)
+                    Text(if (timerState.elapsedSeconds > 0) stringResource(R.string.time_resume_timer) else stringResource(R.string.time_tracker_btn_start), fontWeight = FontWeight.Bold)
                 }
             } else {
                 Button(
@@ -767,7 +769,7 @@ private fun FocusTrackerSection(
                 ) {
                     Icon(Icons.Default.Pause, contentDescription = null)
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text("Pausar", fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.time_pause_timer), fontWeight = FontWeight.Bold)
                 }
             }
 
@@ -780,7 +782,7 @@ private fun FocusTrackerSection(
                 ) {
                     Icon(Icons.Default.Check, contentDescription = null)
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text("Consolidar Registro", fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.time_consolidate_timer), fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -908,25 +910,25 @@ private fun AddTaskDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Nueva Tarea") },
+        title = { Text(androidx.compose.ui.res.stringResource(com.example.R.string.time_create_task_title)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
                     value = title,
                     onValueChange = { title = it },
-                    label = { Text("Título de la tarea") },
+                    label = { Text(androidx.compose.ui.res.stringResource(com.example.R.string.time_task_title_label)) },
                     modifier = Modifier.fillMaxWidth().testTag("input_task_title")
                 )
                 OutlinedTextField(
                     value = estimatedMinutes,
                     onValueChange = { estimatedMinutes = it },
-                    label = { Text("Minutos estimados") },
+                    label = { Text(androidx.compose.ui.res.stringResource(com.example.R.string.time_task_est_minutes_label)) },
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
                     value = category,
                     onValueChange = { category = it },
-                    label = { Text("Categoría") },
+                    label = { Text(androidx.compose.ui.res.stringResource(com.example.R.string.habits_category_label)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth().testTag("input_task_category")
                 )
@@ -949,11 +951,11 @@ private fun AddTaskDialog(
                 },
                 modifier = Modifier.testTag("dialog_task_confirm")
             ) {
-                Text("Guardar")
+                Text(androidx.compose.ui.res.stringResource(com.example.R.string.action_save))
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancelar") }
+            TextButton(onClick = onDismiss) { Text(androidx.compose.ui.res.stringResource(com.example.R.string.action_cancel)) }
         }
     )
 }
@@ -1019,20 +1021,20 @@ private fun AddTimeBlockDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Crear Bloque de Tiempo", fontWeight = FontWeight.Bold) },
+        title = { Text(androidx.compose.ui.res.stringResource(com.example.R.string.time_create_block_title), fontWeight = FontWeight.Bold) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedTextField(
                     value = title,
                     onValueChange = { title = it },
-                    label = { Text("Actividad o Enfoque") },
+                    label = { Text(androidx.compose.ui.res.stringResource(com.example.R.string.time_block_activity_label)) },
                     modifier = Modifier.fillMaxWidth().testTag("input_block_title")
                 )
 
                 // Campo Inicio: Reloj interactivo 12h + chips AM / PM
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(
-                        text = "Inicio",
+                        text = androidx.compose.ui.res.stringResource(com.example.R.string.time_block_start_label),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -1050,7 +1052,7 @@ private fun AddTimeBlockDialog(
                                 IconButton(onClick = { showStartTimePicker() }) {
                                     Icon(
                                         Icons.Default.Schedule,
-                                        contentDescription = "Abrir selector de hora de inicio",
+                                        contentDescription = androidx.compose.ui.res.stringResource(com.example.R.string.time_block_start_label),
                                         tint = ExecutivePurple
                                     )
                                 }
@@ -1089,7 +1091,7 @@ private fun AddTimeBlockDialog(
                 // Campo Fin: Reloj interactivo 12h + chips AM / PM
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(
-                        text = "Fin",
+                        text = androidx.compose.ui.res.stringResource(com.example.R.string.time_block_end_label),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -1107,7 +1109,7 @@ private fun AddTimeBlockDialog(
                                 IconButton(onClick = { showEndTimePicker() }) {
                                     Icon(
                                         Icons.Default.Schedule,
-                                        contentDescription = "Abrir selector de hora de fin",
+                                        contentDescription = androidx.compose.ui.res.stringResource(com.example.R.string.time_block_end_label),
                                         tint = ExecutivePurple
                                     )
                                 }
@@ -1146,8 +1148,8 @@ private fun AddTimeBlockDialog(
                 OutlinedTextField(
                     value = category,
                     onValueChange = { category = it },
-                    label = { Text("Categoría") },
-                    placeholder = { Text("Escribe la categoría que desees...") },
+                    label = { Text(androidx.compose.ui.res.stringResource(com.example.R.string.time_block_category_label)) },
+                    placeholder = { Text(androidx.compose.ui.res.stringResource(com.example.R.string.qa_habit_category_placeholder)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth().testTag("input_block_category")
                 )
@@ -1158,11 +1160,11 @@ private fun AddTimeBlockDialog(
                 onClick = { onConfirm(title, "$startHourMin $startAmPm", "$endHourMin $endAmPm", category) },
                 colors = ButtonDefaults.buttonColors(containerColor = ExecutiveAccentBlue)
             ) {
-                Text("Guardar Bloque")
+                Text(androidx.compose.ui.res.stringResource(com.example.R.string.time_block_save_button))
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancelar") }
+            TextButton(onClick = onDismiss) { Text(androidx.compose.ui.res.stringResource(com.example.R.string.action_cancel)) }
         }
     )
 }

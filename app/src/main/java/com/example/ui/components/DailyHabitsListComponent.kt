@@ -22,7 +22,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import com.example.R
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -111,7 +113,7 @@ fun DailyHabitsListComponent(
                 FilterChip(
                     selected = currentFilter == HabitFilter.ALL,
                     onClick = { currentFilter = HabitFilter.ALL },
-                    label = { Text("Todos ($totalCount)") },
+                    label = { Text(stringResource(R.string.filter_all_count, totalCount)) },
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = ExecutivePrimaryTeal.copy(alpha = 0.2f),
                         selectedLabelColor = ExecutivePrimaryTeal
@@ -122,7 +124,7 @@ fun DailyHabitsListComponent(
                 FilterChip(
                     selected = currentFilter == HabitFilter.PENDING,
                     onClick = { currentFilter = HabitFilter.PENDING },
-                    label = { Text("Pendientes ($pendingCount)") },
+                    label = { Text(stringResource(R.string.filter_pending_count, pendingCount)) },
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = ExecutiveSecondaryAmber.copy(alpha = 0.2f),
                         selectedLabelColor = ExecutiveSecondaryAmber
@@ -132,7 +134,7 @@ fun DailyHabitsListComponent(
                 FilterChip(
                     selected = currentFilter == HabitFilter.COMPLETED,
                     onClick = { currentFilter = HabitFilter.COMPLETED },
-                    label = { Text("Completados ($completedCount)") },
+                    label = { Text(stringResource(R.string.filter_completed_count, completedCount)) },
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = ExecutiveSuccessGreen.copy(alpha = 0.2f),
                         selectedLabelColor = ExecutiveSuccessGreen
@@ -256,7 +258,7 @@ fun DailyHabitItemCard(
                     if (isCompletedToday) {
                         Icon(
                             imageVector = Icons.Default.Check,
-                            contentDescription = "Completado",
+                            contentDescription = stringResource(R.string.action_completed),
                             tint = Color.White,
                             modifier = Modifier.size(18.dp)
                         )
@@ -312,7 +314,7 @@ fun DailyHabitItemCard(
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     Text(
-                        text = "Meta: ${habit.targetValue} ${habit.unit} • ${habit.frequency}",
+                        text = stringResource(R.string.habit_target_frequency, habit.targetValue, habit.unit, habit.frequency),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -320,13 +322,13 @@ fun DailyHabitItemCard(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             imageVector = Icons.Default.LocalFireDepartment,
-                            contentDescription = "Racha",
+                            contentDescription = stringResource(R.string.streak_label),
                             tint = if (habit.currentStreak > 0) ExecutiveSecondaryAmber else MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(14.dp)
                         )
                         Spacer(modifier = Modifier.width(2.dp))
                         Text(
-                            text = "${habit.currentStreak} d",
+                            text = stringResource(R.string.streak_days, habit.currentStreak),
                             style = MaterialTheme.typography.labelSmall.copy(
                                 fontWeight = FontWeight.Bold,
                                 color = if (habit.currentStreak > 0) ExecutiveSecondaryAmber else MaterialTheme.colorScheme.onSurfaceVariant
@@ -336,7 +338,7 @@ fun DailyHabitItemCard(
 
                     if (isCompletedToday) {
                         Text(
-                            text = "✓ Listo",
+                            text = stringResource(R.string.habit_done_badge),
                             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                             color = ExecutiveSuccessGreen
                         )
@@ -352,7 +354,7 @@ fun DailyHabitItemCard(
                 ) {
                     Icon(
                         imageVector = Icons.Default.DeleteOutline,
-                        contentDescription = "Eliminar hábito",
+                        contentDescription = stringResource(R.string.delete_habit_desc),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                         modifier = Modifier.size(18.dp)
                     )
@@ -414,15 +416,15 @@ private fun HabitProgressSummaryCard(
             ) {
                 Column {
                     Text(
-                        text = "CUMPLIMIENTO DE HÁBITOS DE HOY",
+                        text = stringResource(R.string.habits_compliance_title),
                         style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
                         color = ExecutiveSuccessGreen
                     )
                     Text(
                         text = when {
-                            completedCount == totalCount && totalCount > 0 -> "🎯 ¡Todos los hábitos completados!"
-                            completedCount > 0 -> "Buen ritmo, continúa con los pendientes"
-                            else -> "Inicia tu ciclo marcando tu primer hábito"
+                            completedCount == totalCount && totalCount > 0 -> stringResource(R.string.habits_all_done)
+                            completedCount > 0 -> stringResource(R.string.habits_good_pace)
+                            else -> stringResource(R.string.habits_start_cycle)
                         },
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -430,7 +432,7 @@ private fun HabitProgressSummaryCard(
                 }
 
                 Text(
-                    text = "$completedCount de $totalCount",
+                    text = stringResource(R.string.habits_count_of, completedCount, totalCount),
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -461,7 +463,7 @@ private fun HabitProgressSummaryCard(
                         color = ExecutiveSuccessGreen
                     )
                     Text(
-                        "Tasa de éxito",
+                        stringResource(R.string.habits_success_rate),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -469,12 +471,12 @@ private fun HabitProgressSummaryCard(
                 val maxStreak = habits.maxOfOrNull { it.bestStreak } ?: 0
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        text = "🔥 $maxStreak d",
+                        text = "🔥 " + stringResource(R.string.streak_days, maxStreak),
                         style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                         color = ExecutiveSecondaryAmber
                     )
                     Text(
-                        "Racha máxima",
+                        stringResource(R.string.habits_max_streak),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -511,13 +513,13 @@ private fun EmptyHabitsView(
             )
             Spacer(modifier = Modifier.height(10.dp))
             Text(
-                text = "No tienes hábitos registrados hoy",
+                text = stringResource(R.string.habits_empty_title),
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                 color = MaterialTheme.colorScheme.onSurface
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "Agrega tus primeros hábitos clave (ej: Ejercicio, Lectura, Meditación) para comenzar a medir tu consistencia.",
+                text = stringResource(R.string.habits_empty_desc),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = 16.dp)
@@ -531,7 +533,7 @@ private fun EmptyHabitsView(
                 ) {
                     Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text("Agregar Primer Hábito")
+                    Text(stringResource(R.string.habits_add_first))
                 }
             }
         }

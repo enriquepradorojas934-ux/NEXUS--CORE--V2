@@ -22,7 +22,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
+import com.example.R
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -148,7 +150,7 @@ fun FitnessScreen(
                             ) {
                                 Icon(Icons.Default.Add, contentDescription = null, tint = ExecutiveDarkBg, modifier = Modifier.size(16.dp))
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text("Registrar", color = ExecutiveDarkBg, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                Text(stringResource(R.string.fitness_register_btn), color = ExecutiveDarkBg, fontWeight = FontWeight.Bold, fontSize = 12.sp)
                             }
                         }
                     }
@@ -199,7 +201,7 @@ fun FitnessScreen(
                                         contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
                                         modifier = Modifier.testTag("btn_analyze_workout_ai")
                                     ) {
-                                        Text("Analizar Volumen", fontSize = 11.sp, color = TacticalVioletIdentity, fontWeight = FontWeight.Bold)
+                                        Text(stringResource(R.string.fitness_analyze_vol_btn), fontSize = 11.sp, color = TacticalVioletIdentity, fontWeight = FontWeight.Bold)
                                     }
                                 }
                             }
@@ -358,12 +360,12 @@ fun FitnessScreen(
                     colors = ButtonDefaults.buttonColors(containerColor = TacticalNeonCyan),
                     contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
                 ) {
-                    Text("Guardar", color = ExecutiveDarkBg, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                    Text(stringResource(R.string.action_save), color = ExecutiveDarkBg, fontWeight = FontWeight.Bold, fontSize = 12.sp)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { editingFieldLabel = null }) {
-                    Text("Cancelar", color = ExecutiveTextSecondary, fontSize = 12.sp)
+                    Text(stringResource(R.string.action_cancel), color = ExecutiveTextSecondary, fontSize = 12.sp)
                 }
             }
         )
@@ -379,7 +381,7 @@ fun FitnessScreen(
             containerColor = ExecutiveDarkSurface,
             title = {
                 Text(
-                    text = "Registrar Sesión de Entrenamiento",
+                    text = stringResource(R.string.fitness_dialog_title),
                     color = ExecutiveTextPrimary,
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp
@@ -395,8 +397,8 @@ fun FitnessScreen(
                     OutlinedTextField(
                         value = workoutTitle,
                         onValueChange = { workoutTitle = it },
-                        label = { Text("Nombre de la rutina") },
-                        placeholder = { Text("ej: Rutina Hipertrofia") },
+                        label = { Text(stringResource(R.string.fitness_routine_name_label)) },
+                        placeholder = { Text(stringResource(R.string.fitness_routine_name_hint)) },
                         modifier = Modifier.fillMaxWidth().testTag("input_workout_title"),
                         singleLine = true
                     )
@@ -405,15 +407,15 @@ fun FitnessScreen(
                         OutlinedTextField(
                             value = targetGoal,
                             onValueChange = { targetGoal = it },
-                            label = { Text("Objetivo") },
-                            placeholder = { Text("Hipertrofia") },
+                            label = { Text(stringResource(R.string.fitness_goal_label)) },
+                            placeholder = { Text(stringResource(R.string.fitness_goal_hint)) },
                             modifier = Modifier.weight(1f).testTag("input_workout_goal"),
                             singleLine = true
                         )
                         OutlinedTextField(
                             value = durationMinutes,
                             onValueChange = { durationMinutes = it.filter { ch -> ch.isDigit() } },
-                            label = { Text("Minutos") },
+                            label = { Text(stringResource(R.string.fitness_minutes_label)) },
                             placeholder = { Text("20") },
                             modifier = Modifier.weight(1f).testTag("input_workout_duration"),
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),

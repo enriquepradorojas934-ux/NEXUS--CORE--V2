@@ -18,10 +18,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.R
 import com.example.ui.AppNavTab
 import com.example.ui.PersonalOsUiState
 import com.example.ui.components.*
@@ -107,13 +109,13 @@ fun DashboardScreen(
                                 Column {
                                     Text(
                                         text = state.currentUser?.let {
-                                            it.displayName ?: it.email ?: if (it.isAnonymous) "Sesión Anónima Nube" else "Perfil Cloud"
-                                        } ?: "Almacenamiento Local Offline",
+                                            it.displayName ?: it.email ?: if (it.isAnonymous) stringResource(R.string.cloud_anonymous_session) else stringResource(R.string.cloud_profile)
+                                        } ?: stringResource(R.string.cloud_offline_storage),
                                         style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                                         color = ExecutiveTextWhite
                                     )
                                     Text(
-                                        text = if (state.currentUser != null) "Sincronización Cloud Firestore activa" else "Vincular cuenta en Configuración",
+                                        text = if (state.currentUser != null) stringResource(R.string.cloud_sync_active) else stringResource(R.string.cloud_link_in_settings),
                                         style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
                                         color = ExecutiveTextMuted
                                     )
@@ -126,7 +128,7 @@ fun DashboardScreen(
                                 modifier = Modifier.height(30.dp)
                             ) {
                                 Text(
-                                    text = if (state.currentUser != null) "GESTIONAR" else "CONECTAR",
+                                    text = if (state.currentUser != null) stringResource(R.string.action_manage) else stringResource(R.string.action_connect),
                                     style = MaterialTheme.typography.labelSmall.copy(
                                         fontWeight = FontWeight.Bold,
                                         fontFamily = FontFamily.Monospace,
@@ -181,7 +183,7 @@ fun DashboardScreen(
                                     )
                                     Spacer(modifier = Modifier.width(6.dp))
                                     Text(
-                                        text = "PRINCIPIO OPERATIVO",
+                                        text = stringResource(R.string.hub_operational_principle),
                                         style = MaterialTheme.typography.labelSmall.copy(
                                             fontFamily = FontFamily.Monospace,
                                             fontWeight = FontWeight.Bold,
@@ -220,7 +222,7 @@ fun DashboardScreen(
                 // ========================================
                 item {
                     LifeOsSectionHeader(
-                        title = "Tiempo",
+                        title = stringResource(R.string.nav_time),
                         subtag = "Bloque Activo & Agenda",
                         indicatorColor = ExecutiveAccentBlue
                     )
@@ -243,7 +245,7 @@ fun DashboardScreen(
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 Text(
-                                    text = "ENFOQUE INMEDIATO",
+                                    text = stringResource(R.string.hub_immediate_focus),
                                     style = MaterialTheme.typography.labelSmall.copy(
                                         fontFamily = FontFamily.Monospace,
                                         fontWeight = FontWeight.Bold,
@@ -257,7 +259,7 @@ fun DashboardScreen(
                                     contentPadding = PaddingValues(0.dp)
                                 ) {
                                     Text(
-                                        "Línea Temporal →",
+                                        stringResource(R.string.hub_timeline_arrow),
                                         style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                                         color = ExecutiveAccentBlue
                                     )
@@ -306,7 +308,7 @@ fun DashboardScreen(
                                 }
                             } else {
                                 Text(
-                                    text = "Todas las tareas del ciclo han sido completadas.",
+                                    text = stringResource(R.string.hub_all_tasks_completed),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = ExecutiveTextMuted
                                 )
@@ -333,7 +335,7 @@ fun DashboardScreen(
                                         Spacer(modifier = Modifier.width(8.dp))
                                         Column {
                                             Text(
-                                                text = "BLOQUE ACTIVO: ${nextTimeBlock.startTime} - ${nextTimeBlock.endTime}",
+                                                text = stringResource(R.string.hub_active_block_label, nextTimeBlock.startTime, nextTimeBlock.endTime),
                                                 style = MaterialTheme.typography.labelSmall.copy(
                                                     fontFamily = FontFamily.Monospace,
                                                     fontWeight = FontWeight.Bold
@@ -352,7 +354,7 @@ fun DashboardScreen(
 
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
-                                text = "Tiempo productivo registrado hoy: ${state.totalProductiveMinutesToday / 60}h ${state.totalProductiveMinutesToday % 60}m",
+                                text = stringResource(R.string.hub_productive_time_today, state.totalProductiveMinutesToday / 60, state.totalProductiveMinutesToday % 60),
                                 style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace),
                                 color = ExecutiveTextMuted
                             )
@@ -365,7 +367,7 @@ fun DashboardScreen(
                 // ========================================
                 item {
                     LifeOsSectionHeader(
-                        title = "Hábitos",
+                        title = stringResource(R.string.nav_habits),
                         subtag = "Matriz de Consistencia",
                         indicatorColor = ExecutiveSuccessGreen
                     )
@@ -385,7 +387,7 @@ fun DashboardScreen(
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 Text(
-                                    text = "CUMPLIMIENTO DIARIO",
+                                    text = stringResource(R.string.hub_daily_compliance),
                                     style = MaterialTheme.typography.labelSmall.copy(
                                         fontFamily = FontFamily.Monospace,
                                         fontWeight = FontWeight.Bold,
@@ -470,7 +472,7 @@ fun DashboardScreen(
                                 contentPadding = PaddingValues(0.dp)
                             ) {
                                 Text(
-                                    "Matriz Completa →",
+                                    stringResource(R.string.hub_full_matrix_arrow),
                                     style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                                     color = ExecutiveSuccessGreen
                                 )
@@ -484,18 +486,18 @@ fun DashboardScreen(
                 // ========================================
                 item {
                     LifeOsSectionHeader(
-                        title = "Metas",
-                        subtag = "OKRs & Key Results",
+                        title = stringResource(R.string.nav_goals),
+                        subtag = stringResource(R.string.goals_subtag_okrs),
                         indicatorColor = ExecutivePurple
                     )
                 }
 
                 item {
                     ExecutiveMetricCard(
-                        title = "Objetivos Estratégicos",
-                        question = "¿CÓMO VOY CON MIS METAS?",
-                        value = "${(state.averageGoalsProgress * 100).toInt()}% de avance global",
-                        detail = "${state.goalsWithSubGoals.size} metas activas • ${state.goalsWithSubGoals.sumOf { it.subGoals.count { sg -> sg.isCompleted } }} key results alcanzados",
+                        title = stringResource(R.string.hub_strategic_goals_title),
+                        question = stringResource(R.string.hub_strategic_goals_question),
+                        value = stringResource(R.string.hub_goals_progress_val, (state.averageGoalsProgress * 100).toInt()),
+                        detail = stringResource(R.string.hub_goals_detail, state.goalsWithSubGoals.size, state.goalsWithSubGoals.sumOf { it.subGoals.count { sg -> sg.isCompleted } }),
                         icon = Icons.Default.Flag,
                         accentColor = ExecutivePurple,
                         onClick = { onNavigate(AppNavTab.GOALS) }
@@ -507,7 +509,7 @@ fun DashboardScreen(
                 // ========================================
                 item {
                     LifeOsSectionHeader(
-                        title = "Finanzas",
+                        title = stringResource(R.string.nav_finance),
                         subtag = "Flujo Operativo & Balance",
                         indicatorColor = ExecutiveSecondaryAmber
                     )
@@ -526,14 +528,14 @@ fun DashboardScreen(
                     val formattedGastos = com.example.util.CurrencyFormatter.format(gastosTotal, state.selectedCurrencySymbol, state.selectedCurrencyCode)
                     val formattedPatrimonio = com.example.util.CurrencyFormatter.format(patrimonioDona, state.selectedCurrencySymbol, state.selectedCurrencyCode)
 
-                    val flujoLabel = if (isSpanish) "flujo neto" else "net cash flow"
-                    val ingresosLabel = if (isSpanish) "Ingresos" else "Income"
-                    val gastosLabel = if (isSpanish) "Gastos" else "Expenses"
-                    val patrimonioLabel = if (isSpanish) "Patrimonio" else "Net Worth"
+                    val flujoLabel = stringResource(R.string.hub_net_cash_flow_label)
+                    val ingresosLabel = stringResource(R.string.hub_income_label)
+                    val gastosLabel = stringResource(R.string.hub_expenses_label)
+                    val patrimonioLabel = stringResource(R.string.hub_net_worth_label)
 
                     ExecutiveMetricCard(
-                        title = if (isSpanish) "Control Financiero" else "Financial Control",
-                        question = if (isSpanish) "¿CÓMO ESTÁ MI PATRIMONIO?" else "HOW IS MY NET WORTH?",
+                        title = stringResource(R.string.hub_financial_control_title),
+                        question = stringResource(R.string.hub_financial_control_question),
                         value = "$formattedFlujo $flujoLabel",
                         detail = "$ingresosLabel: $formattedIngresos • $gastosLabel: $formattedGastos • $patrimonioLabel: $formattedPatrimonio",
                         icon = Icons.Default.AccountBalanceWallet,
@@ -547,11 +549,11 @@ fun DashboardScreen(
                 // ========================================
                 item {
                     LifeOsSectionHeader(
-                        title = "Entrenamiento",
+                        title = stringResource(R.string.hub_workout_section_title),
                         badge = "${state.workoutSessions.size}",
-                        subtag = "Sobrecarga & Vitalidad",
+                        subtag = stringResource(R.string.hub_workout_subtag),
                         indicatorColor = TacticalNeonCyan,
-                        actionLabel = "Ver Módulo",
+                        actionLabel = stringResource(R.string.hub_workout_view_module),
                         onActionClick = onOpenFitness
                     )
                 }
@@ -569,13 +571,13 @@ fun DashboardScreen(
                             Column(modifier = Modifier.weight(1f)) {
                                 val latest = state.workoutSessions.firstOrNull()
                                 Text(
-                                    text = latest?.title ?: "Sin rutina registrada hoy",
+                                    text = latest?.title ?: stringResource(R.string.hub_workout_no_routine_today),
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = ExecutiveTextPrimary
                                 )
                                 Text(
-                                    text = if (latest != null) "${latest.durationMinutes} min • Meta: ${latest.targetGoal}" else "Pulsa para registrar una rutina o planificar series",
+                                    text = if (latest != null) stringResource(R.string.hub_workout_routine_meta, latest.durationMinutes, latest.targetGoal) else stringResource(R.string.hub_workout_tap_to_log),
                                     fontSize = 12.sp,
                                     color = ExecutiveTextSecondary
                                 )
@@ -585,7 +587,7 @@ fun DashboardScreen(
                                 colors = ButtonDefaults.filledTonalButtonColors(containerColor = TacticalNeonCyan.copy(alpha = 0.2f)),
                                 shape = RoundedCornerShape(6.dp)
                             ) {
-                                Text("Abrir", fontSize = 11.sp, color = TacticalNeonCyan, fontWeight = FontWeight.Bold)
+                                Text(stringResource(R.string.action_open), fontSize = 11.sp, color = TacticalNeonCyan, fontWeight = FontWeight.Bold)
                             }
                         }
                     }
@@ -610,13 +612,13 @@ fun DashboardScreen(
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Icon(
                                         imageVector = Icons.Default.AutoAwesome,
-                                        contentDescription = "IA Gemini",
+                                        contentDescription = stringResource(R.string.chat_title),
                                         tint = ExecutiveCyan,
                                         modifier = Modifier.size(18.dp)
                                     )
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Text(
-                                        text = "ASESOR EJECUTIVO GEMINI",
+                                        text = stringResource(R.string.hub_ai_advisor_title),
                                         style = MaterialTheme.typography.labelSmall.copy(
                                             fontFamily = FontFamily.Monospace,
                                             fontWeight = FontWeight.Bold,
@@ -632,7 +634,7 @@ fun DashboardScreen(
                                     ) {
                                         Icon(
                                             imageVector = Icons.Default.Close,
-                                            contentDescription = "Cerrar",
+                                            contentDescription = stringResource(R.string.action_close),
                                             tint = ExecutiveTextMuted,
                                             modifier = Modifier.size(16.dp)
                                         )
@@ -654,7 +656,7 @@ fun DashboardScreen(
                                     )
                                     Spacer(modifier = Modifier.height(8.dp))
                                     Text(
-                                        text = "Analizando métricas operativas del ciclo...",
+                                        text = stringResource(R.string.hub_ai_analyzing),
                                         style = MaterialTheme.typography.labelSmall,
                                         color = ExecutiveTextMuted
                                     )
@@ -675,7 +677,7 @@ fun DashboardScreen(
                                 }
                             } else {
                                 Text(
-                                    text = "Diagnóstico inteligente de tu ciclo con Gemini.",
+                                    text = stringResource(R.string.hub_ai_subtitle),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = ExecutiveTextMuted
                                 )
@@ -696,7 +698,7 @@ fun DashboardScreen(
                                 ) {
                                     Icon(Icons.Default.Insights, contentDescription = null, modifier = Modifier.size(16.dp))
                                     Spacer(modifier = Modifier.width(6.dp))
-                                    Text("Diagnóstico", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold))
+                                    Text(stringResource(R.string.action_diagnostic), style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold))
                                 }
 
                                 OutlinedButton(
@@ -708,7 +710,7 @@ fun DashboardScreen(
                                 ) {
                                     Icon(Icons.Default.QuestionAnswer, contentDescription = null, modifier = Modifier.size(16.dp))
                                     Spacer(modifier = Modifier.width(6.dp))
-                                    Text("Consultar", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold))
+                                    Text(stringResource(R.string.action_consult), style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold))
                                 }
                             }
 
@@ -729,7 +731,7 @@ fun DashboardScreen(
                                 Icon(Icons.Default.Forum, contentDescription = null, modifier = Modifier.size(16.dp))
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    "Abrir Chatbot Multiturno con Gemini",
+                                    stringResource(R.string.hub_ai_open_chat),
                                     style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold)
                                 )
                             }
@@ -755,7 +757,7 @@ fun DashboardScreen(
         ) {
             Icon(
                 imageVector = Icons.Default.Add,
-                contentDescription = "Acción Rápida",
+                contentDescription = stringResource(R.string.action_quick_action),
                 modifier = Modifier.size(26.dp)
             )
         }
@@ -777,13 +779,13 @@ fun DashboardScreen(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = ExecutiveCyan)
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Consulta a LifeOS AI")
+                        Text(stringResource(R.string.hub_custom_ai_dialog_title))
                     }
                 },
                 text = {
                     Column(modifier = Modifier.fillMaxWidth()) {
                         Text(
-                            text = "Realiza una consulta sobre tu desempeño, hábitos o enfoque en este ciclo:",
+                            text = stringResource(R.string.hub_custom_ai_dialog_desc),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -791,7 +793,7 @@ fun DashboardScreen(
                         OutlinedTextField(
                             value = customQuestionText,
                             onValueChange = { customQuestionText = it },
-                            placeholder = { Text("Ej: ¿En qué debería enfocarme esta tarde?") },
+                            placeholder = { Text(stringResource(R.string.hub_custom_ai_dialog_placeholder)) },
                             modifier = Modifier.fillMaxWidth().testTag("input_custom_ai_question"),
                             maxLines = 3
                         )
@@ -809,12 +811,12 @@ fun DashboardScreen(
                         enabled = customQuestionText.isNotBlank(),
                         colors = ButtonDefaults.buttonColors(containerColor = ExecutiveCyan)
                     ) {
-                        Text("Preguntar", color = ExecutiveDarkBg, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.action_ask), color = ExecutiveDarkBg, fontWeight = FontWeight.Bold)
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = { showCustomQuestionDialog = false }) {
-                        Text("Cancelar")
+                        Text(stringResource(R.string.action_cancel))
                     }
                 }
             )

@@ -21,9 +21,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import com.example.R
 import com.example.data.model.HabitEntity
 import com.example.ui.PersonalOsUiState
 import com.example.ui.components.DailyHabitsListComponent
@@ -208,14 +210,14 @@ fun HabitsScreen(
                                             }
                                         }
                                     },
-                                    label = { Text("Hora programada") },
+                                    label = { Text(stringResource(R.string.habits_scheduled_time)) },
                                     placeholder = { Text("08:00") },
                                     singleLine = true,
                                     trailingIcon = {
                                         IconButton(onClick = { showTimePicker() }) {
                                             Icon(
                                                 Icons.Default.Schedule,
-                                                contentDescription = "Abrir selector de hora",
+                                                contentDescription = stringResource(R.string.habits_scheduled_time),
                                                 tint = ExecutiveSecondaryAmber
                                             )
                                         }
@@ -282,7 +284,7 @@ fun HabitsScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Mis Hábitos del Día",
+                        text = stringResource(R.string.habits_title),
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.onSurface
                     )
@@ -293,7 +295,7 @@ fun HabitsScreen(
                     ) {
                         Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text("Nuevo Hábito")
+                        Text(stringResource(R.string.habits_new_habit_btn))
                     }
                 }
             }
@@ -335,26 +337,26 @@ private fun AddHabitDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Crear Hábito") },
+        title = { Text(stringResource(R.string.habits_create_habit_title)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 OutlinedTextField(
                     value = title,
                     onValueChange = { title = it },
-                    label = { Text("Nombre del hábito") },
+                    label = { Text(stringResource(R.string.habits_name_label)) },
                     modifier = Modifier.fillMaxWidth().testTag("dialog_habit_title")
                 )
                 OutlinedTextField(
                     value = category,
                     onValueChange = { category = it },
-                    label = { Text("Categorías del hábito") },
+                    label = { Text(stringResource(R.string.habits_categories_label)) },
                     modifier = Modifier.fillMaxWidth()
                 )
 
                 // Campo "Tiempo del hábito" con selector de cantidad y unidad
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(
-                        text = "Tiempo del hábito",
+                        text = stringResource(R.string.time_block_activity_label),
                         style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
                         color = MaterialTheme.colorScheme.onSurface
                     )
@@ -366,7 +368,7 @@ private fun AddHabitDialog(
                         OutlinedTextField(
                             value = timeAmountInput,
                             onValueChange = { timeAmountInput = it.filter { ch -> ch.isDigit() } },
-                            label = { Text("Cantidad") },
+                            label = { Text(stringResource(R.string.habits_quantity_label)) },
                             singleLine = true,
                             modifier = Modifier.weight(1f).testTag("dialog_habit_time_amount")
                         )
@@ -377,12 +379,12 @@ private fun AddHabitDialog(
                             FilterChip(
                                 selected = timeUnit == "Minutos",
                                 onClick = { timeUnit = "Minutos" },
-                                label = { Text("Minutos") }
+                                label = { Text(stringResource(R.string.habits_unit_minutes)) }
                             )
                             FilterChip(
                                 selected = timeUnit == "Horas",
                                 onClick = { timeUnit = "Horas" },
-                                label = { Text("Horas") }
+                                label = { Text(stringResource(R.string.habits_unit_hours)) }
                             )
                         }
                     }
@@ -398,11 +400,11 @@ private fun AddHabitDialog(
                 },
                 modifier = Modifier.testTag("dialog_habit_confirm")
             ) {
-                Text("Guardar Hábito")
+                Text(stringResource(R.string.habits_save_btn))
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancelar") }
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) }
         }
     )
 }

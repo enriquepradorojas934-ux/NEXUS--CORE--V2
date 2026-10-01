@@ -12,11 +12,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
+import com.example.R
 import com.example.util.SensoryFeedbackHelper
 import com.example.ui.PersonalOsUiState
 import com.example.ui.components.ExecutiveHeader
@@ -82,13 +84,13 @@ fun SettingsScreen(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Default.Download, contentDescription = null, tint = ExecutivePrimaryTeal)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Copia de Seguridad (JSON)")
+                    Text(stringResource(R.string.backup_json_title))
                 }
             },
             text = {
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Text(
-                        text = "Tus tareas, hábitos, finanzas y metas exportadas en formato abierto y portable:",
+                        text = stringResource(R.string.settings_backup_desc),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -113,12 +115,12 @@ fun SettingsScreen(
                 ) {
                     Icon(Icons.Default.ContentCopy, contentDescription = null, modifier = Modifier.size(16.dp))
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text("Copiar al Portapapeles")
+                    Text(stringResource(R.string.copy_to_clipboard))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showExportDialog = false }) {
-                    Text("Cerrar")
+                    Text(stringResource(R.string.action_close))
                 }
             }
         )
@@ -131,13 +133,13 @@ fun SettingsScreen(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Default.Upload, contentDescription = null, tint = ExecutiveSecondaryAmber)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Restaurar Copia de Seguridad")
+                    Text(stringResource(R.string.restore_backup_title))
                 }
             },
             text = {
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Text(
-                        text = "Pega aquí el texto JSON de una copia de seguridad previa para restaurar tus registros:",
+                        text = stringResource(R.string.settings_backup_desc),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -145,7 +147,7 @@ fun SettingsScreen(
                     OutlinedTextField(
                         value = importJsonInput,
                         onValueChange = { importJsonInput = it },
-                        placeholder = { Text("Pega el JSON aquí...") },
+                        placeholder = { Text(stringResource(R.string.paste_json_hint)) },
                         modifier = Modifier.fillMaxWidth().height(180.dp),
                         textStyle = MaterialTheme.typography.bodySmall
                     )
@@ -164,12 +166,12 @@ fun SettingsScreen(
                     enabled = importJsonInput.isNotBlank(),
                     colors = ButtonDefaults.buttonColors(containerColor = ExecutiveSecondaryAmber)
                 ) {
-                    Text("Restaurar Datos")
+                    Text(stringResource(R.string.restore_data_btn))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showImportDialog = false }) {
-                    Text("Cancelar")
+                    Text(stringResource(R.string.action_cancel))
                 }
             }
         )
@@ -182,7 +184,7 @@ fun SettingsScreen(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Default.Security, contentDescription = null, tint = ExecutiveSuccessGreen)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Política de Privacidad y Seguridad")
+                    Text(stringResource(R.string.privacy_policy_title))
                 }
             },
             text = {
@@ -191,30 +193,30 @@ fun SettingsScreen(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
-                        text = "En Sistema Personal valoramos tu privacidad absoluta:",
+                        text = stringResource(R.string.privacy_policy_title),
                         style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
                     )
                     Text(
-                        text = "1. Almacenamiento Local Offline-first: Todas tus tareas, hábitos, finanzas personales y notas se guardan de forma privada en la base de datos local SQLite (Room) de tu dispositivo.",
+                        text = "1. Offline-first Room SQLite",
                         style = MaterialTheme.typography.bodySmall
                     )
                     Text(
-                        text = "2. Cero Venta de Datos: No recopilamos, vendemos ni rastreamos tus datos personales con fines publicitarios o de telemetría invasiva.",
+                        text = "2. Zero data selling / telemetry",
                         style = MaterialTheme.typography.bodySmall
                     )
                     Text(
-                        text = "3. Permisos Estrictos: El permiso de notificaciones (POST_NOTIFICATIONS) se utiliza únicamente para las alertas locales programadas por ti (WorkManager).",
+                        text = "3. Strict local notifications permission (POST_NOTIFICATIONS)",
                         style = MaterialTheme.typography.bodySmall
                     )
                     Text(
-                        text = "4. Inteligencia Artificial Segura: Las solicitudes a Gemini API se procesan únicamente cuando solicitas asesoramiento ejecutivo mediante tu clave autorizada.",
+                        text = "4. Secure Gemini AI queries",
                         style = MaterialTheme.typography.bodySmall
                     )
                 }
             },
             confirmButton = {
                 Button(onClick = { showPrivacyPolicyDialog = false }) {
-                    Text("Entendido")
+                    Text(stringResource(R.string.understood))
                 }
             }
         )
@@ -312,11 +314,11 @@ fun SettingsScreen(
                             ) {
                                 Icon(Icons.Default.Logout, contentDescription = null, modifier = Modifier.size(16.dp))
                                 Spacer(modifier = Modifier.width(6.dp))
-                                Text("Cerrar Sesión")
+                                Text(stringResource(R.string.settings_cloud_sign_out))
                             }
                         } else {
                             Text(
-                                text = "Identifícate de forma segura con Google Sign-In para respaldar automáticamente tus tareas, hábitos, finanzas y metas en Firestore asociadas a tu perfil.",
+                                text = stringResource(R.string.settings_cloud_sync_desc),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -353,7 +355,7 @@ fun SettingsScreen(
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    text = "Continuar con Google",
+                                    text = stringResource(R.string.settings_cloud_sign_in_google),
                                     color = ExecutiveDarkBg,
                                     fontWeight = FontWeight.Bold
                                 )
@@ -373,7 +375,7 @@ fun SettingsScreen(
                                 )
                                 Spacer(modifier = Modifier.width(6.dp))
                                 Text(
-                                    text = "Iniciar Sesión Anónima (Nube)",
+                                    text = stringResource(R.string.cloud_anonymous_session),
                                     style = MaterialTheme.typography.labelSmall
                                 )
                             }
@@ -399,7 +401,7 @@ fun SettingsScreen(
                                 Icon(Icons.Default.CloudSync, contentDescription = null, tint = ExecutivePrimaryTeal)
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    text = "SINCRONIZACIÓN CLOUD FIRESTORE",
+                                    text = stringResource(R.string.settings_cloud_sync_title),
                                     style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
                                     color = ExecutivePrimaryTeal
                                 )
@@ -415,7 +417,7 @@ fun SettingsScreen(
 
                         Spacer(modifier = Modifier.height(6.dp))
                         Text(
-                            text = "Respalda y sincroniza tus tareas, bloques de tiempo, hábitos, finanzas y límites de atención en Google Cloud Firestore.",
+                            text = stringResource(R.string.settings_cloud_sync_desc),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -445,7 +447,7 @@ fun SettingsScreen(
                         ) {
                             Icon(Icons.Default.Sync, contentDescription = null, tint = ExecutiveDarkBg, modifier = Modifier.size(18.dp))
                             Spacer(modifier = Modifier.width(6.dp))
-                            Text("Sincronizar con la Nube", color = ExecutiveDarkBg, fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.settings_cloud_sync_title), color = ExecutiveDarkBg, fontWeight = FontWeight.Bold)
                         }
 
                         Spacer(modifier = Modifier.height(8.dp))
@@ -461,7 +463,7 @@ fun SettingsScreen(
                             ) {
                                 Icon(Icons.Default.CloudUpload, contentDescription = null, modifier = Modifier.size(16.dp))
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text("Subir Respaldo", style = MaterialTheme.typography.labelSmall)
+                                Text(stringResource(R.string.settings_cloud_upload_backup), style = MaterialTheme.typography.labelSmall)
                             }
 
                             OutlinedButton(
@@ -471,7 +473,7 @@ fun SettingsScreen(
                             ) {
                                 Icon(Icons.Default.CloudDownload, contentDescription = null, modifier = Modifier.size(16.dp))
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text("Restaurar Nube", style = MaterialTheme.typography.labelSmall)
+                                Text(stringResource(R.string.settings_cloud_restore_backup), style = MaterialTheme.typography.labelSmall)
                             }
                         }
                     }
@@ -505,7 +507,7 @@ fun SettingsScreen(
                             OutlinedTextField(
                                 value = cycleTimeInput,
                                 onValueChange = { cycleTimeInput = it },
-                                label = { Text("Hora del ciclo") },
+                                label = { Text(stringResource(R.string.settings_cycle_time_label)) },
                                 modifier = Modifier.weight(1f).testTag("input_cycle_time")
                             )
 
@@ -514,7 +516,7 @@ fun SettingsScreen(
                                 colors = ButtonDefaults.buttonColors(containerColor = ExecutivePrimaryTeal),
                                 modifier = Modifier.testTag("btn_save_cycle_time")
                             ) {
-                                Text("Guardar")
+                                Text(stringResource(R.string.action_save))
                             }
                         }
                     }
@@ -738,7 +740,7 @@ fun SettingsScreen(
                             ) {
                                 Icon(Icons.Default.Download, contentDescription = null, modifier = Modifier.size(16.dp))
                                 Spacer(modifier = Modifier.width(6.dp))
-                                Text("Exportar JSON", style = MaterialTheme.typography.labelSmall)
+                                Text(stringResource(R.string.settings_export_json), style = MaterialTheme.typography.labelSmall)
                             }
                             OutlinedButton(
                                 onClick = { showImportDialog = true },
@@ -746,7 +748,7 @@ fun SettingsScreen(
                             ) {
                                 Icon(Icons.Default.Upload, contentDescription = null, modifier = Modifier.size(16.dp))
                                 Spacer(modifier = Modifier.width(6.dp))
-                                Text("Restaurar JSON", style = MaterialTheme.typography.labelSmall)
+                                Text(stringResource(R.string.settings_restore_json), style = MaterialTheme.typography.labelSmall)
                             }
                         }
                     }
@@ -765,7 +767,7 @@ fun SettingsScreen(
                             Icon(Icons.Default.Vibration, contentDescription = null, tint = ExecutiveSecondaryAmber, modifier = Modifier.size(20.dp))
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = "EXPERIENCIA SENSORIAL Y HÁPTICA",
+                                text = stringResource(R.string.test_sensory_alert),
                                 style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
                                 color = ExecutiveSecondaryAmber
                             )
@@ -783,7 +785,7 @@ fun SettingsScreen(
                         ) {
                             Icon(Icons.Default.NotificationsActive, contentDescription = null, modifier = Modifier.size(16.dp))
                             Spacer(modifier = Modifier.width(6.dp))
-                            Text("Probar Alerta Táctil y Sonora", style = MaterialTheme.typography.labelSmall)
+                            Text(stringResource(R.string.test_sensory_alert), style = MaterialTheme.typography.labelSmall)
                         }
                     }
                 }
@@ -798,7 +800,7 @@ fun SettingsScreen(
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
-                            text = "MANTENIMIENTO DEL SISTEMA",
+                            text = stringResource(R.string.force_cycle_reset),
                             style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
                             color = ExecutiveSecondaryAmber
                         )
@@ -815,7 +817,7 @@ fun SettingsScreen(
                         ) {
                             Icon(Icons.Default.Refresh, contentDescription = null)
                             Spacer(modifier = Modifier.width(6.dp))
-                            Text("Forzar Reinicio de Ciclo Diario")
+                            Text(stringResource(R.string.force_cycle_reset))
                         }
                     }
                 }
@@ -877,7 +879,7 @@ fun SettingsScreen(
                         ) {
                             Icon(Icons.Default.Shield, contentDescription = null, modifier = Modifier.size(16.dp))
                             Spacer(modifier = Modifier.width(6.dp))
-                            Text("Consultar Declaración de Privacidad", style = MaterialTheme.typography.labelSmall)
+                            Text(stringResource(R.string.view_privacy_statement), style = MaterialTheme.typography.labelSmall)
                         }
                     }
                 }
@@ -895,18 +897,18 @@ fun SettingsScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = "Sistema Personal",
+                            text = stringResource(R.string.settings_app_name),
                             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "Versión $versionName (Build $versionCode) • Producción",
+                            text = stringResource(R.string.settings_version_info, versionName, versionCode),
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
-                            text = "Diseñado para consistencia y enfoque ejecutivo",
+                            text = stringResource(R.string.settings_tagline),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                         )
@@ -917,7 +919,7 @@ fun SettingsScreen(
                         ) {
                             Icon(Icons.Default.School, contentDescription = null, modifier = Modifier.size(16.dp))
                             Spacer(modifier = Modifier.width(6.dp))
-                            Text("Ver Bienvenida y Tutorial", style = MaterialTheme.typography.labelSmall)
+                            Text(stringResource(R.string.settings_view_onboarding), style = MaterialTheme.typography.labelSmall)
                         }
                     }
                 }
@@ -947,7 +949,7 @@ fun SettingsScreen(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Default.Paid, contentDescription = null, tint = ExecutiveSecondaryAmber)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Seleccionar Moneda", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
+                    Text(stringResource(R.string.settings_select_currency), style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
                 }
             },
             text = {
@@ -955,12 +957,12 @@ fun SettingsScreen(
                     OutlinedTextField(
                         value = searchQuery,
                         onValueChange = { searchQuery = it },
-                        placeholder = { Text("Buscar país o moneda (ej: Colombia, Pesos)...", fontSize = 12.sp) },
+                        placeholder = { Text(stringResource(R.string.settings_search_currency), fontSize = 12.sp) },
                         leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, modifier = Modifier.size(18.dp)) },
                         trailingIcon = {
                             if (searchQuery.isNotEmpty()) {
                                 IconButton(onClick = { searchQuery = "" }) {
-                                    Icon(Icons.Default.Close, contentDescription = "Limpiar", modifier = Modifier.size(16.dp))
+                                    Icon(Icons.Default.Close, contentDescription = stringResource(R.string.action_clear), modifier = Modifier.size(16.dp))
                                 }
                             }
                         },
@@ -975,7 +977,7 @@ fun SettingsScreen(
                         if (filtered.isEmpty()) {
                             item {
                                 Box(modifier = Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
-                                    Text("No se encontraron monedas", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    Text(stringResource(R.string.settings_no_currencies_found), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
                             }
                         } else {
@@ -1023,7 +1025,7 @@ fun SettingsScreen(
             confirmButton = {},
             dismissButton = {
                 TextButton(onClick = { showCurrencyDialog = false }) {
-                    Text("Cerrar")
+                    Text(stringResource(R.string.action_close))
                 }
             }
         )
@@ -1050,7 +1052,7 @@ fun SettingsScreen(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Default.Translate, contentDescription = null, tint = ExecutiveAccentBlue)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(androidx.compose.ui.res.stringResource(com.example.R.string.settings_select_language), style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
+                    Text(stringResource(R.string.settings_select_language), style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
                 }
             },
             text = {
@@ -1058,12 +1060,12 @@ fun SettingsScreen(
                     OutlinedTextField(
                         value = searchQuery,
                         onValueChange = { searchQuery = it },
-                        placeholder = { Text(androidx.compose.ui.res.stringResource(com.example.R.string.settings_search_language), fontSize = 12.sp) },
+                        placeholder = { Text(stringResource(R.string.settings_search_language), fontSize = 12.sp) },
                         leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, modifier = Modifier.size(18.dp)) },
                         trailingIcon = {
                             if (searchQuery.isNotEmpty()) {
                                 IconButton(onClick = { searchQuery = "" }) {
-                                    Icon(Icons.Default.Close, contentDescription = androidx.compose.ui.res.stringResource(com.example.R.string.action_clear), modifier = Modifier.size(16.dp))
+                                    Icon(Icons.Default.Close, contentDescription = stringResource(R.string.action_clear), modifier = Modifier.size(16.dp))
                                 }
                             }
                         },
@@ -1078,7 +1080,7 @@ fun SettingsScreen(
                         if (filtered.isEmpty()) {
                             item {
                                 Box(modifier = Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
-                                    Text(androidx.compose.ui.res.stringResource(com.example.R.string.settings_no_languages_found), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    Text(stringResource(R.string.settings_no_languages_found), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
                             }
                         } else {
@@ -1126,7 +1128,7 @@ fun SettingsScreen(
             confirmButton = {},
             dismissButton = {
                 TextButton(onClick = { showLanguageDialog = false }) {
-                    Text("Cerrar")
+                    Text(stringResource(R.string.action_close))
                 }
             }
         )

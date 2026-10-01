@@ -14,10 +14,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.R
 import com.example.data.model.DetectedGlobalEntry
 import com.example.data.model.GlobalEntryType
 import com.example.ui.theme.*
@@ -52,7 +54,7 @@ fun GlobalCommandInput(
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = "COMANDO GLOBAL INTELIGENTE",
+                        text = stringResource(R.string.global_command_title),
                         fontFamily = FontFamily.Monospace,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
@@ -69,7 +71,7 @@ fun GlobalCommandInput(
                         },
                         modifier = Modifier.size(24.dp)
                     ) {
-                        Icon(Icons.Default.Close, contentDescription = "Limpiar", tint = ExecutiveTextSecondary, modifier = Modifier.size(16.dp))
+                        Icon(Icons.Default.Close, contentDescription = stringResource(R.string.action_clear), tint = ExecutiveTextSecondary, modifier = Modifier.size(16.dp))
                     }
                 }
             }
@@ -98,7 +100,7 @@ fun GlobalCommandInput(
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
-                                "RESUMEN DEL DÍA",
+                                stringResource(R.string.global_command_daily_summary),
                                 fontFamily = FontFamily.Monospace,
                                 fontSize = 10.sp,
                                 fontWeight = FontWeight.Bold,
@@ -111,7 +113,7 @@ fun GlobalCommandInput(
                             color = TacticalNeonCyan.copy(alpha = 0.15f)
                         ) {
                             Text(
-                                "IA LifeOS",
+                                stringResource(R.string.global_command_ai_badge),
                                 fontSize = 9.sp,
                                 color = TacticalNeonCyan,
                                 fontWeight = FontWeight.Bold,
@@ -121,7 +123,7 @@ fun GlobalCommandInput(
                     }
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
-                        text = dailyAiSummary ?: "Sintetizando actividades del ciclo diario...",
+                        text = dailyAiSummary ?: stringResource(R.string.global_command_synthesizing),
                         style = MaterialTheme.typography.bodySmall.copy(lineHeight = 18.sp),
                         color = ExecutiveTextPrimary
                     )
@@ -140,7 +142,7 @@ fun GlobalCommandInput(
                 },
                 placeholder = {
                     Text(
-                        "Ej: Hoy entrené una hora, estudié 2 horas y gasté 15.000 en comida",
+                        stringResource(R.string.global_command_placeholder),
                         fontSize = 12.sp,
                         color = ExecutiveTextSecondary
                     )
@@ -163,7 +165,7 @@ fun GlobalCommandInput(
             AnimatedVisibility(visible = detectedEntries.isNotEmpty()) {
                 Column(modifier = Modifier.fillMaxWidth().padding(top = 10.dp)) {
                     Text(
-                        text = "VISTA PREVIA DE ACCIONES DETECTADAS (${detectedEntries.size}):",
+                        text = stringResource(R.string.global_command_preview, detectedEntries.size),
                         fontFamily = FontFamily.Monospace,
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Bold,
@@ -182,11 +184,11 @@ fun GlobalCommandInput(
                                 GlobalEntryType.TASK -> TacticalVioletIdentity
                             }
                             val typeLabel = when (entry.type) {
-                                GlobalEntryType.WORKOUT -> "ENTRENAMIENTO"
-                                GlobalEntryType.TIME_TRACKING -> "ENFOQUE"
-                                GlobalEntryType.TRANSACTION_EXPENSE -> "GASTO"
-                                GlobalEntryType.TRANSACTION_INCOME -> "INGRESO"
-                                GlobalEntryType.TASK -> "TAREA"
+                                GlobalEntryType.WORKOUT -> stringResource(R.string.type_workout)
+                                GlobalEntryType.TIME_TRACKING -> stringResource(R.string.type_focus)
+                                GlobalEntryType.TRANSACTION_EXPENSE -> stringResource(R.string.type_expense)
+                                GlobalEntryType.TRANSACTION_INCOME -> stringResource(R.string.type_income)
+                                GlobalEntryType.TASK -> stringResource(R.string.type_task)
                             }
 
                             Row(
@@ -247,7 +249,7 @@ fun GlobalCommandInput(
                             },
                             modifier = Modifier.testTag("btn_cancel_global_command")
                         ) {
-                            Text("Descartar", color = ExecutiveTextSecondary, fontSize = 12.sp)
+                            Text(stringResource(R.string.action_discard), color = ExecutiveTextSecondary, fontSize = 12.sp)
                         }
                         Spacer(modifier = Modifier.width(8.dp))
                         Button(
@@ -262,7 +264,7 @@ fun GlobalCommandInput(
                             Icon(Icons.Default.Check, contentDescription = null, tint = ExecutiveDarkBg, modifier = Modifier.size(16.dp))
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
-                                text = "Confirmar y Registrar (${detectedEntries.size})",
+                                text = stringResource(R.string.global_command_confirm_count, detectedEntries.size),
                                 color = ExecutiveDarkBg,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 12.sp
