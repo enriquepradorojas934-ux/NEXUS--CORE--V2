@@ -89,6 +89,18 @@ object SensoryFeedbackHelper {
         }
     }
 
+    fun playRewardSound(context: Context? = null) {
+        try {
+            if (context != null) {
+                vibrateSuccess(context)
+            }
+            val toneGenerator = ToneGenerator(AudioManager.STREAM_NOTIFICATION, 70)
+            toneGenerator.startTone(ToneGenerator.TONE_PROP_BEEP2, 250)
+        } catch (e: Exception) {
+            Log.w(TAG, "No se pudo reproducir sonido de recompensa: ${e.message}")
+        }
+    }
+
     private fun getVibrator(context: Context): Vibrator? {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             val vibratorManager = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as? VibratorManager

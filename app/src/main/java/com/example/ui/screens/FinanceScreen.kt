@@ -1,6 +1,5 @@
 package com.example.ui.screens
 
-import android.app.DatePickerDialog
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -43,6 +42,7 @@ import com.example.data.model.FinancialGoalEntity
 import com.example.data.model.TransactionEntity
 import com.example.ui.PersonalOsUiState
 import com.example.ui.components.ExecutiveHeader
+import com.example.ui.components.LifeOsDatePickerDialog
 import com.example.ui.theme.*
 import java.util.Calendar
 import kotlin.math.atan2
@@ -1264,24 +1264,27 @@ private fun RegisterExpenseWithAiDialog(
     // Los 5 campos exactos solicitados
     var name by remember { mutableStateOf("") }
     var category by remember { mutableStateOf("Transporte") }
-    var selectedDate by remember { mutableStateOf(currentCycleDate.ifBlank { "2026-09-25" }) }
+    var showDatePicker by remember { mutableStateOf(false) }
+    var selectedDate by remember {
+        mutableStateOf(
+            if (currentCycleDate.isNotBlank()) {
+                val p = currentCycleDate.split("-")
+                if (p.size == 3) "${p[2]}/${p[1]}/${p[0]}" else "25/09/2026"
+            } else "25/09/2026"
+        )
+    }
     var amountText by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
 
     var hasRequestedAiEvaluation by remember { mutableStateOf(false) }
 
-    // DatePicker selector de día / mes / año
-    val datePickerDialog = remember {
-        val parts = selectedDate.split("-")
-        val y = parts.getOrNull(0)?.toIntOrNull() ?: 2026
-        val m = (parts.getOrNull(1)?.toIntOrNull() ?: 9) - 1
-        val d = parts.getOrNull(2)?.toIntOrNull() ?: 25
-        DatePickerDialog(
-            context,
-            { _, year, month, dayOfMonth ->
-                selectedDate = "%04d-%02d-%02d".format(year, month + 1, dayOfMonth)
-            },
-            y, m, d
+    if (showDatePicker) {
+        LifeOsDatePickerDialog(
+            initialDateText = selectedDate,
+            onDismissRequest = { showDatePicker = false },
+            onDateSelected = { cleanDate ->
+                selectedDate = cleanDate
+            }
         )
     }
 
@@ -1328,18 +1331,27 @@ private fun RegisterExpenseWithAiDialog(
 
                 // Campo 3: Fecha (selector día/mes/año)
                 item {
-                    OutlinedTextField(
-                        value = selectedDate,
-                        onValueChange = { selectedDate = it },
-                        label = { Text(stringResource(R.string.finance_date_label)) },
-                        readOnly = true,
-                        trailingIcon = {
-                            IconButton(onClick = { datePickerDialog.show() }) {
-                                Icon(Icons.Default.CalendarToday, contentDescription = stringResource(R.string.finance_date_label), tint = ExecutivePrimaryTeal)
-                            }
-                        },
-                        modifier = Modifier.fillMaxWidth().clickable { datePickerDialog.show() }.testTag("input_expense_date")
-                    )
+                    Box(modifier = Modifier.fillMaxWidth().clickable { showDatePicker = true }) {
+                        OutlinedTextField(
+                            value = selectedDate,
+                            onValueChange = {},
+                            label = { Text(stringResource(R.string.finance_date_label)) },
+                            readOnly = true,
+                            enabled = false,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                disabledTextColor = MaterialTheme.colorScheme.onSurface,
+                                disabledBorderColor = MaterialTheme.colorScheme.outline,
+                                disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                disabledTrailingIconColor = ExecutivePrimaryTeal
+                            ),
+                            trailingIcon = {
+                                IconButton(onClick = { showDatePicker = true }) {
+                                    Icon(Icons.Default.CalendarToday, contentDescription = stringResource(R.string.finance_date_label), tint = ExecutivePrimaryTeal)
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth().testTag("input_expense_date")
+                        )
+                    }
                 }
 
                 // Campo 4: Monto

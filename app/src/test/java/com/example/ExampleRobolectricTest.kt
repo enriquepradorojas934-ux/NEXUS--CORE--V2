@@ -211,5 +211,59 @@ class ExampleRobolectricTest {
     assertEquals(1, sessions.size)
     assertEquals("Fuerza Tren Superior", sessions.first().title)
   }
+
+  @Test
+  fun `verify clean date parsing for date picker dialog`() {
+    val millis1 = com.example.ui.components.parseDateStringToMillis("15/10/2026")
+    assertTrue(millis1 > 0L)
+    val millis2 = com.example.ui.components.parseDateStringToMillis("2026-10-15")
+    assertTrue(millis2 > 0L)
+    val millisEmpty = com.example.ui.components.parseDateStringToMillis("")
+    assertTrue(millisEmpty > 0L)
+  }
+
+  @Test
+  fun `verify workout exercises and persistent XP retention`() = runBlocking {
+    val session = com.example.data.model.WorkoutSessionEntity(
+      cycleDate = "2026-10-01",
+      title = "Rutina de Hipertrofia",
+      durationMinutes = 60,
+      targetGoal = "Hipertrofia",
+      notes = "Enfoque en pecho y tríceps"
+    )
+    val sId = repository.insertWorkoutSession(session)
+
+    val ex1 = com.example.data.model.WorkoutExerciseEntity(
+      sessionId = sId,
+      exerciseName = "Press de Banca",
+      sets = 4,
+      reps = "10, 10, 8, 8",
+      weightKg = 70.0,
+      restSeconds = 90
+    )
+    val exId = repository.insertWorkoutExercise(ex1)
+    assertTrue(exId > 0)
+
+    val exercises = repository.allWorkoutExercises.first()
+    assertEquals(1, exercises.size)
+    assertEquals("Press de Banca", exercises.first().exerciseName)
+
+    // Simular cálculo de progresión con ejercicio completado y persistencia de XP
+    val (progression, _) = com.example.domain.ProgressionEngine.calculateProgression(
+      tasks = emptyList(),
+      habitLogs = emptyList(),
+      habits = emptyList(),
+      timeEntries = emptyList(),
+      workouts = listOf(session.copy(isCompleted = true)),
+      goals = emptyList(),
+      subGoals = emptyList(),
+      transactions = emptyList(),
+      assetsAndDebts = emptyList(),
+      workoutExercises = listOf(ex1.copy(isCompleted = true)),
+      persistentStoredXp = 500L
+    )
+    // 500L persistente vs 100 (workout) + 20 (ejercicio) = 120 -> maxOf(120, 500) = 500
+    assertEquals(500L, progression.totalXp)
+  }
 }
 

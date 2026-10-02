@@ -219,6 +219,13 @@ fun PersonalOsApp() {
                     onSuggestTacticalNote = { name, goal, mins, summary, callback ->
                         viewModel.suggestTacticalWorkoutNote(name, goal, mins, summary, callback)
                     },
+                    onToggleExercise = { viewModel.toggleWorkoutExercise(it) },
+                    onToggleWorkoutSession = { viewModel.toggleWorkoutSessionCompleted(it) },
+                    onAddExerciseToSession = { sessionId, name, sets, reps, weight, rest ->
+                        viewModel.addWorkoutExercise(sessionId, name, sets, reps, weight, rest)
+                    },
+                    onUpdateExercise = { viewModel.updateWorkoutExercise(it) },
+                    onDeleteExercise = { viewModel.deleteWorkoutExercise(it) },
                     onClose = { showFitnessOverlay = false }
                 )
             }

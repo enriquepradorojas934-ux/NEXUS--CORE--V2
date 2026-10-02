@@ -145,7 +145,8 @@ data class WorkoutSessionEntity(
     val durationMinutes: Int = 45,
     val restDefaultSeconds: Int = 90,
     val notes: String = "",
-    val timestamp: Long = System.currentTimeMillis()
+    val timestamp: Long = System.currentTimeMillis(),
+    val isCompleted: Boolean = false
 )
 
 @Entity(tableName = "workout_exercises")
@@ -157,7 +158,8 @@ data class WorkoutExerciseEntity(
     val reps: String = "10, 10, 8",
     val weightKg: Double = 0.0,
     val restSeconds: Int = 90,
-    val notes: String = ""
+    val notes: String = "",
+    val isCompleted: Boolean = false
 )
 
 data class WorkoutSessionWithExercises(

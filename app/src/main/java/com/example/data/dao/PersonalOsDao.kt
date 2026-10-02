@@ -66,6 +66,9 @@ interface PersonalOsDao {
     suspend fun deleteHabit(habit: HabitEntity)
 
     // === REGISTRO DE HÁBITOS (LOGS) ===
+    @Query("SELECT * FROM habit_logs")
+    fun getAllHabitLogs(): Flow<List<HabitLogEntity>>
+
     @Query("SELECT * FROM habit_logs WHERE cycleDate = :cycleDate")
     fun getHabitLogsByCycle(cycleDate: String): Flow<List<HabitLogEntity>>
 
@@ -182,14 +185,23 @@ interface PersonalOsDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertWorkoutSession(session: WorkoutSessionEntity): Long
 
+    @Update
+    suspend fun updateWorkoutSession(session: WorkoutSessionEntity)
+
     @Delete
     suspend fun deleteWorkoutSession(session: WorkoutSessionEntity)
+
+    @Query("SELECT * FROM workout_exercises ORDER BY id ASC")
+    fun getAllWorkoutExercises(): Flow<List<WorkoutExerciseEntity>>
 
     @Query("SELECT * FROM workout_exercises WHERE sessionId = :sessionId ORDER BY id ASC")
     fun getExercisesForSession(sessionId: Long): Flow<List<WorkoutExerciseEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertWorkoutExercise(exercise: WorkoutExerciseEntity): Long
+
+    @Update
+    suspend fun updateWorkoutExercise(exercise: WorkoutExerciseEntity)
 
     @Delete
     suspend fun deleteWorkoutExercise(exercise: WorkoutExerciseEntity)

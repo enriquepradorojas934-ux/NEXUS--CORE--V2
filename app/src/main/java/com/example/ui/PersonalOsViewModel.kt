@@ -30,6 +30,7 @@ class PersonalOsViewModel(
 
     private var timerJob: Job? = null
     private var cycleTickerJob: Job? = null
+    private var persistentXp: Long = 0L
 
     init {
         loadSettingsAndInitialize()
@@ -50,6 +51,7 @@ class PersonalOsViewModel(
             val savedLanguage = repository.getConfig("app_language") ?: com.example.util.LocaleHelper.SYSTEM_DEFAULT
             val savedCurrencySymbol = repository.getConfig("app_currency_symbol") ?: "$"
             val savedCurrencyCode = repository.getConfig("app_currency_code") ?: "USD"
+            persistentXp = repository.getConfig("persistent_xp")?.toLongOrNull() ?: 0L
 
             _uiState.update {
                 it.copy(
@@ -309,6 +311,13 @@ class PersonalOsViewModel(
                 recalculateProgression()
             }
         }
+
+        viewModelScope.launch {
+            repository.allWorkoutExercises.collect { exercises ->
+                _uiState.update { it.copy(workoutExercises = exercises) }
+                recalculateProgression()
+            }
+        }
     }
 
     private fun recalculateProgression() {
@@ -322,8 +331,16 @@ class PersonalOsViewModel(
             goals = s.goalsWithSubGoals.map { it.goal },
             subGoals = s.goalsWithSubGoals.flatMap { it.subGoals },
             transactions = s.transactionsToday,
-            assetsAndDebts = s.assetsAndDebts
+            assetsAndDebts = s.assetsAndDebts,
+            workoutExercises = s.workoutExercises,
+            persistentStoredXp = persistentXp
         )
+        if (prog.totalXp > persistentXp) {
+            persistentXp = prog.totalXp
+            viewModelScope.launch {
+                repository.setConfig("persistent_xp", persistentXp.toString())
+            }
+        }
         _uiState.update { it.copy(userProgression = prog, achievements = ach) }
     }
 
@@ -792,6 +809,75 @@ class PersonalOsViewModel(
     fun deleteWorkoutSession(session: WorkoutSessionEntity) {
         viewModelScope.launch {
             repository.deleteWorkoutSession(session)
+            recalculateProgression()
+        }
+    }
+
+    fun toggleWorkoutExercise(exerciseId: Long) {
+        viewModelScope.launch {
+            val ex = _uiState.value.workoutExercises.find { it.id == exerciseId } ?: return@launch
+            val updated = ex.copy(isCompleted = !ex.isCompleted)
+            repository.updateWorkoutExercise(updated)
+
+            val siblingExercises = _uiState.value.workoutExercises.filter { it.sessionId == ex.sessionId && it.id != ex.id }
+            val allSiblingsDone = siblingExercises.all { it.isCompleted }
+            if (updated.isCompleted && allSiblingsDone) {
+                val session = _uiState.value.workoutSessions.find { it.id == ex.sessionId }
+                if (session != null && !session.isCompleted) {
+                    repository.updateWorkoutSession(session.copy(isCompleted = true))
+                    _uiState.update { it.copy(userMessage = "¡Sesión '${session.title}' completada! (+100 XP Vitalidad)") }
+                }
+            }
+            recalculateProgression()
+        }
+    }
+
+    fun toggleWorkoutSessionCompleted(sessionId: Long) {
+        viewModelScope.launch {
+            val session = _uiState.value.workoutSessions.find { it.id == sessionId } ?: return@launch
+            val newStatus = !session.isCompleted
+            repository.updateWorkoutSession(session.copy(isCompleted = newStatus))
+
+            if (newStatus) {
+                val exercises = _uiState.value.workoutExercises.filter { it.sessionId == sessionId }
+                for (ex in exercises) {
+                    if (!ex.isCompleted) {
+                        repository.updateWorkoutExercise(ex.copy(isCompleted = true))
+                    }
+                }
+                _uiState.update { it.copy(userMessage = "¡Sesión '${session.title}' finalizada! (+100 XP)") }
+            }
+            recalculateProgression()
+        }
+    }
+
+    fun addWorkoutExercise(sessionId: Long, name: String, sets: Int, reps: String, weightKg: Double, restSeconds: Int) {
+        if (name.isBlank()) return
+        viewModelScope.launch {
+            val ex = WorkoutExerciseEntity(
+                sessionId = sessionId,
+                exerciseName = name.trim(),
+                sets = sets.coerceAtLeast(1),
+                reps = reps.trim().ifBlank { "10" },
+                weightKg = weightKg.coerceAtLeast(0.0),
+                restSeconds = restSeconds.coerceAtLeast(15)
+            )
+            repository.insertWorkoutExercise(ex)
+            recalculateProgression()
+            _uiState.update { it.copy(userMessage = "Ejercicio '$name' agregado (+20 XP)") }
+        }
+    }
+
+    fun updateWorkoutExercise(exercise: WorkoutExerciseEntity) {
+        viewModelScope.launch {
+            repository.updateWorkoutExercise(exercise)
+            recalculateProgression()
+        }
+    }
+
+    fun deleteWorkoutExercise(exercise: WorkoutExerciseEntity) {
+        viewModelScope.launch {
+            repository.deleteWorkoutExercise(exercise)
             recalculateProgression()
         }
     }

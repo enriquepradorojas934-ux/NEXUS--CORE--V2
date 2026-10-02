@@ -35,6 +35,7 @@ import com.example.data.model.SubGoalEntity
 import com.example.ui.GoalWithSubGoals
 import com.example.ui.PersonalOsUiState
 import com.example.ui.components.ExecutiveHeader
+import com.example.ui.components.LifeOsDatePickerDialog
 import com.example.ui.theme.*
 
 @Composable
@@ -592,19 +593,16 @@ private fun AddGoalDialog(
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var category by remember { mutableStateOf("Profesional") }
-    var targetDate by remember { mutableStateOf("2026-12-31") }
+    var targetDate by remember { mutableStateOf("31/12/2026") }
+    var showDatePicker by remember { mutableStateOf(false) }
 
-    val datePickerDialog = remember {
-        val parts = targetDate.split("-")
-        val y = parts.getOrNull(0)?.toIntOrNull() ?: 2026
-        val m = (parts.getOrNull(1)?.toIntOrNull() ?: 12) - 1
-        val d = parts.getOrNull(2)?.toIntOrNull() ?: 31
-        android.app.DatePickerDialog(
-            context,
-            { _, year, month, dayOfMonth ->
-                targetDate = "%04d-%02d-%02d".format(year, month + 1, dayOfMonth)
-            },
-            y, m, d
+    if (showDatePicker) {
+        LifeOsDatePickerDialog(
+            initialDateText = targetDate,
+            onDismissRequest = { showDatePicker = false },
+            onDateSelected = { cleanDate ->
+                targetDate = cleanDate
+            }
         )
     }
 
@@ -631,25 +629,33 @@ private fun AddGoalDialog(
                     label = { Text(stringResource(R.string.goals_category_label)) },
                     modifier = Modifier.fillMaxWidth()
                 )
-                OutlinedTextField(
-                    value = targetDate,
-                    onValueChange = { targetDate = it },
-                    label = { Text(stringResource(R.string.goals_date_label)) },
-                    readOnly = true,
-                    trailingIcon = {
-                        IconButton(onClick = { datePickerDialog.show() }) {
-                            Icon(
-                                Icons.Default.CalendarToday,
-                                contentDescription = stringResource(R.string.goals_date_label),
-                                tint = ExecutivePurple
-                            )
-                        }
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { datePickerDialog.show() }
-                        .testTag("dialog_goal_date_picker")
-                )
+                Box(modifier = Modifier.fillMaxWidth().clickable { showDatePicker = true }) {
+                    OutlinedTextField(
+                        value = targetDate,
+                        onValueChange = {},
+                        label = { Text(stringResource(R.string.goals_date_label)) },
+                        readOnly = true,
+                        enabled = false,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            disabledTextColor = MaterialTheme.colorScheme.onSurface,
+                            disabledBorderColor = MaterialTheme.colorScheme.outline,
+                            disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            disabledTrailingIconColor = ExecutivePurple
+                        ),
+                        trailingIcon = {
+                            IconButton(onClick = { showDatePicker = true }) {
+                                Icon(
+                                    Icons.Default.CalendarToday,
+                                    contentDescription = stringResource(R.string.goals_date_label),
+                                    tint = ExecutivePurple
+                                )
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("dialog_goal_date_picker")
+                    )
+                }
             }
         },
         confirmButton = {

@@ -1,5 +1,10 @@
 package com.example.ui.screens
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -21,12 +26,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import com.example.R
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.model.WorkoutExerciseEntity
@@ -34,6 +42,8 @@ import com.example.data.model.WorkoutSessionEntity
 import com.example.ui.PersonalOsUiState
 import com.example.ui.components.*
 import com.example.ui.theme.*
+import com.example.util.SensoryFeedbackHelper
+import kotlinx.coroutines.delay
 
 data class RoutineDayPlan(
     val id: String = java.util.UUID.randomUUID().toString(),
@@ -50,6 +60,11 @@ fun FitnessScreen(
     onDeleteWorkout: (WorkoutSessionEntity) -> Unit,
     onAnalyzeAi: () -> Unit,
     onSuggestTacticalNote: (routineName: String, goal: String, minutes: Int, summary: String, onResult: (String) -> Unit) -> Unit = { _, _, _, _, _ -> },
+    onToggleExercise: (Long) -> Unit = {},
+    onToggleWorkoutSession: (Long) -> Unit = {},
+    onAddExerciseToSession: (sessionId: Long, name: String, sets: Int, reps: String, weightKg: Double, restSeconds: Int) -> Unit = { _, _, _, _, _, _ -> },
+    onUpdateExercise: (WorkoutExerciseEntity) -> Unit = {},
+    onDeleteExercise: (WorkoutExerciseEntity) -> Unit = {},
     onClose: () -> Unit
 ) {
     var showAddDialog by remember { mutableStateOf(false) }
@@ -87,6 +102,16 @@ fun FitnessScreen(
     var editingFieldValue by remember { mutableStateOf("") }
     var editingFieldKeyboardType by remember { mutableStateOf(KeyboardType.Text) }
     var onSaveEditedField by remember { mutableStateOf<((String) -> Unit)?>(null) }
+
+    val context = LocalContext.current
+    val expandedSessionIds = remember { mutableStateMapOf<Long, Boolean>() }
+    var activeTrainingSession by remember { mutableStateOf<WorkoutSessionEntity?>(null) }
+    var exerciseToAddToSessionId by remember { mutableStateOf<Long?>(null) }
+    var addExName by remember { mutableStateOf("") }
+    var addExSets by remember { mutableStateOf("3") }
+    var addExReps by remember { mutableStateOf("10, 10, 8") }
+    var addExWeight by remember { mutableStateOf("20") }
+    var addExRest by remember { mutableStateOf("60") }
 
     Box(modifier = Modifier.fillMaxSize().background(ExecutiveDarkBg)) {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -256,65 +281,37 @@ fun FitnessScreen(
                     }
                 } else {
                     items(state.workoutSessions, key = { it.id }) { session ->
-                        TacticalCard(
-                            modifier = Modifier.fillMaxWidth().testTag("workout_item_${session.id}"),
-                            accentColor = TacticalNeonCyan.copy(alpha = 0.6f)
-                        ) {
-                            Column {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Column(modifier = Modifier.weight(1f)) {
-                                        Text(
-                                            text = session.title,
-                                            fontSize = 15.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = ExecutiveTextPrimary
-                                        )
-                                        Spacer(modifier = Modifier.height(2.dp))
-                                        Row(verticalAlignment = Alignment.CenterVertically) {
-                                            Text(
-                                                text = "${session.durationMinutes} min",
-                                                fontFamily = FontFamily.Monospace,
-                                                fontSize = 11.sp,
-                                                color = TacticalNeonCyan,
-                                                fontWeight = FontWeight.Bold
-                                            )
-                                            Text(text = " • ", color = ExecutiveTextSecondary, fontSize = 11.sp)
-                                            Text(
-                                                text = "Meta: ${session.targetGoal}",
-                                                fontSize = 11.sp,
-                                                color = ExecutiveTextSecondary
-                                            )
-                                        }
-                                    }
-
-                                    IconButton(
-                                        onClick = { onDeleteWorkout(session) },
-                                        modifier = Modifier.size(28.dp).testTag("btn_delete_workout_${session.id}")
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.DeleteOutline,
-                                            contentDescription = "Eliminar",
-                                            tint = ExecutiveTextSecondary,
-                                            modifier = Modifier.size(16.dp)
-                                        )
-                                    }
-                                }
-
-                                if (session.notes.isNotBlank()) {
-                                    Spacer(modifier = Modifier.height(6.dp))
-                                    Text(
-                                        text = session.notes,
-                                        fontSize = 12.sp,
-                                        color = ExecutiveTextSecondary,
-                                        lineHeight = 16.sp
-                                    )
-                                }
-                            }
-                        }
+                        val exercises = state.workoutExercises.filter { it.sessionId == session.id }
+                        val isExpanded = expandedSessionIds[session.id] ?: true
+                        InteractiveWorkoutSessionCard(
+                            session = session,
+                            exercises = exercises,
+                            isExpanded = isExpanded,
+                            onToggleExpand = {
+                                expandedSessionIds[session.id] = !isExpanded
+                            },
+                            onToggleExercise = onToggleExercise,
+                            onToggleWorkoutSession = onToggleWorkoutSession,
+                            onDeleteWorkout = onDeleteWorkout,
+                            onStartWorkoutRunner = {
+                                activeTrainingSession = session
+                            },
+                            onAddExerciseClick = {
+                                exerciseToAddToSessionId = session.id
+                                addExName = ""
+                                addExSets = "3"
+                                addExReps = "10, 10, 8"
+                                addExWeight = "20"
+                                addExRest = "60"
+                            },
+                            onEditField = { label, curVal, kbd, onSave ->
+                                editingFieldLabel = label
+                                editingFieldValue = curVal
+                                editingFieldKeyboardType = kbd
+                                onSaveEditedField = onSave
+                            },
+                            onDeleteExercise = onDeleteExercise
+                        )
                     }
                 }
             }
@@ -367,6 +364,44 @@ fun FitnessScreen(
                 TextButton(onClick = { editingFieldLabel = null }) {
                     Text(stringResource(R.string.action_cancel), color = ExecutiveTextSecondary, fontSize = 12.sp)
                 }
+            }
+        )
+    }
+
+    // MODAL DE ENTRENAMIENTO ACTIVO / RUNNER INTERACTIVO
+    if (activeTrainingSession != null) {
+        val session = activeTrainingSession!!
+        val exercises = state.workoutExercises.filter { it.sessionId == session.id }
+        ActiveWorkoutRunnerModal(
+            session = session,
+            exercises = exercises,
+            onToggleExercise = onToggleExercise,
+            onCompleteSession = {
+                onToggleWorkoutSession(session.id)
+            },
+            onClose = { activeTrainingSession = null }
+        )
+    }
+
+    // DIÁLOGO PARA AÑADIR EJERCICIO A RUTINA EXISTENTE
+    if (exerciseToAddToSessionId != null) {
+        val sId = exerciseToAddToSessionId!!
+        AddExerciseToSessionDialog(
+            sessionId = sId,
+            name = addExName,
+            onNameChange = { addExName = it },
+            sets = addExSets,
+            onSetsChange = { addExSets = it },
+            reps = addExReps,
+            onRepsChange = { addExReps = it },
+            weight = addExWeight,
+            onWeightChange = { addExWeight = it },
+            rest = addExRest,
+            onRestChange = { addExRest = it },
+            onDismiss = { exerciseToAddToSessionId = null },
+            onConfirm = { name, sets, reps, weight, rest ->
+                onAddExerciseToSession(sId, name, sets, reps, weight, rest)
+                exerciseToAddToSessionId = null
             }
         )
     }
@@ -838,4 +873,1041 @@ fun FitnessScreen(
             }
         )
     }
+}
+
+// =========================================================================
+// TARJETA DE SESIÓN DE ENTRENAMIENTO TOTALMENTE INTERACTIVA
+// =========================================================================
+@Composable
+fun InteractiveWorkoutSessionCard(
+    session: WorkoutSessionEntity,
+    exercises: List<WorkoutExerciseEntity>,
+    isExpanded: Boolean,
+    onToggleExpand: () -> Unit,
+    onToggleExercise: (Long) -> Unit,
+    onToggleWorkoutSession: (Long) -> Unit,
+    onDeleteWorkout: (WorkoutSessionEntity) -> Unit,
+    onStartWorkoutRunner: () -> Unit,
+    onAddExerciseClick: () -> Unit,
+    onEditField: (label: String, currentValue: String, kbdType: KeyboardType, onSave: (String) -> Unit) -> Unit,
+    onDeleteExercise: (WorkoutExerciseEntity) -> Unit
+) {
+    val context = LocalContext.current
+    val completedExercisesCount = exercises.count { it.isCompleted }
+    val totalExercisesCount = exercises.size
+    val progress = if (totalExercisesCount > 0) completedExercisesCount.toFloat() / totalExercisesCount.toFloat() else if (session.isCompleted) 1f else 0f
+
+    // Temporizador de descanso interactivo integrado en la tarjeta
+    var restTimerSeconds by remember { mutableIntStateOf(exercises.firstOrNull()?.restSeconds ?: 60) }
+    var isRestTimerRunning by remember { mutableStateOf(false) }
+
+    LaunchedEffect(isRestTimerRunning) {
+        if (isRestTimerRunning) {
+            while (isRestTimerRunning && restTimerSeconds > 0) {
+                delay(1000L)
+                restTimerSeconds--
+            }
+            if (restTimerSeconds == 0) {
+                isRestTimerRunning = false
+                SensoryFeedbackHelper.vibrateSuccess(context)
+                SensoryFeedbackHelper.playRewardSound()
+            }
+        }
+    }
+
+    TacticalCard(
+        modifier = Modifier
+            .fillMaxWidth()
+            .testTag("workout_item_${session.id}"),
+        accentColor = if (session.isCompleted) ExecutiveSuccessGreen else TacticalNeonCyan.copy(alpha = 0.8f)
+    ) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            // ENCABEZADO INTERACTIVO: Al tocar abre/cierra la rutina
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onToggleExpand() }
+                    .padding(vertical = 4.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = session.title,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = ExecutiveTextPrimary
+                        )
+
+                        // BADGE DE ESTADO
+                        if (session.isCompleted) {
+                            Surface(
+                                shape = RoundedCornerShape(4.dp),
+                                color = ExecutiveSuccessGreen.copy(alpha = 0.2f),
+                                border = BorderStroke(1.dp, ExecutiveSuccessGreen.copy(alpha = 0.6f))
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(Icons.Default.CheckCircle, contentDescription = null, tint = ExecutiveSuccessGreen, modifier = Modifier.size(11.dp))
+                                    Spacer(modifier = Modifier.width(3.dp))
+                                    Text("COMPLETADA", fontSize = 9.sp, fontWeight = FontWeight.Bold, color = ExecutiveSuccessGreen)
+                                }
+                            }
+                        } else if (totalExercisesCount > 0 && completedExercisesCount > 0) {
+                            Surface(
+                                shape = RoundedCornerShape(4.dp),
+                                color = TacticalNeonCyan.copy(alpha = 0.2f),
+                                border = BorderStroke(1.dp, TacticalNeonCyan.copy(alpha = 0.6f))
+                            ) {
+                                Text(
+                                    text = "$completedExercisesCount/$totalExercisesCount LISTOS",
+                                    fontSize = 9.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = TacticalNeonCyan,
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                )
+                            }
+                        } else {
+                            Surface(
+                                shape = RoundedCornerShape(4.dp),
+                                color = ExecutiveSecondaryAmber.copy(alpha = 0.2f),
+                                border = BorderStroke(1.dp, ExecutiveSecondaryAmber.copy(alpha = 0.6f))
+                            ) {
+                                Text(
+                                    text = "POR INICIAR",
+                                    fontSize = 9.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = ExecutiveSecondaryAmber,
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(3.dp))
+
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "${session.durationMinutes} min",
+                            fontFamily = FontFamily.Monospace,
+                            fontSize = 11.sp,
+                            color = TacticalNeonCyan,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(text = " • ", color = ExecutiveTextSecondary, fontSize = 11.sp)
+                        Text(
+                            text = "Meta: ${session.targetGoal}",
+                            fontSize = 11.sp,
+                            color = ExecutiveTextSecondary
+                        )
+                        if (totalExercisesCount > 0) {
+                            Text(text = " • ", color = ExecutiveTextSecondary, fontSize = 11.sp)
+                            Text(
+                                text = "$totalExercisesCount ejercicios",
+                                fontSize = 11.sp,
+                                color = TacticalVioletIdentity
+                            )
+                        }
+                    }
+                }
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    // Botón para marcar/desmarcar sesión completa
+                    IconButton(
+                        onClick = {
+                            SensoryFeedbackHelper.vibrateLightTick(context)
+                            onToggleWorkoutSession(session.id)
+                        },
+                        modifier = Modifier.size(32.dp).testTag("btn_toggle_session_${session.id}")
+                    ) {
+                        Icon(
+                            imageVector = if (session.isCompleted) Icons.Default.CheckCircle else Icons.Default.RadioButtonUnchecked,
+                            contentDescription = if (session.isCompleted) "Completada" else "Marcar como completada",
+                            tint = if (session.isCompleted) ExecutiveSuccessGreen else ExecutiveTextSecondary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+
+                    // Botón de eliminar
+                    IconButton(
+                        onClick = { onDeleteWorkout(session) },
+                        modifier = Modifier.size(32.dp).testTag("btn_delete_workout_${session.id}")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.DeleteOutline,
+                            contentDescription = "Eliminar",
+                            tint = ExecutiveTextSecondary,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+
+                    // Flecha expandir / colapsar
+                    IconButton(
+                        onClick = onToggleExpand,
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            imageVector = if (isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                            contentDescription = if (isExpanded) "Contraer" else "Expandir",
+                            tint = TacticalNeonCyan,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+                }
+            }
+
+            // CONTENIDO EXPANDIBLE DE LA RUTINA
+            AnimatedVisibility(visible = isExpanded) {
+                Column(modifier = Modifier.fillMaxWidth().padding(top = 10.dp)) {
+                    // NOTA O CONSEJO DE LA IA
+                    if (session.notes.isNotBlank()) {
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                            border = BorderStroke(1.dp, ExecutiveBorderSubtle),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(modifier = Modifier.padding(10.dp), verticalAlignment = Alignment.Top) {
+                                Icon(Icons.Default.SmartToy, contentDescription = null, tint = TacticalVioletIdentity, modifier = Modifier.size(16.dp))
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = session.notes,
+                                    fontSize = 12.sp,
+                                    color = ExecutiveTextPrimary,
+                                    lineHeight = 16.sp
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(10.dp))
+                    }
+
+                    // BARRA DE PROGRESO DE LA RUTINA
+                    if (totalExercisesCount > 0) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Progreso del entrenamiento",
+                                fontSize = 11.sp,
+                                color = ExecutiveTextSecondary
+                            )
+                            Text(
+                                text = "$completedExercisesCount de $totalExercisesCount listos (${(progress * 100).toInt()}%)",
+                                fontSize = 11.sp,
+                                fontFamily = FontFamily.Monospace,
+                                color = if (progress == 1f) ExecutiveSuccessGreen else TacticalNeonCyan,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(4.dp))
+                        LinearProgressIndicator(
+                            progress = { progress },
+                            modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)),
+                            color = if (progress == 1f) ExecutiveSuccessGreen else TacticalNeonCyan,
+                            trackColor = MaterialTheme.colorScheme.surfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                    }
+
+                    // SECCIÓN DE EJERCICIOS INTERACTIVOS
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "EJERCICIOS DE LA RUTINA",
+                            fontSize = 11.sp,
+                            fontFamily = FontFamily.Monospace,
+                            fontWeight = FontWeight.Bold,
+                            color = TacticalNeonCyan,
+                            letterSpacing = 1.sp
+                        )
+
+                        TextButton(
+                            onClick = onAddExerciseClick,
+                            contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp)
+                        ) {
+                            Icon(Icons.Default.Add, contentDescription = null, tint = TacticalNeonCyan, modifier = Modifier.size(14.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("+ Añadir Ejercicio", fontSize = 11.sp, color = TacticalNeonCyan, fontWeight = FontWeight.Bold)
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    if (exercises.isEmpty()) {
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f),
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+                        ) {
+                            Column(
+                                modifier = Modifier.fillMaxWidth().padding(14.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    text = "Esta rutina aún no tiene ejercicios registrados.",
+                                    fontSize = 12.sp,
+                                    color = ExecutiveTextSecondary
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Button(
+                                    onClick = onAddExerciseClick,
+                                    colors = ButtonDefaults.buttonColors(containerColor = TacticalNeonCyan),
+                                    shape = RoundedCornerShape(6.dp),
+                                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp)
+                                ) {
+                                    Icon(Icons.Default.Add, contentDescription = null, tint = ExecutiveDarkBg, modifier = Modifier.size(14.dp))
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text("Agregar Ejercicios Ahora", color = ExecutiveDarkBg, fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                                }
+                            }
+                        }
+                    } else {
+                        exercises.forEach { ex ->
+                            InteractiveExerciseRow(
+                                exercise = ex,
+                                onToggle = {
+                                    SensoryFeedbackHelper.vibrateLightTick(context)
+                                    onToggleExercise(ex.id)
+                                },
+                                onEditField = onEditField,
+                                onDelete = { onDeleteExercise(ex) },
+                                onStartRest = {
+                                    restTimerSeconds = ex.restSeconds
+                                    isRestTimerRunning = true
+                                    SensoryFeedbackHelper.vibrateLightTick(context)
+                                }
+                            )
+                            Spacer(modifier = Modifier.height(6.dp))
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    // TEMPORIZADOR DE DESCANSO TÁCTICO INTEGRADO EN LA TARJETA
+                    Surface(
+                        shape = RoundedCornerShape(10.dp),
+                        color = MaterialTheme.colorScheme.surface,
+                        border = BorderStroke(1.dp, if (isRestTimerRunning) TacticalNeonCyan.copy(alpha = 0.7f) else ExecutiveBorderSubtle),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(10.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = Icons.Default.Timer,
+                                    contentDescription = null,
+                                    tint = if (isRestTimerRunning) TacticalNeonCyan else ExecutiveSecondaryAmber,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Column {
+                                    Text(
+                                        text = "TEMPORIZADOR DE DESCANSO",
+                                        fontFamily = FontFamily.Monospace,
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = if (isRestTimerRunning) TacticalNeonCyan else ExecutiveTextSecondary
+                                    )
+                                    val m = restTimerSeconds / 60
+                                    val s = restTimerSeconds % 60
+                                    Text(
+                                        text = "%02d:%02d".format(m, s),
+                                        fontFamily = FontFamily.Monospace,
+                                        fontSize = 18.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = if (isRestTimerRunning) TacticalNeonCyan else ExecutiveTextPrimary
+                                    )
+                                }
+                            }
+
+                            Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                                FilledTonalButton(
+                                    onClick = {
+                                        isRestTimerRunning = !isRestTimerRunning
+                                        SensoryFeedbackHelper.vibrateLightTick(context)
+                                    },
+                                    colors = ButtonDefaults.filledTonalButtonColors(
+                                        containerColor = if (isRestTimerRunning) ExecutiveDangerRed.copy(alpha = 0.2f) else TacticalNeonCyan.copy(alpha = 0.2f),
+                                        contentColor = if (isRestTimerRunning) ExecutiveDangerRed else TacticalNeonCyan
+                                    ),
+                                    shape = RoundedCornerShape(6.dp),
+                                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp)
+                                ) {
+                                    Text(if (isRestTimerRunning) "Pausar" else "Iniciar", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                }
+
+                                OutlinedButton(
+                                    onClick = {
+                                        restTimerSeconds += 30
+                                        SensoryFeedbackHelper.vibrateLightTick(context)
+                                    },
+                                    shape = RoundedCornerShape(6.dp),
+                                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+                                    border = BorderStroke(1.dp, ExecutiveBorderSubtle)
+                                ) {
+                                    Text("+30s", fontSize = 11.sp, color = ExecutiveTextPrimary)
+                                }
+
+                                TextButton(
+                                    onClick = {
+                                        isRestTimerRunning = false
+                                        restTimerSeconds = exercises.firstOrNull()?.restSeconds ?: 60
+                                    },
+                                    contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp)
+                                ) {
+                                    Icon(Icons.Default.Refresh, contentDescription = "Reiniciar", tint = ExecutiveTextSecondary, modifier = Modifier.size(16.dp))
+                                }
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // BOTONES DE ACCIÓN PRINCIPALES
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Button(
+                            onClick = onStartWorkoutRunner,
+                            colors = ButtonDefaults.buttonColors(containerColor = TacticalNeonCyan),
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier.weight(1f).testTag("btn_start_training_mode_${session.id}")
+                        ) {
+                            Icon(Icons.Default.PlayArrow, contentDescription = null, tint = ExecutiveDarkBg, modifier = Modifier.size(18.dp))
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text("ENTRENAR AHORA", color = ExecutiveDarkBg, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                        }
+
+                        if (!session.isCompleted) {
+                            Button(
+                                onClick = {
+                                    SensoryFeedbackHelper.vibrateSuccess(context)
+                                    SensoryFeedbackHelper.playRewardSound()
+                                    onToggleWorkoutSession(session.id)
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = ExecutiveSuccessGreen),
+                                shape = RoundedCornerShape(8.dp),
+                                modifier = Modifier.weight(1f).testTag("btn_complete_routine_${session.id}")
+                            ) {
+                                Icon(Icons.Default.Check, contentDescription = null, tint = ExecutiveDarkBg, modifier = Modifier.size(16.dp))
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("COMPLETAR (+100 XP)", color = ExecutiveDarkBg, fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// =========================================================================
+// FILA DE EJERCICIO INTERACTIVA CON CHECKBOX Y EDICIÓN RÁPIDA
+// =========================================================================
+@Composable
+fun InteractiveExerciseRow(
+    exercise: WorkoutExerciseEntity,
+    onToggle: () -> Unit,
+    onEditField: (label: String, currentValue: String, kbdType: KeyboardType, onSave: (String) -> Unit) -> Unit,
+    onDelete: () -> Unit,
+    onStartRest: () -> Unit
+) {
+    val checkColor by animateColorAsState(
+        targetValue = if (exercise.isCompleted) ExecutiveSuccessGreen else Color.Transparent,
+        label = "exCheck"
+    )
+
+    Surface(
+        shape = RoundedCornerShape(10.dp),
+        color = if (exercise.isCompleted) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f) else MaterialTheme.colorScheme.surface,
+        border = BorderStroke(
+            1.dp,
+            if (exercise.isCompleted) ExecutiveSuccessGreen.copy(alpha = 0.4f) else ExecutiveBorderSubtle
+        ),
+        modifier = Modifier.fillMaxWidth().testTag("exercise_row_${exercise.id}")
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Checkbox táctil circular con target de 48dp
+            Box(
+                modifier = Modifier
+                    .size(44.dp)
+                    .clickable { onToggle() }
+                    .testTag("toggle_exercise_${exercise.id}"),
+                contentAlignment = Alignment.Center
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clip(CircleShape)
+                        .background(checkColor)
+                        .border(
+                            2.dp,
+                            if (exercise.isCompleted) ExecutiveSuccessGreen else ExecutiveTextSecondary.copy(alpha = 0.5f),
+                            CircleShape
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (exercise.isCompleted) {
+                        Icon(Icons.Default.Check, contentDescription = "Completado", tint = ExecutiveDarkBg, modifier = Modifier.size(15.dp))
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.width(6.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = exercise.exerciseName,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = if (exercise.isCompleted) ExecutiveTextSecondary else ExecutiveTextPrimary,
+                    textDecoration = if (exercise.isCompleted) TextDecoration.LineThrough else TextDecoration.None,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                // Chips de Series, Reps, Peso y Descanso (editables al tocar)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Surface(
+                        shape = RoundedCornerShape(4.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
+                    ) {
+                        Text(
+                            text = "${exercise.sets} series",
+                            fontSize = 10.sp,
+                            fontFamily = FontFamily.Monospace,
+                            color = TacticalNeonCyan,
+                            modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
+                        )
+                    }
+
+                    Surface(
+                        shape = RoundedCornerShape(4.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
+                    ) {
+                        Text(
+                            text = "${exercise.reps} reps",
+                            fontSize = 10.sp,
+                            fontFamily = FontFamily.Monospace,
+                            color = ExecutiveTextWhite,
+                            modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
+                        )
+                    }
+
+                    Surface(
+                        shape = RoundedCornerShape(4.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
+                    ) {
+                        Text(
+                            text = "${exercise.weightKg} kg",
+                            fontSize = 10.sp,
+                            fontFamily = FontFamily.Monospace,
+                            color = ExecutiveSecondaryAmber,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
+                        )
+                    }
+
+                    Surface(
+                        shape = RoundedCornerShape(4.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+                        modifier = Modifier.clickable { onStartRest() }
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(Icons.Default.Timer, contentDescription = null, tint = TacticalVioletIdentity, modifier = Modifier.size(10.dp))
+                            Spacer(modifier = Modifier.width(2.dp))
+                            Text(
+                                text = "${exercise.restSeconds}s",
+                                fontSize = 10.sp,
+                                fontFamily = FontFamily.Monospace,
+                                color = TacticalVioletIdentity
+                            )
+                        }
+                    }
+                }
+            }
+
+            IconButton(
+                onClick = onDelete,
+                modifier = Modifier.size(28.dp).testTag("delete_exercise_${exercise.id}")
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = "Eliminar ejercicio",
+                    tint = ExecutiveTextSecondary.copy(alpha = 0.6f),
+                    modifier = Modifier.size(15.dp)
+                )
+            }
+        }
+    }
+}
+
+// =========================================================================
+// RUNNER / HUD DE ENTRENAMIENTO ACTIVO INTERACTIVO
+// =========================================================================
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ActiveWorkoutRunnerModal(
+    session: WorkoutSessionEntity,
+    exercises: List<WorkoutExerciseEntity>,
+    onToggleExercise: (Long) -> Unit,
+    onCompleteSession: () -> Unit,
+    onClose: () -> Unit
+) {
+    val context = LocalContext.current
+    var currentExerciseIndex by remember { mutableIntStateOf(0) }
+    var elapsedSeconds by remember { mutableLongStateOf(0L) }
+    val currentExercise = exercises.getOrNull(currentExerciseIndex)
+
+    // Series completadas para cada ejercicio: Map<exerciseId, Set<setNumber>>
+    val completedSetsMap = remember { mutableStateMapOf<Long, MutableSet<Int>>() }
+
+    // Temporizador de descanso
+    var restSecondsLeft by remember { mutableIntStateOf(currentExercise?.restSeconds ?: 60) }
+    var isResting by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(1000L)
+            elapsedSeconds++
+        }
+    }
+
+    LaunchedEffect(isResting) {
+        if (isResting) {
+            while (isResting && restSecondsLeft > 0) {
+                delay(1000L)
+                restSecondsLeft--
+            }
+            if (restSecondsLeft == 0) {
+                isResting = false
+                SensoryFeedbackHelper.vibrateAlert(context)
+                SensoryFeedbackHelper.playRewardSound()
+            }
+        }
+    }
+
+    AlertDialog(
+        onDismissRequest = onClose,
+        modifier = Modifier.fillMaxWidth().fillMaxHeight(0.92f),
+        containerColor = ExecutiveDarkBg,
+        title = {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    Text(
+                        text = "MODO ENTRENAMIENTO",
+                        fontFamily = FontFamily.Monospace,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TacticalNeonCyan,
+                        letterSpacing = 1.sp
+                    )
+                    Text(
+                        text = session.title,
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = ExecutiveTextWhite
+                    )
+                }
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    val m = elapsedSeconds / 60
+                    val s = elapsedSeconds % 60
+                    Text(
+                        text = "%02d:%02d".format(m, s),
+                        fontFamily = FontFamily.Monospace,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TacticalNeonCyan
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    IconButton(onClick = onClose, modifier = Modifier.size(28.dp)) {
+                        Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = ExecutiveTextSecondary)
+                    }
+                }
+            }
+        },
+        text = {
+            if (exercises.isEmpty()) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("No hay ejercicios registrados en esta rutina.", color = ExecutiveTextSecondary)
+                }
+            } else if (currentExercise != null) {
+                Column(
+                    modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(14.dp)
+                ) {
+                    // Paginador de ejercicios
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "EJERCICIO ${currentExerciseIndex + 1} DE ${exercises.size}",
+                            fontSize = 11.sp,
+                            fontFamily = FontFamily.Monospace,
+                            color = TacticalVioletIdentity,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            FilledTonalIconButton(
+                                onClick = {
+                                    if (currentExerciseIndex > 0) {
+                                        currentExerciseIndex--
+                                        restSecondsLeft = exercises[currentExerciseIndex].restSeconds
+                                        isResting = false
+                                    }
+                                },
+                                enabled = currentExerciseIndex > 0,
+                                modifier = Modifier.size(32.dp)
+                            ) {
+                                Icon(Icons.Default.ChevronLeft, contentDescription = "Anterior", tint = TacticalNeonCyan)
+                            }
+                            FilledTonalIconButton(
+                                onClick = {
+                                    if (currentExerciseIndex < exercises.size - 1) {
+                                        currentExerciseIndex++
+                                        restSecondsLeft = exercises[currentExerciseIndex].restSeconds
+                                        isResting = false
+                                    }
+                                },
+                                enabled = currentExerciseIndex < exercises.size - 1,
+                                modifier = Modifier.size(32.dp)
+                            ) {
+                                Icon(Icons.Default.ChevronRight, contentDescription = "Siguiente", tint = TacticalNeonCyan)
+                            }
+                        }
+                    }
+
+                    // Tarjeta táctica del ejercicio activo
+                    TacticalCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        accentColor = TacticalNeonCyan
+                    ) {
+                        Column {
+                            Text(
+                                text = currentExercise.exerciseName,
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = ExecutiveTextWhite
+                            )
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text("OBJETIVO", fontSize = 10.sp, color = ExecutiveTextSecondary)
+                                    Text("${currentExercise.sets} series x ${currentExercise.reps}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = TacticalNeonCyan)
+                                }
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text("PESO", fontSize = 10.sp, color = ExecutiveTextSecondary)
+                                    Text("${currentExercise.weightKg} kg", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = ExecutiveSecondaryAmber)
+                                }
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text("DESCANSO", fontSize = 10.sp, color = ExecutiveTextSecondary)
+                                    Text("${currentExercise.restSeconds}s", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = TacticalVioletIdentity)
+                                }
+                            }
+                        }
+                    }
+
+                    // REGISTRO DE SERIES INTERACTIVO
+                    Text(
+                        text = "REGISTRO DE SERIES",
+                        fontSize = 11.sp,
+                        fontFamily = FontFamily.Monospace,
+                        color = ExecutiveTextSecondary,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    val completedSets = completedSetsMap.getOrPut(currentExercise.id) { mutableSetOf() }
+
+                    (1..currentExercise.sets).forEach { setNum ->
+                        val isSetDone = completedSets.contains(setNum)
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = if (isSetDone) ExecutiveSuccessGreen.copy(alpha = 0.2f) else MaterialTheme.colorScheme.surface,
+                            border = BorderStroke(1.dp, if (isSetDone) ExecutiveSuccessGreen.copy(alpha = 0.6f) else ExecutiveBorderSubtle),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    if (isSetDone) {
+                                        completedSets.remove(setNum)
+                                    } else {
+                                        completedSets.add(setNum)
+                                        SensoryFeedbackHelper.vibrateLightTick(context)
+                                        // Iniciar descanso automáticamente
+                                        restSecondsLeft = currentExercise.restSeconds
+                                        isResting = true
+                                        // Si completó todas las series, marcar ejercicio
+                                        if (completedSets.size == currentExercise.sets && !currentExercise.isCompleted) {
+                                            onToggleExercise(currentExercise.id)
+                                        }
+                                    }
+                                }
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(24.dp)
+                                            .clip(CircleShape)
+                                            .background(if (isSetDone) ExecutiveSuccessGreen else Color.Transparent)
+                                            .border(2.dp, if (isSetDone) ExecutiveSuccessGreen else ExecutiveTextSecondary, CircleShape),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        if (isSetDone) {
+                                            Icon(Icons.Default.Check, contentDescription = null, tint = ExecutiveDarkBg, modifier = Modifier.size(15.dp))
+                                        }
+                                    }
+                                    Spacer(modifier = Modifier.width(10.dp))
+                                    Text(
+                                        text = "Serie $setNum",
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 14.sp,
+                                        color = if (isSetDone) ExecutiveTextSecondary else ExecutiveTextWhite
+                                    )
+                                }
+
+                                Text(
+                                    text = "${currentExercise.reps} reps @ ${currentExercise.weightKg} kg",
+                                    fontFamily = FontFamily.Monospace,
+                                    fontSize = 12.sp,
+                                    color = if (isSetDone) ExecutiveSuccessGreen else ExecutiveTextSecondary
+                                )
+                            }
+                        }
+                    }
+
+                    // TEMPORIZADOR DE DESCANSO EN EL RUNNER
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = MaterialTheme.colorScheme.surface,
+                        border = BorderStroke(1.dp, if (isResting) TacticalNeonCyan else ExecutiveBorderSubtle),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(14.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = if (isResting) "DESCANSO EN CURSO" else "TEMPORIZADOR DE DESCANSO",
+                                fontSize = 10.sp,
+                                fontFamily = FontFamily.Monospace,
+                                fontWeight = FontWeight.Bold,
+                                color = if (isResting) TacticalNeonCyan else ExecutiveTextSecondary
+                            )
+                            val rm = restSecondsLeft / 60
+                            val rs = restSecondsLeft % 60
+                            Text(
+                                text = "%02d:%02d".format(rm, rs),
+                                fontFamily = FontFamily.Monospace,
+                                fontSize = 28.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = if (isResting) TacticalNeonCyan else ExecutiveTextWhite
+                            )
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Button(
+                                    onClick = {
+                                        isResting = !isResting
+                                        SensoryFeedbackHelper.vibrateLightTick(context)
+                                    },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = if (isResting) ExecutiveDangerRed else TacticalNeonCyan
+                                    ),
+                                    shape = RoundedCornerShape(6.dp)
+                                ) {
+                                    Text(
+                                        text = if (isResting) "Pausar" else "Iniciar Descanso",
+                                        color = ExecutiveDarkBg,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+
+                                OutlinedButton(
+                                    onClick = {
+                                        restSecondsLeft += 30
+                                        SensoryFeedbackHelper.vibrateLightTick(context)
+                                    },
+                                    shape = RoundedCornerShape(6.dp)
+                                ) {
+                                    Text("+30s", color = ExecutiveTextWhite)
+                                }
+
+                                if (isResting) {
+                                    TextButton(onClick = { isResting = false }) {
+                                        Text("Omitir", color = ExecutiveTextSecondary)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    SensoryFeedbackHelper.vibrateSuccess(context)
+                    SensoryFeedbackHelper.playRewardSound()
+                    onCompleteSession()
+                    onClose()
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = TacticalNeonCyan),
+                modifier = Modifier.fillMaxWidth().testTag("btn_finish_active_workout")
+            ) {
+                Icon(Icons.Default.CheckCircle, contentDescription = null, tint = ExecutiveDarkBg, modifier = Modifier.size(18.dp))
+                Spacer(modifier = Modifier.width(6.dp))
+                Text("FINALIZAR SESIÓN (+100 XP)", color = ExecutiveDarkBg, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onClose) {
+                Text("Continuar luego", color = ExecutiveTextSecondary)
+            }
+        }
+    )
+}
+
+// =========================================================================
+// DIÁLOGO PARA AGREGAR UN EJERCICIO A UNA RUTINA EXISTENTE
+// =========================================================================
+@Composable
+fun AddExerciseToSessionDialog(
+    sessionId: Long,
+    name: String,
+    onNameChange: (String) -> Unit,
+    sets: String,
+    onSetsChange: (String) -> Unit,
+    reps: String,
+    onRepsChange: (String) -> Unit,
+    weight: String,
+    onWeightChange: (String) -> Unit,
+    rest: String,
+    onRestChange: (String) -> Unit,
+    onDismiss: () -> Unit,
+    onConfirm: (name: String, sets: Int, reps: String, weightKg: Double, restSeconds: Int) -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = ExecutiveDarkSurface,
+        title = {
+            Text("Añadir Ejercicio a la Rutina", color = ExecutiveTextPrimary, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = onNameChange,
+                    label = { Text("Nombre del ejercicio") },
+                    placeholder = { Text("Ej: Press militar con mancuernas") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth().testTag("input_new_exercise_name")
+                )
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(
+                        value = sets,
+                        onValueChange = { onSetsChange(it.filter { ch -> ch.isDigit() }) },
+                        label = { Text("Series") },
+                        modifier = Modifier.weight(1f),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        singleLine = true
+                    )
+                    OutlinedTextField(
+                        value = reps,
+                        onValueChange = onRepsChange,
+                        label = { Text("Reps") },
+                        placeholder = { Text("10, 8, 8") },
+                        modifier = Modifier.weight(1f),
+                        singleLine = true
+                    )
+                }
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(
+                        value = weight,
+                        onValueChange = onWeightChange,
+                        label = { Text("Peso (kg)") },
+                        modifier = Modifier.weight(1f),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        singleLine = true
+                    )
+                    OutlinedTextField(
+                        value = rest,
+                        onValueChange = { onRestChange(it.filter { ch -> ch.isDigit() }) },
+                        label = { Text("Descanso (s)") },
+                        modifier = Modifier.weight(1f),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        singleLine = true
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    if (name.isNotBlank()) {
+                        onConfirm(
+                            name.trim(),
+                            sets.toIntOrNull() ?: 3,
+                            reps.trim().ifBlank { "10" },
+                            weight.toDoubleOrNull() ?: 0.0,
+                            rest.toIntOrNull() ?: 60
+                        )
+                    }
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = TacticalNeonCyan),
+                enabled = name.isNotBlank(),
+                modifier = Modifier.testTag("btn_confirm_add_exercise")
+            ) {
+                Text("Agregar", color = ExecutiveDarkBg, fontWeight = FontWeight.Bold)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancelar", color = ExecutiveTextSecondary)
+            }
+        }
+    )
 }

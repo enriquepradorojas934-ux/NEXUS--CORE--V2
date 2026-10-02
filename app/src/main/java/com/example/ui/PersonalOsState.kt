@@ -72,9 +72,13 @@ data class PersonalOsUiState(
 
     // Módulo Entrenamiento / Fitness
     val workoutSessions: List<WorkoutSessionEntity> = emptyList(),
+    val workoutExercises: List<WorkoutExerciseEntity> = emptyList(),
     val recentExercises: List<WorkoutExerciseEntity> = emptyList(),
     val isAnalyzingWorkout: Boolean = false,
     val aiWorkoutAdvice: String? = null,
+
+    // Historial para Progresión RPG Táctica Persistente
+    val allHabitLogs: List<HabitLogEntity> = emptyList(),
 
     // Módulo Sistema de Logros y Progresión RPG Táctico
     val userProgression: UserProgression = UserProgression(),

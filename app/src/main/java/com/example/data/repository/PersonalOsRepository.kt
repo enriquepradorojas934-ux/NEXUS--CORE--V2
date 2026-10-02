@@ -41,6 +41,7 @@ interface PersonalOsRepository {
     suspend fun linkHabitToGoal(habitId: Long, goalId: Long?)
 
     // === LOGS DE HÁBITOS (ROOM) ===
+    val allHabitLogs: Flow<List<HabitLogEntity>>
     fun getHabitLogsByCycle(cycleDate: String): Flow<List<HabitLogEntity>>
     fun getLogsForHabit(habitId: Long): Flow<List<HabitLogEntity>>
     suspend fun insertHabitLog(log: HabitLogEntity): Long
@@ -88,9 +89,12 @@ interface PersonalOsRepository {
     val allWorkoutSessions: Flow<List<WorkoutSessionEntity>>
     fun getWorkoutSessionsByCycle(cycleDate: String): Flow<List<WorkoutSessionEntity>>
     suspend fun insertWorkoutSession(session: WorkoutSessionEntity): Long
+    suspend fun updateWorkoutSession(session: WorkoutSessionEntity)
     suspend fun deleteWorkoutSession(session: WorkoutSessionEntity)
+    val allWorkoutExercises: Flow<List<WorkoutExerciseEntity>>
     fun getExercisesForSession(sessionId: Long): Flow<List<WorkoutExerciseEntity>>
     suspend fun insertWorkoutExercise(exercise: WorkoutExerciseEntity): Long
+    suspend fun updateWorkoutExercise(exercise: WorkoutExerciseEntity)
     suspend fun deleteWorkoutExercise(exercise: WorkoutExerciseEntity)
 
     // === PUENTE CON SERVICIO DE PRODUCTIVIDAD GEMINI (FIREBASE AI) ===
@@ -167,6 +171,7 @@ class PersonalOsRepositoryImpl(
     override suspend fun linkHabitToGoal(habitId: Long, goalId: Long?) = dao.linkHabitToGoal(habitId, goalId)
 
     // === LOGS DE HÁBITOS ===
+    override val allHabitLogs: Flow<List<HabitLogEntity>> = dao.getAllHabitLogs()
     override fun getHabitLogsByCycle(cycleDate: String): Flow<List<HabitLogEntity>> = dao.getHabitLogsByCycle(cycleDate)
     override fun getLogsForHabit(habitId: Long): Flow<List<HabitLogEntity>> = dao.getLogsForHabit(habitId)
     override suspend fun insertHabitLog(log: HabitLogEntity): Long = dao.insertHabitLog(log)
@@ -214,9 +219,12 @@ class PersonalOsRepositoryImpl(
     override val allWorkoutSessions: Flow<List<WorkoutSessionEntity>> = dao.getAllWorkoutSessions()
     override fun getWorkoutSessionsByCycle(cycleDate: String): Flow<List<WorkoutSessionEntity>> = dao.getWorkoutSessionsByCycle(cycleDate)
     override suspend fun insertWorkoutSession(session: WorkoutSessionEntity): Long = dao.insertWorkoutSession(session)
+    override suspend fun updateWorkoutSession(session: WorkoutSessionEntity) = dao.updateWorkoutSession(session)
     override suspend fun deleteWorkoutSession(session: WorkoutSessionEntity) = dao.deleteWorkoutSession(session)
+    override val allWorkoutExercises: Flow<List<WorkoutExerciseEntity>> = dao.getAllWorkoutExercises()
     override fun getExercisesForSession(sessionId: Long): Flow<List<WorkoutExerciseEntity>> = dao.getExercisesForSession(sessionId)
     override suspend fun insertWorkoutExercise(exercise: WorkoutExerciseEntity): Long = dao.insertWorkoutExercise(exercise)
+    override suspend fun updateWorkoutExercise(exercise: WorkoutExerciseEntity) = dao.updateWorkoutExercise(exercise)
     override suspend fun deleteWorkoutExercise(exercise: WorkoutExerciseEntity) = dao.deleteWorkoutExercise(exercise)
 
     // === PUENTE CON SERVICIO DE PRODUCTIVIDAD GEMINI (FIREBASE AI) ===

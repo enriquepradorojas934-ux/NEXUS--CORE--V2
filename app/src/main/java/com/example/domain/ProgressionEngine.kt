@@ -25,25 +25,32 @@ object ProgressionEngine {
         goals: List<GoalEntity>,
         subGoals: List<SubGoalEntity>,
         transactions: List<TransactionEntity>,
-        assetsAndDebts: List<AssetDebtEntity>
+        assetsAndDebts: List<AssetDebtEntity>,
+        workoutExercises: List<WorkoutExerciseEntity> = emptyList(),
+        persistentStoredXp: Long = 0L
     ): Pair<UserProgression, List<AchievementItem>> {
 
         val completedTasksCount = tasks.count { it.isCompleted }
         val completedHabitLogsCount = habitLogs.count { it.isCompleted }
         val totalFocusMinutes = timeEntries.sumOf { it.durationMinutes }
         val workoutSessionsCount = workouts.size
+        val completedExercisesCount = workoutExercises.count { it.isCompleted }
         val completedGoalsCount = goals.count { it.status == "COMPLETADA" }
         val completedSubGoalsCount = subGoals.count { it.isCompleted }
         val financialRecordsCount = transactions.size
 
-        // Cálculo total de XP
-        val totalXp = (completedTasksCount * 25L) +
+        // Cálculo acumulativo de XP verificada
+        val calculatedXp = (completedTasksCount * 25L) +
                 (completedHabitLogsCount * 20L) +
                 (totalFocusMinutes * 1L) +
                 (workoutSessionsCount * 100L) +
+                (completedExercisesCount * 20L) +
                 (completedSubGoalsCount * 75L) +
                 (completedGoalsCount * 300L) +
                 (financialRecordsCount * 10L)
+
+        // El XP total nunca se reduce; preserva siempre el valor más alto registrado en el ciclo de vida del operador
+        val totalXp = maxOf(calculatedXp, persistentStoredXp)
 
         // Nivel calculado mediante curva RPG cuadrática equilibrada
         // Nivel 1 = 0 XP, Nivel 2 = 200 XP, Nivel 3 = 600 XP, etc.
@@ -72,7 +79,7 @@ object ProgressionEngine {
         val disciplineScore = ((maxStreak * 10) + (completedHabitLogsCount * 2)).coerceIn(10, 100)
         val productivityScore = ((completedTasksCount * 4) + (completedSubGoalsCount * 8)).coerceIn(10, 100)
         val focusScore = (totalFocusMinutes / 10).coerceIn(10, 100)
-        val vitalityScore = ((workoutSessionsCount * 12) + (habits.filter { it.category == "Salud" && it.currentStreak > 0 }.size * 15)).coerceIn(10, 100)
+        val vitalityScore = ((workoutSessionsCount * 12) + (completedExercisesCount * 4) + (habits.filter { it.category == "Salud" && it.currentStreak > 0 }.size * 15)).coerceIn(10, 100)
         val netWorth = assetsAndDebts.filter { it.type == "ACTIVO" }.sumOf { it.currentAmount } -
                 assetsAndDebts.filter { it.type == "DEUDA" }.sumOf { it.currentAmount }
         val financialScore = ((financialRecordsCount * 3) + if (netWorth > 0) 30 else 0).coerceIn(10, 100)

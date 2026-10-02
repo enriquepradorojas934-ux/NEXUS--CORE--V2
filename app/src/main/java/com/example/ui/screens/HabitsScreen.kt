@@ -1,8 +1,8 @@
 package com.example.ui.screens
 
 import android.Manifest
-import android.app.TimePickerDialog
 import android.content.pm.PackageManager
+import com.example.ui.components.LifeOsTimePickerDialog
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -103,34 +103,26 @@ fun HabitsScreen(
         onSetHabitReminder(enable, exact24h)
     }
 
-    val showTimePicker = {
-        val exact24 = get24HourTime(reminderTimeInput, reminderAmPm)
-        val p = exact24.split(":")
-        val curH = p.getOrNull(0)?.toIntOrNull() ?: 20
-        val curM = p.getOrNull(1)?.toIntOrNull() ?: 0
+    var showTimePickerDialog by remember { mutableStateOf(false) }
 
-        TimePickerDialog(
-            context,
-            { _, pickedHour, pickedMinute ->
-                val isPm = pickedHour >= 12
-                val h12 = when {
-                    pickedHour == 0 -> 12
-                    pickedHour > 12 -> pickedHour - 12
-                    else -> pickedHour
-                }
-                val formatted12 = "%02d:%02d".format(h12, pickedMinute)
-                val period = if (isPm) "PM" else "AM"
+    if (showTimePickerDialog) {
+        LifeOsTimePickerDialog(
+            initialTimeText = reminderTimeInput,
+            initialPeriod = reminderAmPm,
+            onDismissRequest = { showTimePickerDialog = false },
+            onTimeSelected = { hour24, min, formatted12, period ->
                 reminderTimeInput = formatted12
                 reminderAmPm = period
                 if (state.isHabitReminderEnabled) {
-                    val updated24 = "%02d:%02d".format(pickedHour, pickedMinute)
+                    val updated24 = "%02d:%02d".format(hour24, min)
                     onSetHabitReminder(true, updated24)
                 }
-            },
-            curH,
-            curM,
-            false // Formato 12 horas con selector interactivo AM/PM
-        ).show()
+            }
+        )
+    }
+
+    val showTimePicker = {
+        showTimePickerDialog = true
     }
 
     Column(modifier = Modifier.fillMaxSize()) {

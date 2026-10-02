@@ -32,6 +32,7 @@ import com.example.ui.components.ExecutiveHeader
 import com.example.ui.components.LifeOsBadge
 import com.example.ui.components.LifeOsBadgeType
 import com.example.ui.components.LifeOsSectionHeader
+import com.example.ui.components.LifeOsTimePickerDialog
 import com.example.ui.theme.*
 import com.example.util.SensoryFeedbackHelper
 
@@ -973,50 +974,39 @@ private fun AddTimeBlockDialog(
     var endAmPm by remember { mutableStateOf("AM") }
     var category by remember { mutableStateOf("FOCO") }
 
-    val showStartTimePicker = {
-        val sParts = startHourMin.split(":")
-        var h = sParts.getOrNull(0)?.trim()?.toIntOrNull() ?: 9
-        val m = sParts.getOrNull(1)?.trim()?.toIntOrNull() ?: 0
-        if (startAmPm == "PM" && h < 12) h += 12
-        if (startAmPm == "AM" && h == 12) h = 0
+    var showStartTimePickerDialog by remember { mutableStateOf(false) }
+    var showEndTimePickerDialog by remember { mutableStateOf(false) }
 
-        android.app.TimePickerDialog(
-            context,
-            { _, pickedHour, pickedMinute ->
-                val isPm = pickedHour >= 12
-                val h12 = when {
-                    pickedHour == 0 -> 12
-                    pickedHour > 12 -> pickedHour - 12
-                    else -> pickedHour
-                }
-                startHourMin = "%02d:%02d".format(h12, pickedMinute)
-                startAmPm = if (isPm) "PM" else "AM"
-            },
-            h, m, false
-        ).show()
+    if (showStartTimePickerDialog) {
+        LifeOsTimePickerDialog(
+            initialTimeText = startHourMin,
+            initialPeriod = startAmPm,
+            onDismissRequest = { showStartTimePickerDialog = false },
+            onTimeSelected = { _, _, formatted12, period ->
+                startHourMin = formatted12
+                startAmPm = period
+            }
+        )
+    }
+
+    if (showEndTimePickerDialog) {
+        LifeOsTimePickerDialog(
+            initialTimeText = endHourMin,
+            initialPeriod = endAmPm,
+            onDismissRequest = { showEndTimePickerDialog = false },
+            onTimeSelected = { _, _, formatted12, period ->
+                endHourMin = formatted12
+                endAmPm = period
+            }
+        )
+    }
+
+    val showStartTimePicker = {
+        showStartTimePickerDialog = true
     }
 
     val showEndTimePicker = {
-        val eParts = endHourMin.split(":")
-        var h = eParts.getOrNull(0)?.trim()?.toIntOrNull() ?: 10
-        val m = eParts.getOrNull(1)?.trim()?.toIntOrNull() ?: 30
-        if (endAmPm == "PM" && h < 12) h += 12
-        if (endAmPm == "AM" && h == 12) h = 0
-
-        android.app.TimePickerDialog(
-            context,
-            { _, pickedHour, pickedMinute ->
-                val isPm = pickedHour >= 12
-                val h12 = when {
-                    pickedHour == 0 -> 12
-                    pickedHour > 12 -> pickedHour - 12
-                    else -> pickedHour
-                }
-                endHourMin = "%02d:%02d".format(h12, pickedMinute)
-                endAmPm = if (isPm) "PM" else "AM"
-            },
-            h, m, false
-        ).show()
+        showEndTimePickerDialog = true
     }
 
     AlertDialog(
