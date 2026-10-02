@@ -79,14 +79,19 @@ fun HabitsScreen(
         return "%02d:%02d".format(h24.coerceIn(0, 23), m)
     }
 
-    val notificationLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        if (isGranted) {
-            val exact24h = get24HourTime(reminderTimeInput, reminderAmPm)
-            onSetHabitReminder(true, exact24h)
+    val registryOwner = androidx.activity.compose.LocalActivityResultRegistryOwner.current
+        ?: (context as? androidx.activity.result.ActivityResultRegistryOwner)
+
+    val notificationLauncher = if (registryOwner != null) {
+        rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.RequestPermission()
+        ) { isGranted ->
+            if (isGranted) {
+                val exact24h = get24HourTime(reminderTimeInput, reminderAmPm)
+                onSetHabitReminder(true, exact24h)
+            }
         }
-    }
+    } else null
 
     fun requestAndToggleReminder(enable: Boolean) {
         val exact24h = get24HourTime(reminderTimeInput, reminderAmPm)
@@ -96,8 +101,10 @@ fun HabitsScreen(
                 Manifest.permission.POST_NOTIFICATIONS
             ) == PackageManager.PERMISSION_GRANTED
             if (!granted) {
-                notificationLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-                return
+                if (notificationLauncher != null) {
+                    notificationLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                    return
+                }
             }
         }
         onSetHabitReminder(enable, exact24h)

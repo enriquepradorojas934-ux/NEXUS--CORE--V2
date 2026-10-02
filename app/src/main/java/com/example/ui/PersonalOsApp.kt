@@ -80,10 +80,20 @@ fun PersonalOsApp() {
         onDispose { }
     }
 
-    CompositionLocalProvider(
-        androidx.compose.ui.platform.LocalContext provides localizedContext,
-        androidx.compose.ui.platform.LocalConfiguration provides localizedConfiguration
-    ) {
+    val activityResultRegistryOwner = androidx.activity.compose.LocalActivityResultRegistryOwner.current
+        ?: (context as? androidx.activity.result.ActivityResultRegistryOwner)
+
+    val providedValues = remember(localizedContext, localizedConfiguration, activityResultRegistryOwner) {
+        buildList {
+            add(androidx.compose.ui.platform.LocalContext provides localizedContext)
+            add(androidx.compose.ui.platform.LocalConfiguration provides localizedConfiguration)
+            activityResultRegistryOwner?.let {
+                add(androidx.activity.compose.LocalActivityResultRegistryOwner provides it)
+            }
+        }.toTypedArray()
+    }
+
+    CompositionLocalProvider(*providedValues) {
         key(currentLocale) {
             com.example.ui.theme.MyApplicationTheme(accentColorName = state.accentColorName) {
             Scaffold(

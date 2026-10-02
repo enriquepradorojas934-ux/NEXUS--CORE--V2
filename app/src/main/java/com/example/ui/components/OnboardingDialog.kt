@@ -59,14 +59,19 @@ fun OnboardingDialog(
     val selectedHabits = remember { mutableStateListOf(habit1, habit2) }
     var reminderEnabled by remember { mutableStateOf(false) }
 
-    val notificationLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
-    ) { granted ->
-        reminderEnabled = granted
-        if (granted) {
-            onEnableReminder("20:00")
+    val registryOwner = androidx.activity.compose.LocalActivityResultRegistryOwner.current
+        ?: (context as? androidx.activity.result.ActivityResultRegistryOwner)
+
+    val notificationLauncher = if (registryOwner != null) {
+        rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.RequestPermission()
+        ) { granted ->
+            reminderEnabled = granted
+            if (granted) {
+                onEnableReminder("20:00")
+            }
         }
-    }
+    } else null
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -162,8 +167,11 @@ fun OnboardingDialog(
                                         if (granted) {
                                             reminderEnabled = true
                                             onEnableReminder("20:00")
-                                        } else {
+                                        } else if (notificationLauncher != null) {
                                             notificationLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                                        } else {
+                                            reminderEnabled = true
+                                            onEnableReminder("20:00")
                                         }
                                     } else {
                                         reminderEnabled = true
