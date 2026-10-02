@@ -42,39 +42,63 @@ class FirebaseAuthService(
         get() = authProvider()
 
     /**
-     * Emite los cambios en el estado de autenticación del usuario actual en tiempo real.
+     * Emite los cambios en el estado de autenticación del usuario actual en tiempo real de forma segura.
      */
     val currentUserFlow: Flow<AuthUser?> = callbackFlow {
-        val currentAuth = auth
-        if (currentAuth == null) {
+        try {
+            val currentAuth = auth
+            if (currentAuth == null) {
+                trySend(null)
+                awaitClose { }
+                return@callbackFlow
+            }
+
+            val listener = FirebaseAuth.AuthStateListener { firebaseAuth ->
+                try {
+                    val user = firebaseAuth.currentUser?.toAuthUser()
+                    trySend(user)
+                } catch (_: Throwable) {
+                    trySend(null)
+                }
+            }
+            try {
+                currentAuth.addAuthStateListener(listener)
+                trySend(currentAuth.currentUser?.toAuthUser())
+            } catch (t: Throwable) {
+                Log.w(TAG, "No se pudo registrar AuthStateListener: ${t.message}")
+                trySend(null)
+            }
+
+            awaitClose {
+                try {
+                    currentAuth.removeAuthStateListener(listener)
+                } catch (_: Throwable) {}
+            }
+        } catch (t: Throwable) {
+            Log.w(TAG, "Error en currentUserFlow: ${t.message}")
             trySend(null)
             awaitClose { }
-            return@callbackFlow
-        }
-
-        val listener = FirebaseAuth.AuthStateListener { firebaseAuth ->
-            val user = firebaseAuth.currentUser?.toAuthUser()
-            trySend(user)
-        }
-        currentAuth.addAuthStateListener(listener)
-        // Emitir estado inicial
-        trySend(currentAuth.currentUser?.toAuthUser())
-
-        awaitClose {
-            currentAuth.removeAuthStateListener(listener)
         }
     }
 
     /**
      * Retorna el usuario autenticado actual o null si no hay sesión activa.
      */
-    fun getCurrentUser(): AuthUser? = auth?.currentUser?.toAuthUser()
+    fun getCurrentUser(): AuthUser? = try {
+        auth?.currentUser?.toAuthUser()
+    } catch (_: Throwable) {
+        null
+    }
 
     /**
      * Retorna el UID del usuario actual para asociar sus datos en Cloud Firestore,
      * o un ID predeterminado si no ha iniciado sesión.
      */
-    fun getCurrentUserId(): String = auth?.currentUser?.uid ?: "executive_user_default"
+    fun getCurrentUserId(): String = try {
+        auth?.currentUser?.uid ?: "executive_user_default"
+    } catch (_: Throwable) {
+        "executive_user_default"
+    }
 
     /**
      * Inicia sesión con Google utilizando Credential Manager y GoogleIdTokenCredential.

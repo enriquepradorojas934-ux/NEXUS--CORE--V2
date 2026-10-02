@@ -33,19 +33,23 @@ data class UserProductivitySnapshot(
 class PersonalAiProductivityService(private val context: Context? = null) {
 
     // Modelo de lenguaje para tareas de texto básicas / razonamiento de productividad
-    // De acuerdo con la guía oficial de modelos: gemini-3.5-flash
     private val modelName = "gemini-3.5-flash"
 
     private val generativeModel by lazy {
-        val ai = Firebase.ai(backend = GenerativeBackend.googleAI())
-        ai.generativeModel(
-            modelName = modelName,
-            generationConfig = generationConfig {
-                temperature = 0.7f
-                topK = 40
-                topP = 0.95f
-            }
-        )
+        try {
+            com.example.util.FirebaseProvider.ensureFirebaseInitialized(context)
+            val ai = Firebase.ai(backend = GenerativeBackend.googleAI())
+            ai.generativeModel(
+                modelName = modelName,
+                generationConfig = generationConfig {
+                    temperature = 0.7f
+                    topK = 40
+                    topP = 0.95f
+                }
+            )
+        } catch (_: Throwable) {
+            null
+        }
     }
 
     /**
@@ -59,8 +63,9 @@ class PersonalAiProductivityService(private val context: Context? = null) {
     ): Result<String> =
         withContext(Dispatchers.IO) {
             try {
+                val model = generativeModel ?: return@withContext Result.failure(Exception("Asistente IA en modo desconectado"))
                 val prompt = buildProductivityPrompt(snapshot, language, currencySymbol)
-                val response = generativeModel.generateContent(prompt)
+                val response = model.generateContent(prompt)
                 val responseText = response.text
 
                 if (!responseText.isNullOrBlank()) {
@@ -68,8 +73,8 @@ class PersonalAiProductivityService(private val context: Context? = null) {
                 } else {
                     Result.failure(Exception("Gemini no retornó contenido en la respuesta."))
                 }
-            } catch (e: Exception) {
-                Result.failure(e)
+            } catch (t: Throwable) {
+                Result.failure(Exception(t.message ?: "Error en servicio de IA"))
             }
         }
 
@@ -82,6 +87,7 @@ class PersonalAiProductivityService(private val context: Context? = null) {
         language: String = "Español"
     ): Result<String> = withContext(Dispatchers.IO) {
         try {
+            val model = generativeModel ?: return@withContext Result.failure(Exception("Asistente IA en modo desconectado"))
             val prompt = """
                 Eres el asesor de productividad de un Sistema Operativo Personal.
                 
@@ -102,15 +108,15 @@ class PersonalAiProductivityService(private val context: Context? = null) {
                 Tono directo, motivador, ejecutivo y estructurado (máximo 3 párrafos o puntos clave).
             """.trimIndent()
 
-            val response = generativeModel.generateContent(prompt)
+            val response = model.generateContent(prompt)
             val text = response.text
             if (!text.isNullOrBlank()) {
                 Result.success(text.trim())
             } else {
                 Result.failure(Exception("Respuesta vacía de Gemini."))
             }
-        } catch (e: Exception) {
-            Result.failure(e)
+        } catch (t: Throwable) {
+            Result.failure(Exception(t.message ?: "Error en servicio de IA"))
         }
     }
 
@@ -181,12 +187,13 @@ class PersonalAiProductivityService(private val context: Context? = null) {
                 
                 REQUISITO OBLIGATORIO: Responde en el idioma: $language (o inglés como respaldo). Formato conciso, táctico y motivador.
             """.trimIndent()
-            val response = generativeModel.generateContent(prompt)
+            val model = generativeModel ?: return@withContext Result.failure(Exception("Asistente IA en modo desconectado"))
+            val response = model.generateContent(prompt)
             val text = response.text
             if (!text.isNullOrBlank()) Result.success(text.trim())
             else Result.failure(Exception("Sin respuesta de IA"))
-        } catch (e: Exception) {
-            Result.failure(e)
+        } catch (t: Throwable) {
+            Result.failure(Exception(t.message ?: "Error en análisis"))
         }
     }
 
@@ -201,6 +208,7 @@ class PersonalAiProductivityService(private val context: Context? = null) {
         language: String = "Español"
     ): Result<String> = withContext(Dispatchers.IO) {
         try {
+            val model = generativeModel ?: return@withContext Result.failure(Exception("Asistente IA en modo desconectado"))
             val prompt = """
                 Actúa como el Asesor Ejecutivo de Entrenamiento y Alto Rendimiento de LifeOS.
                 El usuario está planificando una rutina de entrenamiento con los siguientes datos:
@@ -218,12 +226,12 @@ class PersonalAiProductivityService(private val context: Context? = null) {
                 Directo al grano, sin saludos ni comillas alrededor.
             """.trimIndent()
 
-            val response = generativeModel.generateContent(prompt)
+            val response = model.generateContent(prompt)
             val text = response.text
             if (!text.isNullOrBlank()) Result.success(text.trim().removeSurrounding("\""))
             else Result.failure(Exception("Sin sugerencia generada"))
-        } catch (e: Exception) {
-            Result.failure(e)
+        } catch (t: Throwable) {
+            Result.failure(Exception(t.message ?: "Error en sugerencia"))
         }
     }
 
@@ -265,12 +273,13 @@ class PersonalAiProductivityService(private val context: Context? = null) {
                 - Moneda: Menciona y usa siempre la moneda del usuario ($currencySymbol / $currencyCode).
                 - Tono: Profesional, directo y al grano.
             """.trimIndent()
-            val response = generativeModel.generateContent(prompt)
+            val model = generativeModel ?: return@withContext Result.failure(Exception("Asistente IA en modo desconectado"))
+            val response = model.generateContent(prompt)
             val text = response.text
             if (!text.isNullOrBlank()) Result.success(text.trim())
             else Result.failure(Exception("Sin respuesta de IA"))
-        } catch (e: Exception) {
-            Result.failure(e)
+        } catch (t: Throwable) {
+            Result.failure(Exception(t.message ?: "Error en análisis financiero"))
         }
     }
 
@@ -291,6 +300,7 @@ class PersonalAiProductivityService(private val context: Context? = null) {
         language: String = "Español"
     ): Result<String> = withContext(Dispatchers.IO) {
         try {
+            val model = generativeModel ?: return@withContext Result.failure(Exception("Asistente IA en modo desconectado"))
             val netWorthPercent = if (totalNetWorth > 0) (amount / totalNetWorth * 100) else 0.0
             val formattedAmount = CurrencyFormatter.format(amount, currencySymbol, currencyCode)
             val formattedNetWorth = CurrencyFormatter.format(totalNetWorth, currencySymbol, currencyCode)
@@ -324,12 +334,12 @@ class PersonalAiProductivityService(private val context: Context? = null) {
                 - Tono ejecutivo, honesto y estructurado (máximo 4 párrafos breves o bullets claros).
             """.trimIndent()
 
-            val response = generativeModel.generateContent(prompt)
+            val response = model.generateContent(prompt)
             val text = response.text
             if (!text.isNullOrBlank()) Result.success(text.trim())
             else Result.failure(Exception("Sin respuesta de Gemini."))
-        } catch (e: Exception) {
-            Result.failure(e)
+        } catch (t: Throwable) {
+            Result.failure(Exception(t.message ?: "Error al evaluar gasto"))
         }
     }
 
@@ -347,6 +357,7 @@ class PersonalAiProductivityService(private val context: Context? = null) {
         language: String = "Español"
     ): Result<String> = withContext(Dispatchers.IO) {
         try {
+            val model = generativeModel ?: return@withContext Result.failure(Exception("Asistente IA en modo desconectado"))
             val formattedIncome = CurrencyFormatter.format(income, currencySymbol, currencyCode)
             val formattedExpenses = CurrencyFormatter.format(expenses, currencySymbol, currencyCode)
             val formattedNetWorth = CurrencyFormatter.format(totalNetWorth, currencySymbol, currencyCode)
@@ -372,12 +383,12 @@ class PersonalAiProductivityService(private val context: Context? = null) {
                 Tono profesional, práctico, pedagógico y estructurado.
             """.trimIndent()
 
-            val response = generativeModel.generateContent(prompt)
+            val response = model.generateContent(prompt)
             val text = response.text
             if (!text.isNullOrBlank()) Result.success(text.trim())
             else Result.failure(Exception("Sin respuesta de Gemini."))
-        } catch (e: Exception) {
-            Result.failure(e)
+        } catch (t: Throwable) {
+            Result.failure(Exception(t.message ?: "Error en consulta financiera"))
         }
     }
 

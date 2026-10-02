@@ -16,44 +16,42 @@ class PersonalOsApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        com.example.util.FirebaseProvider.ensureFirebaseInitialized(this)
-        initFirebaseAppCheck()
+        try {
+            com.example.util.FirebaseProvider.ensureFirebaseInitialized(this)
+            initFirebaseAppCheck()
+        } catch (t: Throwable) {
+            Log.w(TAG, "Inicialización segura de Firebase en arranque: ${t.message}")
+        }
     }
 
     /**
-     * Inicializa Firebase App Check con el proveedor reCAPTCHA.
-     * En modo depuración, permite el uso de DebugAppCheckProviderFactory para pruebas locales,
-     * y en producción instala RecaptchaAppCheckProviderFactory con la site key.
+     * Inicializa Firebase App Check de forma segura si las credenciales están disponibles.
      */
     private fun initFirebaseAppCheck() {
         try {
-            // Asegurar que FirebaseApp esté inicializado en el contexto de la aplicación
+            // Solo intentar si hay clave de reCAPTCHA configurada o en modo debug explícito
+            val siteKey = BuildConfig.RECAPTCHA_SITE_KEY
+            if (siteKey.isBlank()) {
+                Log.d(TAG, "App Check omitido: RECAPTCHA_SITE_KEY no configurada.")
+                return
+            }
+
             if (FirebaseApp.getApps(this).isEmpty()) {
-                FirebaseApp.initializeApp(this)
+                com.example.util.FirebaseProvider.ensureFirebaseInitialized(this)
             }
 
-            val appCheck = FirebaseAppCheck.getInstance()
-
-            // Clave de sitio de reCAPTCHA configurada en Firebase Console / Google Cloud
-            val siteKey = BuildConfig.RECAPTCHA_SITE_KEY.ifBlank {
-                DEFAULT_RECAPTCHA_SITE_KEY
+            if (FirebaseApp.getApps(this).isNotEmpty()) {
+                val appCheck = FirebaseAppCheck.getInstance()
+                val providerFactory = if (BuildConfig.DEBUG) {
+                    DebugAppCheckProviderFactory.getInstance()
+                } else {
+                    RecaptchaAppCheckProviderFactory.getInstance(siteKey)
+                }
+                appCheck.installAppCheckProviderFactory(providerFactory)
+                Log.d(TAG, "Firebase App Check configurado.")
             }
-
-            // Inicialización de Firebase App Check con el proveedor reCAPTCHA
-            // para autenticar y proteger el backend y las llamadas a la API contra tráfico fraudulento.
-            val providerFactory = if (BuildConfig.DEBUG) {
-                // En modo debug, DebugAppCheckProviderFactory permite pruebas locales en emulador/CI
-                // generando un token de prueba registrado en Firebase Console.
-                DebugAppCheckProviderFactory.getInstance()
-            } else {
-                // En producción, reCAPTCHA evalúa el riesgo invisiblemente
-                RecaptchaAppCheckProviderFactory.getInstance(siteKey)
-            }
-
-            appCheck.installAppCheckProviderFactory(providerFactory)
-            Log.d(TAG, "Firebase App Check inicializado correctamente con reCAPTCHA.")
-        } catch (e: Exception) {
-            Log.w(TAG, "Firebase App Check no se pudo inicializar en este entorno: ${e.message}")
+        } catch (t: Throwable) {
+            Log.w(TAG, "Firebase App Check no inicializado (entorno local): ${t.message}")
         }
     }
 

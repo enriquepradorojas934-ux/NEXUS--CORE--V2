@@ -11,7 +11,11 @@ import com.example.util.FirebaseProvider
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        FirebaseProvider.ensureFirebaseInitialized(applicationContext)
+        try {
+            FirebaseProvider.ensureFirebaseInitialized(applicationContext)
+        } catch (_: Throwable) {
+            // Continuar en modo soberano local sin interrumpir el arranque
+        }
         enableEdgeToEdge()
         setContent {
             PersonalOsApp()

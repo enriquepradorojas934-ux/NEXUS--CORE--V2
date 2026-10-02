@@ -40,64 +40,75 @@ class PersonalOsViewModel(
 
     private fun loadSettingsAndInitialize() {
         viewModelScope.launch {
-            val savedStartTime = repository.getConfig("cycle_start_time") ?: DailyCycleEngine.DEFAULT_CYCLE_START_TIME
-            val savedStrictMode = repository.getConfig("strict_mode") == "true"
-            val savedReminderEnabled = repository.getConfig("habit_reminder_enabled") == "true"
-            val savedReminderTime = repository.getConfig("habit_reminder_time") ?: "20:00"
-            val hasCompletedOnboarding = repository.getConfig("onboarding_completed") == "true"
-            val savedAccent = repository.getConfig("accent_color") ?: "Teal"
+            try {
+                val savedStartTime = repository.getConfig("cycle_start_time") ?: DailyCycleEngine.DEFAULT_CYCLE_START_TIME
+                val savedStrictMode = repository.getConfig("strict_mode") == "true"
+                val savedReminderEnabled = repository.getConfig("habit_reminder_enabled") == "true"
+                val savedReminderTime = repository.getConfig("habit_reminder_time") ?: "20:00"
+                val hasCompletedOnboarding = repository.getConfig("onboarding_completed") == "true"
+                val savedAccent = repository.getConfig("accent_color") ?: "Teal"
 
-            val cycleDate = DailyCycleEngine.getCurrentCycleDate(savedStartTime)
-            val savedLanguage = repository.getConfig("app_language") ?: com.example.util.LocaleHelper.SYSTEM_DEFAULT
-            val savedCurrencySymbol = repository.getConfig("app_currency_symbol") ?: "$"
-            val savedCurrencyCode = repository.getConfig("app_currency_code") ?: "USD"
-            persistentXp = repository.getConfig("persistent_xp")?.toLongOrNull() ?: 0L
+                val cycleDate = DailyCycleEngine.getCurrentCycleDate(savedStartTime)
+                val savedLanguage = repository.getConfig("app_language") ?: com.example.util.LocaleHelper.SYSTEM_DEFAULT
+                val savedCurrencySymbol = repository.getConfig("app_currency_symbol") ?: "$"
+                val savedCurrencyCode = repository.getConfig("app_currency_code") ?: "USD"
+                persistentXp = repository.getConfig("persistent_xp")?.toLongOrNull() ?: 0L
 
-            _uiState.update {
-                it.copy(
-                    cycleStartTime = savedStartTime,
-                    currentCycleDate = cycleDate,
-                    isStrictModeEnabled = savedStrictMode,
-                    isHabitReminderEnabled = savedReminderEnabled,
-                    habitReminderTime = savedReminderTime,
-                    timeUntilNextCycle = DailyCycleEngine.getTimeUntilNextCycle(savedStartTime),
-                    cycleProgress = DailyCycleEngine.getCycleProgress(savedStartTime),
-                    showOnboarding = !hasCompletedOnboarding,
-                    accentColorName = savedAccent,
-                    selectedLanguage = savedLanguage,
-                    selectedCurrencySymbol = savedCurrencySymbol,
-                    selectedCurrencyCode = savedCurrencyCode
-                )
+                _uiState.update {
+                    it.copy(
+                        cycleStartTime = savedStartTime,
+                        currentCycleDate = cycleDate,
+                        isStrictModeEnabled = savedStrictMode,
+                        isHabitReminderEnabled = savedReminderEnabled,
+                        habitReminderTime = savedReminderTime,
+                        timeUntilNextCycle = DailyCycleEngine.getTimeUntilNextCycle(savedStartTime),
+                        cycleProgress = DailyCycleEngine.getCycleProgress(savedStartTime),
+                        showOnboarding = !hasCompletedOnboarding,
+                        accentColorName = savedAccent,
+                        selectedLanguage = savedLanguage,
+                        selectedCurrencySymbol = savedCurrencySymbol,
+                        selectedCurrencyCode = savedCurrencyCode
+                    )
+                }
+
+                // Sembrar datos iniciales si no hay tareas cargadas
+                try {
+                    seedInitialDataIfEmpty(cycleDate)
+                } catch (t: Throwable) {
+                    android.util.Log.w("PersonalOsViewModel", "Error en seedInitialData: ${t.message}")
+                }
+
+                // Limpieza de datos de prueba heredados para asegurar concordancia total con Finanzas
+                try {
+                    val allDebts = repository.assetsAndDebts.first()
+                    allDebts.filter { it.type == "DEUDA" && it.name == "Tarjeta de Crédito" }.forEach {
+                        repository.deleteAssetDebt(it)
+                    }
+                    val allTx = repository.allTransactions.first()
+                    allTx.filter {
+                        (it.description == "Ingreso quincenal" && it.amount == 2500.0) ||
+                        (it.description == "Supermercado semanal" && it.amount == 65.0) ||
+                        (it.description == "Combustible" && it.amount == 15.0)
+                    }.forEach {
+                        repository.deleteTransaction(it)
+                    }
+
+                    val allGoals = repository.allGoals.first()
+                    allGoals.filter { it.title.contains("Fondo de Emergencia", ignoreCase = true) }.forEach {
+                        repository.deleteGoal(it)
+                    }
+                    val allFinGoals = repository.financialGoals.first()
+                    allFinGoals.filter { it.name.contains("Fondo de Emergencia", ignoreCase = true) }.forEach {
+                        repository.deleteFinancialGoal(it)
+                    }
+                } catch (t: Throwable) {
+                    android.util.Log.w("PersonalOsViewModel", "Limpieza de datos ignorada: ${t.message}")
+                }
+
+                generateDailyAiSummary()
+            } catch (t: Throwable) {
+                android.util.Log.e("PersonalOsViewModel", "Error cargando ajustes iniciales: ${t.message}")
             }
-
-            // Sembrar datos iniciales si no hay tareas cargadas
-            seedInitialDataIfEmpty(cycleDate)
-
-            // Limpieza de datos de prueba heredados para asegurar concordancia total con Finanzas
-            val allDebts = repository.assetsAndDebts.first()
-            allDebts.filter { it.type == "DEUDA" && it.name == "Tarjeta de Crédito" }.forEach {
-                repository.deleteAssetDebt(it)
-            }
-            val allTx = repository.allTransactions.first()
-            allTx.filter {
-                (it.description == "Ingreso quincenal" && it.amount == 2500.0) ||
-                (it.description == "Supermercado semanal" && it.amount == 65.0) ||
-                (it.description == "Combustible" && it.amount == 15.0)
-            }.forEach {
-                repository.deleteTransaction(it)
-            }
-
-            // Eliminación definitiva de sección rota Fondo de Emergencia
-            val allGoals = repository.allGoals.first()
-            allGoals.filter { it.title.contains("Fondo de Emergencia", ignoreCase = true) }.forEach {
-                repository.deleteGoal(it)
-            }
-            val allFinGoals = repository.financialGoals.first()
-            allFinGoals.filter { it.name.contains("Fondo de Emergencia", ignoreCase = true) }.forEach {
-                repository.deleteFinancialGoal(it)
-            }
-
-            generateDailyAiSummary()
         }
     }
 
@@ -283,24 +294,32 @@ class PersonalOsViewModel(
 
         // Observar estado de sincronización en la nube (Firestore)
         viewModelScope.launch {
-            repository.cloudSyncState.collect { syncState ->
-                _uiState.update {
-                    it.copy(
-                        isSyncingCloud = syncState.isSyncing,
-                        lastCloudSyncTimestamp = syncState.lastSyncTimestamp,
-                        cloudSyncMessage = syncState.statusMessage,
-                        cloudSyncSuccess = syncState.lastSyncSuccess
-                    )
+            try {
+                repository.cloudSyncState.collect { syncState ->
+                    _uiState.update {
+                        it.copy(
+                            isSyncingCloud = syncState.isSyncing,
+                            lastCloudSyncTimestamp = syncState.lastSyncTimestamp,
+                            cloudSyncMessage = syncState.statusMessage,
+                            cloudSyncSuccess = syncState.lastSyncSuccess
+                        )
+                    }
                 }
+            } catch (t: Throwable) {
+                android.util.Log.w("PersonalOsViewModel", "Observador de cloudSyncState seguro: ${t.message}")
             }
         }
 
         // Observar estado de autenticación (Firebase Auth)
         viewModelScope.launch {
-            repository.currentUserFlow.collect { user ->
-                _uiState.update {
-                    it.copy(currentUser = user)
+            try {
+                repository.currentUserFlow.collect { user ->
+                    _uiState.update {
+                        it.copy(currentUser = user)
+                    }
                 }
+            } catch (t: Throwable) {
+                android.util.Log.w("PersonalOsViewModel", "Observador de currentUserFlow seguro: ${t.message}")
             }
         }
 
@@ -1048,7 +1067,7 @@ class PersonalOsViewModel(
                 if (!advice.isNullOrBlank()) {
                     _uiState.update { it.copy(dailyAiSummary = advice) }
                 }
-            } catch (_: Exception) {
+            } catch (_: Throwable) {
                 // Conserva el resumen inteligente local
             }
         }

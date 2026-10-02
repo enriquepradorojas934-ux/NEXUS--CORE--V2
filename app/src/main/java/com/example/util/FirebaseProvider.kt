@@ -17,34 +17,39 @@ object FirebaseProvider {
 
     @Synchronized
     fun ensureFirebaseInitialized(context: Context?): FirebaseApp? {
-        val existing = FirebaseApp.getApps(context ?: return null)
-        if (existing.isNotEmpty()) {
-            return FirebaseApp.getInstance()
-        }
-
-        // Intento 1: Inicialización estándar con recursos o google-services.json
-        try {
-            val app = FirebaseApp.initializeApp(context)
-            if (app != null) {
-                Log.d(TAG, "FirebaseApp inicializado con éxito usando Context.")
-                return app
-            }
-        } catch (e: Exception) {
-            Log.w(TAG, "FirebaseApp.initializeApp(context) falló: ${e.message}. Probando fallback seguro con FirebaseOptions.")
-        }
-
-        // Intento 2: Fallback con FirebaseOptions predeterminadas para entorno sin google-services.json
+        val ctx = context ?: return null
         return try {
-            val options = FirebaseOptions.Builder()
-                .setApplicationId(context.packageName)
-                .setProjectId("lifeos-personal-executive")
-                .setApiKey("AIzaSyFallbackKeyForLocalSandboxEnvSafe001")
-                .build()
-            val app = FirebaseApp.initializeApp(context, options)
-            Log.d(TAG, "FirebaseApp inicializado con éxito usando FirebaseOptions de respaldo.")
-            app
-        } catch (e: Exception) {
-            Log.e(TAG, "No se pudo inicializar FirebaseApp: ${e.message}")
+            val existing = FirebaseApp.getApps(ctx)
+            if (existing.isNotEmpty()) {
+                try {
+                    return FirebaseApp.getInstance()
+                } catch (_: Throwable) {
+                    return existing.firstOrNull()
+                }
+            }
+
+            // Intento 1: Inicialización estándar con Context
+            try {
+                val app = FirebaseApp.initializeApp(ctx)
+                if (app != null) return app
+            } catch (e: Throwable) {
+                Log.w(TAG, "Inicialización estándar de Firebase no disponible: ${e.message}")
+            }
+
+            // Intento 2: Fallback con FirebaseOptions predeterminadas para entorno sin google-services.json real
+            try {
+                val options = FirebaseOptions.Builder()
+                    .setApplicationId(ctx.packageName)
+                    .setProjectId("lifeos-personal-executive")
+                    .setApiKey("AIzaSyFallbackKeyForLocalSandboxEnvSafe001")
+                    .build()
+                FirebaseApp.initializeApp(ctx, options)
+            } catch (e: Throwable) {
+                Log.d(TAG, "Modo local soberano activo sin Firebase: ${e.message}")
+                null
+            }
+        } catch (t: Throwable) {
+            Log.w(TAG, "No se pudo inicializar FirebaseApp: ${t.message}")
             null
         }
     }
@@ -53,8 +58,8 @@ object FirebaseProvider {
         return try {
             ensureFirebaseInitialized(context)
             FirebaseAuth.getInstance()
-        } catch (e: Exception) {
-            Log.w(TAG, "FirebaseAuth no disponible: ${e.message}")
+        } catch (t: Throwable) {
+            Log.w(TAG, "FirebaseAuth no disponible: ${t.message}")
             null
         }
     }
@@ -63,8 +68,8 @@ object FirebaseProvider {
         return try {
             ensureFirebaseInitialized(context)
             FirebaseFirestore.getInstance()
-        } catch (e: Exception) {
-            Log.w(TAG, "FirebaseFirestore no disponible: ${e.message}")
+        } catch (t: Throwable) {
+            Log.w(TAG, "FirebaseFirestore no disponible: ${t.message}")
             null
         }
     }

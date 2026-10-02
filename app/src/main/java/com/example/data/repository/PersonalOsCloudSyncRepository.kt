@@ -108,8 +108,8 @@ class FirestoreCloudSyncRepository(
     private fun getFirestoreSafe(): FirebaseFirestore? {
         return try {
             firestoreProvider()
-        } catch (e: Exception) {
-            Log.w(TAG, "No se pudo obtener instancia de FirebaseFirestore: ${e.message}")
+        } catch (t: Throwable) {
+            Log.w(TAG, "No se pudo obtener instancia de FirebaseFirestore: ${t.message}")
             null
         }
     }
