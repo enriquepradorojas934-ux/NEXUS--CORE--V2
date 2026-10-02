@@ -25,13 +25,9 @@ import com.example.ui.screens.*
 @Composable
 fun PersonalOsApp() {
     val context = LocalContext.current
-    LaunchedEffect(Unit) {
-        com.example.util.FirebaseProvider.ensureFirebaseInitialized(context)
-    }
     val database = remember { AppDatabase.getDatabase(context) }
     val aiService = remember { PersonalAiProductivityService(context) }
     val repository: PersonalOsRepository = remember {
-        com.example.util.FirebaseProvider.ensureFirebaseInitialized(context)
         PersonalOsRepositoryImpl(database.personalOsDao(), aiService)
     }
     val viewModel: PersonalOsViewModel = viewModel(

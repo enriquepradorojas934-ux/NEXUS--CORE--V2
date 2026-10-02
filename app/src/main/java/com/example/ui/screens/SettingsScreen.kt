@@ -237,10 +237,11 @@ fun SettingsScreen(
         ) {
             // AUTENTICACIÓN FIREBASE (GOOGLE SIGN-IN & CUENTA SEGURA)
             item {
+                // MODO LOCAL SOBERANO (ROOM DATABASE)
                 Card(
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                     shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier.fillMaxWidth().testTag("card_firebase_auth")
+                    modifier = Modifier.fillMaxWidth().testTag("card_local_storage_sovereign")
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Row(
@@ -250,230 +251,61 @@ fun SettingsScreen(
                         ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(
-                                    Icons.Default.AccountCircle,
+                                    Icons.Default.Storage,
                                     contentDescription = null,
                                     tint = ExecutivePrimaryTeal
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    text = "CUENTA Y AUTENTICACIÓN FIREBASE",
+                                    text = "ALMACENAMIENTO LOCAL SOBERANO (ROOM)",
                                     style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
                                     color = ExecutivePrimaryTeal
                                 )
                             }
-                            if (state.isAuthLoading) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(18.dp),
-                                    strokeWidth = 2.dp,
-                                    color = ExecutivePrimaryTeal
+                            Surface(
+                                color = ExecutiveSuccessGreen.copy(alpha = 0.15f),
+                                shape = RoundedCornerShape(8.dp)
+                            ) {
+                                Text(
+                                    text = "100% OFFLINE",
+                                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                                    color = ExecutiveSuccessGreen,
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                                 )
                             }
                         }
 
                         Spacer(modifier = Modifier.height(10.dp))
 
-                        val user = state.currentUser
-                        if (user != null) {
-                            Surface(
-                                color = ExecutiveDarkSurfaceVariant.copy(alpha = 0.5f),
-                                shape = RoundedCornerShape(12.dp),
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Row(
-                                    modifier = Modifier.padding(12.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Icon(
-                                        if (user.isAnonymous) Icons.Default.Shield else Icons.Default.VerifiedUser,
-                                        contentDescription = null,
-                                        tint = if (user.isAnonymous) ExecutiveSecondaryAmber else ExecutiveSuccessGreen,
-                                        modifier = Modifier.size(28.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(12.dp))
-                                    Column(modifier = Modifier.weight(1f)) {
-                                        Text(
-                                            text = user.displayName ?: if (user.isAnonymous) "Sesión Anónima Segura" else (user.email ?: "Usuario Autenticado"),
-                                            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                                            color = MaterialTheme.colorScheme.onSurface
-                                        )
-                                        Text(
-                                            text = if (user.email != null) user.email else "UID: ${user.uid.take(12)}...",
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    }
-                                }
-                            }
-
-                            Spacer(modifier = Modifier.height(12.dp))
-
-                            OutlinedButton(
-                                onClick = onSignOut,
-                                colors = ButtonDefaults.outlinedButtonColors(contentColor = ExecutiveDangerRed),
-                                modifier = Modifier.fillMaxWidth().testTag("btn_auth_sign_out")
-                            ) {
-                                Icon(Icons.Default.Logout, contentDescription = null, modifier = Modifier.size(16.dp))
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text(stringResource(R.string.settings_cloud_sign_out))
-                            }
-                        } else {
-                            Text(
-                                text = stringResource(R.string.settings_cloud_sync_desc),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-
-                            state.authError?.let { err ->
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Surface(
-                                    color = ExecutiveDangerRed.copy(alpha = 0.12f),
-                                    shape = RoundedCornerShape(8.dp),
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    Text(
-                                        text = err,
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = ExecutiveDangerRed,
-                                        modifier = Modifier.padding(8.dp)
-                                    )
-                                }
-                            }
-
-                            Spacer(modifier = Modifier.height(14.dp))
-
-                            Button(
-                                onClick = onSignInWithGoogle,
-                                enabled = !state.isAuthLoading,
-                                colors = ButtonDefaults.buttonColors(containerColor = ExecutivePrimaryTeal),
-                                modifier = Modifier.fillMaxWidth().testTag("btn_auth_google_signin")
-                            ) {
-                                Icon(
-                                    Icons.Default.Login,
-                                    contentDescription = null,
-                                    tint = ExecutiveDarkBg,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(
-                                    text = stringResource(R.string.settings_cloud_sign_in_google),
-                                    color = ExecutiveDarkBg,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-
-                            Spacer(modifier = Modifier.height(8.dp))
-
-                            OutlinedButton(
-                                onClick = onSignInAnonymously,
-                                enabled = !state.isAuthLoading,
-                                modifier = Modifier.fillMaxWidth().testTag("btn_auth_anonymous_signin")
-                            ) {
-                                Icon(
-                                    Icons.Default.Key,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text(
-                                    text = stringResource(R.string.cloud_anonymous_session),
-                                    style = MaterialTheme.typography.labelSmall
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-
-            // SINCRONIZACIÓN EN LA NUBE (CLOUD FIRESTORE)
-            item {
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier.fillMaxWidth().testTag("card_cloud_sync")
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.CloudSync, contentDescription = null, tint = ExecutivePrimaryTeal)
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(
-                                    text = stringResource(R.string.settings_cloud_sync_title),
-                                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                                    color = ExecutivePrimaryTeal
-                                )
-                            }
-                            if (state.isSyncingCloud) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(18.dp),
-                                    strokeWidth = 2.dp,
-                                    color = ExecutivePrimaryTeal
-                                )
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(6.dp))
                         Text(
-                            text = stringResource(R.string.settings_cloud_sync_desc),
+                            text = "Tus datos (calendario, entrenamientos, hábitos, finanzas y puntos RPG) se almacenan de manera persistente en la base de datos local SQLite (Room) de tu dispositivo. La aplicación opera de forma autónoma sin depender de servicios en la nube ni requerir inicio de sesión con Google.",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
 
-                        state.cloudSyncMessage?.let { msg ->
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Surface(
-                                color = if (state.cloudSyncSuccess) ExecutivePrimaryTeal.copy(alpha = 0.12f) else ExecutiveDangerRed.copy(alpha = 0.12f),
-                                shape = RoundedCornerShape(8.dp)
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        Surface(
+                            color = ExecutiveDarkSurfaceVariant.copy(alpha = 0.6f),
+                            shape = RoundedCornerShape(10.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text(
-                                    text = msg,
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = if (state.cloudSyncSuccess) ExecutivePrimaryTeal else ExecutiveDangerRed,
-                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                                Icon(
+                                    Icons.Default.CheckCircle,
+                                    contentDescription = null,
+                                    tint = ExecutiveSuccessGreen,
+                                    modifier = Modifier.size(16.dp)
                                 )
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(14.dp))
-
-                        Button(
-                            onClick = onSyncAllWithCloud,
-                            enabled = !state.isSyncingCloud,
-                            colors = ButtonDefaults.buttonColors(containerColor = ExecutivePrimaryTeal),
-                            modifier = Modifier.fillMaxWidth().testTag("btn_sync_cloud_all")
-                        ) {
-                            Icon(Icons.Default.Sync, contentDescription = null, tint = ExecutiveDarkBg, modifier = Modifier.size(18.dp))
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(stringResource(R.string.settings_cloud_sync_title), color = ExecutiveDarkBg, fontWeight = FontWeight.Bold)
-                        }
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            OutlinedButton(
-                                onClick = onUploadToCloud,
-                                enabled = !state.isSyncingCloud,
-                                modifier = Modifier.weight(1f).testTag("btn_upload_cloud")
-                            ) {
-                                Icon(Icons.Default.CloudUpload, contentDescription = null, modifier = Modifier.size(16.dp))
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text(stringResource(R.string.settings_cloud_upload_backup), style = MaterialTheme.typography.labelSmall)
-                            }
-
-                            OutlinedButton(
-                                onClick = onDownloadFromCloud,
-                                enabled = !state.isSyncingCloud,
-                                modifier = Modifier.weight(1f).testTag("btn_download_cloud")
-                            ) {
-                                Icon(Icons.Default.CloudDownload, contentDescription = null, modifier = Modifier.size(16.dp))
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text(stringResource(R.string.settings_cloud_restore_backup), style = MaterialTheme.typography.labelSmall)
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "Persistencia Room activa · Cero latencia · Privacidad total",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
                             }
                         }
                     }
