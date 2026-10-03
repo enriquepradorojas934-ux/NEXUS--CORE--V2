@@ -22,6 +22,7 @@ interface PersonalOsRepository {
     suspend fun deleteTask(task: TaskEntity)
 
     // === BLOQUES DE TIEMPO (ROOM) ===
+    val allTimeBlocks: Flow<List<TimeBlockEntity>>
     fun getTimeBlocksByCycle(cycleDate: String): Flow<List<TimeBlockEntity>>
     suspend fun insertTimeBlock(block: TimeBlockEntity): Long
     suspend fun updateTimeBlock(block: TimeBlockEntity)
@@ -152,6 +153,7 @@ class PersonalOsRepositoryImpl(
     override suspend fun deleteTask(task: TaskEntity) = dao.deleteTask(task)
 
     // === BLOQUES DE TIEMPO ===
+    override val allTimeBlocks: Flow<List<TimeBlockEntity>> = dao.getAllTimeBlocks()
     override fun getTimeBlocksByCycle(cycleDate: String): Flow<List<TimeBlockEntity>> = dao.getTimeBlocksByCycle(cycleDate)
     override suspend fun insertTimeBlock(block: TimeBlockEntity): Long = dao.insertTimeBlock(block)
     override suspend fun updateTimeBlock(block: TimeBlockEntity) = dao.updateTimeBlock(block)

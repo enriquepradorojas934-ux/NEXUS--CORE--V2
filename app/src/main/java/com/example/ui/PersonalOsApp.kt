@@ -36,18 +36,20 @@ fun PersonalOsApp() {
 
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
-    var showFitnessOverlay by remember { mutableStateOf(false) }
     var showChatOverlay by remember { mutableStateOf(false) }
 
     // Solicitud de permisos en tiempo de ejecución para notificaciones locales (Android 13+)
-    val notificationPermissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
-    ) { _ -> }
+    val currentRegistryOwner = androidx.activity.compose.LocalActivityResultRegistryOwner.current
+    val notificationPermissionLauncher = if (currentRegistryOwner != null) {
+        rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.RequestPermission()
+        ) { _ -> }
+    } else null
 
     LaunchedEffect(Unit) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-                notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                notificationPermissionLauncher?.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
         }
     }
@@ -112,6 +114,12 @@ fun PersonalOsApp() {
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
+            if (state.activeTab != AppNavTab.DASHBOARD) {
+                androidx.activity.compose.BackHandler {
+                    viewModel.selectTab(AppNavTab.DASHBOARD)
+                }
+            }
+
             Crossfade(targetState = state.activeTab, label = "tab_crossfade") { tab ->
                 when (tab) {
                     AppNavTab.DASHBOARD -> DashboardScreen(
@@ -132,7 +140,7 @@ fun PersonalOsApp() {
                         onDetectGlobalCommand = { viewModel.detectGlobalCommand(it) },
                         onExecuteGlobalCommand = { viewModel.executeGlobalCommand(it) },
                         onClearGlobalCommand = { viewModel.clearGlobalCommand() },
-                        onOpenFitness = { showFitnessOverlay = true },
+                        onOpenFitness = { viewModel.selectTab(AppNavTab.FITNESS) },
                         onOpenChat = { showChatOverlay = true }
                     )
                     AppNavTab.TIME -> TimeScreen(
@@ -154,6 +162,25 @@ fun PersonalOsApp() {
                         onDeleteHabit = { viewModel.deleteHabit(it) },
                         onSetHabitReminder = { enabled, time -> viewModel.setHabitReminder(context, enabled, time) },
                         onTestHabitReminder = { viewModel.triggerHabitReminderTest(context) }
+                    )
+                    AppNavTab.FITNESS -> FitnessScreen(
+                        state = state,
+                        onAddWorkout = { title, goal, dur, notes, exercises ->
+                            viewModel.addWorkoutSession(title, goal, dur, notes, exercises)
+                        },
+                        onDeleteWorkout = { viewModel.deleteWorkoutSession(it) },
+                        onAnalyzeAi = { viewModel.analyzeWorkoutWithAi() },
+                        onSuggestTacticalNote = { name, goal, mins, summary, callback ->
+                            viewModel.suggestTacticalWorkoutNote(name, goal, mins, summary, callback)
+                        },
+                        onToggleExercise = { viewModel.toggleWorkoutExercise(it) },
+                        onToggleWorkoutSession = { viewModel.toggleWorkoutSessionCompleted(it) },
+                        onAddExerciseToSession = { sessionId, name, sets, reps, weight, rest ->
+                            viewModel.addWorkoutExercise(sessionId, name, sets, reps, weight, rest)
+                        },
+                        onUpdateExercise = { viewModel.updateWorkoutExercise(it) },
+                        onDeleteExercise = { viewModel.deleteWorkoutExercise(it) },
+                        onClose = { viewModel.selectTab(AppNavTab.DASHBOARD) }
                     )
                     AppNavTab.GOALS -> GoalsScreen(
                         state = state,
@@ -211,28 +238,6 @@ fun PersonalOsApp() {
                     onEnableReminder = { time ->
                         viewModel.setHabitReminder(context, true, time)
                     }
-                )
-            }
-
-            if (showFitnessOverlay) {
-                FitnessScreen(
-                    state = state,
-                    onAddWorkout = { title, goal, dur, notes, exercises ->
-                        viewModel.addWorkoutSession(title, goal, dur, notes, exercises)
-                    },
-                    onDeleteWorkout = { viewModel.deleteWorkoutSession(it) },
-                    onAnalyzeAi = { viewModel.analyzeWorkoutWithAi() },
-                    onSuggestTacticalNote = { name, goal, mins, summary, callback ->
-                        viewModel.suggestTacticalWorkoutNote(name, goal, mins, summary, callback)
-                    },
-                    onToggleExercise = { viewModel.toggleWorkoutExercise(it) },
-                    onToggleWorkoutSession = { viewModel.toggleWorkoutSessionCompleted(it) },
-                    onAddExerciseToSession = { sessionId, name, sets, reps, weight, rest ->
-                        viewModel.addWorkoutExercise(sessionId, name, sets, reps, weight, rest)
-                    },
-                    onUpdateExercise = { viewModel.updateWorkoutExercise(it) },
-                    onDeleteExercise = { viewModel.deleteWorkoutExercise(it) },
-                    onClose = { showFitnessOverlay = false }
                 )
             }
 

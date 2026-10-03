@@ -76,8 +76,6 @@ class HabitReminderWorker(
         val notificationManager = appContext.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
             ?: return
 
-        createNotificationChannel(notificationManager)
-
         // Verificar permiso en Android 13+ (POST_NOTIFICATIONS)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             val hasPermission = ContextCompat.checkSelfPermission(
@@ -135,15 +133,17 @@ class HabitReminderWorker(
 
     private fun createNotificationChannel(manager: NotificationManager, context: Context = appContext) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                CHANNEL_ID,
-                context.getString(com.example.R.string.notification_channel_name),
-                NotificationManager.IMPORTANCE_DEFAULT
-            ).apply {
-                description = context.getString(com.example.R.string.notification_channel_desc)
-                enableVibration(true)
+            if (manager.getNotificationChannel(CHANNEL_ID) == null) {
+                val channel = NotificationChannel(
+                    CHANNEL_ID,
+                    context.getString(com.example.R.string.notification_channel_name),
+                    NotificationManager.IMPORTANCE_DEFAULT
+                ).apply {
+                    description = context.getString(com.example.R.string.notification_channel_desc)
+                    enableVibration(true)
+                }
+                manager.createNotificationChannel(channel)
             }
-            manager.createNotificationChannel(channel)
         }
     }
 

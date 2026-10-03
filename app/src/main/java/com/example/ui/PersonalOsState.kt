@@ -6,6 +6,7 @@ enum class AppNavTab(val label: String) {
     DASHBOARD("Hub"),
     TIME("Tiempo"),
     HABITS("Hábitos"),
+    FITNESS("Entrenamiento"),
     GOALS("Metas"),
     FINANCE("Finanzas"),
     SETTINGS("Ajustes")

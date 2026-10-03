@@ -559,8 +559,16 @@ fun DashboardScreen(
                 }
 
                 item {
+                    val activeSession = state.workoutSessions.firstOrNull()
+                    val sessionExercises = if (activeSession != null) state.workoutExercises.filter { it.sessionId == activeSession.id } else emptyList()
+                    val completedEx = sessionExercises.count { it.isCompleted }
+                    val totalEx = sessionExercises.size
+
                     TacticalCard(
-                        modifier = Modifier.fillMaxWidth().clickable { onOpenFitness() }.testTag("card_fitness_hub_preview"),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onOpenFitness() }
+                            .testTag("card_fitness_hub_preview"),
                         accentColor = TacticalNeonCyan
                     ) {
                         Row(
@@ -569,25 +577,39 @@ fun DashboardScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
-                                val latest = state.workoutSessions.firstOrNull()
                                 Text(
-                                    text = latest?.title ?: stringResource(R.string.hub_workout_no_routine_today),
+                                    text = activeSession?.title ?: stringResource(R.string.hub_workout_no_routine_today),
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = ExecutiveTextPrimary
                                 )
+                                Spacer(modifier = Modifier.height(2.dp))
                                 Text(
-                                    text = if (latest != null) stringResource(R.string.hub_workout_routine_meta, latest.durationMinutes, latest.targetGoal) else stringResource(R.string.hub_workout_tap_to_log),
+                                    text = if (activeSession != null) {
+                                        if (totalEx > 0) {
+                                            "$completedEx/$totalEx ejercicios completados • ${activeSession.targetGoal}"
+                                        } else {
+                                            stringResource(R.string.hub_workout_routine_meta, activeSession.durationMinutes, activeSession.targetGoal)
+                                        }
+                                    } else {
+                                        stringResource(R.string.hub_workout_tap_to_log)
+                                    },
                                     fontSize = 12.sp,
-                                    color = ExecutiveTextSecondary
+                                    color = if (totalEx > 0 && completedEx == totalEx) ExecutiveSuccessGreen else ExecutiveTextSecondary
                                 )
                             }
+                            Spacer(modifier = Modifier.width(8.dp))
                             FilledTonalButton(
                                 onClick = onOpenFitness,
                                 colors = ButtonDefaults.filledTonalButtonColors(containerColor = TacticalNeonCyan.copy(alpha = 0.2f)),
                                 shape = RoundedCornerShape(6.dp)
                             ) {
-                                Text(stringResource(R.string.action_open), fontSize = 11.sp, color = TacticalNeonCyan, fontWeight = FontWeight.Bold)
+                                Text(
+                                    text = if (activeSession != null && completedEx > 0) "Continuar" else "Registrar",
+                                    fontSize = 11.sp,
+                                    color = TacticalNeonCyan,
+                                    fontWeight = FontWeight.Bold
+                                )
                             }
                         }
                     }

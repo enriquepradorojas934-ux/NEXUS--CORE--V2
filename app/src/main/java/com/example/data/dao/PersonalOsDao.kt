@@ -27,6 +27,9 @@ interface PersonalOsDao {
     @Query("SELECT * FROM time_blocks WHERE cycleDate = :cycleDate ORDER BY startTime ASC")
     fun getTimeBlocksByCycle(cycleDate: String): Flow<List<TimeBlockEntity>>
 
+    @Query("SELECT * FROM time_blocks ORDER BY startTime ASC")
+    fun getAllTimeBlocks(): Flow<List<TimeBlockEntity>>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTimeBlock(block: TimeBlockEntity): Long
 

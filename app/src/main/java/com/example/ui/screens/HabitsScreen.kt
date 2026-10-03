@@ -79,10 +79,8 @@ fun HabitsScreen(
         return "%02d:%02d".format(h24.coerceIn(0, 23), m)
     }
 
-    val registryOwner = androidx.activity.compose.LocalActivityResultRegistryOwner.current
-        ?: (context as? androidx.activity.result.ActivityResultRegistryOwner)
-
-    val notificationLauncher = if (registryOwner != null) {
+    val currentRegistryOwner = androidx.activity.compose.LocalActivityResultRegistryOwner.current
+    val notificationLauncher = if (currentRegistryOwner != null) {
         rememberLauncherForActivityResult(
             contract = ActivityResultContracts.RequestPermission()
         ) { isGranted ->

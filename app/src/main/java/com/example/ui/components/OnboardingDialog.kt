@@ -59,10 +59,8 @@ fun OnboardingDialog(
     val selectedHabits = remember { mutableStateListOf(habit1, habit2) }
     var reminderEnabled by remember { mutableStateOf(false) }
 
-    val registryOwner = androidx.activity.compose.LocalActivityResultRegistryOwner.current
-        ?: (context as? androidx.activity.result.ActivityResultRegistryOwner)
-
-    val notificationLauncher = if (registryOwner != null) {
+    val currentRegistryOwner = androidx.activity.compose.LocalActivityResultRegistryOwner.current
+    val notificationLauncher = if (currentRegistryOwner != null) {
         rememberLauncherForActivityResult(
             contract = ActivityResultContracts.RequestPermission()
         ) { granted ->

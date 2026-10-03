@@ -922,11 +922,11 @@ fun InteractiveWorkoutSessionCard(
         accentColor = if (session.isCompleted) ExecutiveSuccessGreen else TacticalNeonCyan.copy(alpha = 0.8f)
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
-            // ENCABEZADO INTERACTIVO: Al tocar abre/cierra la rutina
+            // ENCABEZADO INTERACTIVO: Al tocar abre la sesión interactiva
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { onToggleExpand() }
+                    .clickable { onStartWorkoutRunner() }
                     .padding(vertical = 4.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically

@@ -71,38 +71,13 @@ class PersonalOsViewModel(
                     )
                 }
 
+                recalculateProgression()
+
                 // Sembrar datos iniciales si no hay tareas cargadas
                 try {
                     seedInitialDataIfEmpty(cycleDate)
                 } catch (t: Throwable) {
                     android.util.Log.w("PersonalOsViewModel", "Error en seedInitialData: ${t.message}")
-                }
-
-                // Limpieza de datos de prueba heredados para asegurar concordancia total con Finanzas
-                try {
-                    val allDebts = repository.assetsAndDebts.first()
-                    allDebts.filter { it.type == "DEUDA" && it.name == "Tarjeta de Crédito" }.forEach {
-                        repository.deleteAssetDebt(it)
-                    }
-                    val allTx = repository.allTransactions.first()
-                    allTx.filter {
-                        (it.description == "Ingreso quincenal" && it.amount == 2500.0) ||
-                        (it.description == "Supermercado semanal" && it.amount == 65.0) ||
-                        (it.description == "Combustible" && it.amount == 15.0)
-                    }.forEach {
-                        repository.deleteTransaction(it)
-                    }
-
-                    val allGoals = repository.allGoals.first()
-                    allGoals.filter { it.title.contains("Fondo de Emergencia", ignoreCase = true) }.forEach {
-                        repository.deleteGoal(it)
-                    }
-                    val allFinGoals = repository.financialGoals.first()
-                    allFinGoals.filter { it.name.contains("Fondo de Emergencia", ignoreCase = true) }.forEach {
-                        repository.deleteFinancialGoal(it)
-                    }
-                } catch (t: Throwable) {
-                    android.util.Log.w("PersonalOsViewModel", "Limpieza de datos ignorada: ${t.message}")
                 }
 
                 generateDailyAiSummary()
@@ -175,14 +150,16 @@ class PersonalOsViewModel(
             }
         }
 
-        // Metas y sub-metas vinculadas con hábitos
+        // Metas y sub-metas vinculadas reactivamente con hábitos
         viewModelScope.launch {
             combine(
                 repository.allGoals,
                 repository.allSubGoals,
-                repository.activeHabits
-            ) { goals, subGoals, habits ->
-                val logs = _uiState.value.habitLogsToday
+                repository.activeHabits,
+                repository.allHabitLogs
+            ) { goals, subGoals, habits, allHabitLogs ->
+                val currentCycle = _uiState.value.currentCycleDate
+                val logs = allHabitLogs.filter { it.cycleDate == currentCycle }
                 val goalsWithSubs = goals.map { goal ->
                     val subs = subGoals.filter { it.goalId == goal.id }
                     val goalHabits = habits.filter { it.goalId == goal.id }
@@ -339,6 +316,15 @@ class PersonalOsViewModel(
         }
     }
 
+    fun addPersistentXp(delta: Long) {
+        if (delta == 0L) return
+        persistentXp = (persistentXp + delta).coerceAtLeast(0L)
+        viewModelScope.launch {
+            repository.setConfig("persistent_xp", persistentXp.toString())
+        }
+        recalculateProgression()
+    }
+
     private fun recalculateProgression() {
         val s = _uiState.value
         val (prog, ach) = ProgressionEngine.calculateProgression(
@@ -354,13 +340,15 @@ class PersonalOsViewModel(
             workoutExercises = s.workoutExercises,
             persistentStoredXp = persistentXp
         )
-        if (prog.totalXp > persistentXp) {
-            persistentXp = prog.totalXp
+        val finalXp = maxOf(prog.totalXp, persistentXp)
+        if (finalXp > persistentXp) {
+            persistentXp = finalXp
             viewModelScope.launch {
                 repository.setConfig("persistent_xp", persistentXp.toString())
             }
         }
-        _uiState.update { it.copy(userProgression = prog, achievements = ach) }
+        val finalProg = if (prog.totalXp != finalXp) prog.copy(totalXp = finalXp) else prog
+        _uiState.update { it.copy(userProgression = finalProg, achievements = ach) }
     }
 
     // === ACCIONES DE NAVEGACIÓN ===
@@ -418,8 +406,9 @@ class PersonalOsViewModel(
 
     fun toggleTask(task: TaskEntity) {
         viewModelScope.launch {
-            repository.updateTask(task.copy(isCompleted = !task.isCompleted))
-            recalculateProgression()
+            val nextState = !task.isCompleted
+            repository.updateTask(task.copy(isCompleted = nextState))
+            addPersistentXp(if (nextState) 25L else -25L)
         }
     }
 
@@ -502,10 +491,11 @@ class PersonalOsViewModel(
                 cycleDate = _uiState.value.currentCycleDate
             )
             repository.insertTimeEntry(entry)
+            addPersistentXp(minutes * 1L)
             _uiState.update {
                 it.copy(
                     focusTimer = FocusTimerState(isRunning = false, elapsedSeconds = 0L),
-                    userMessage = "Registrados $minutes min dedicados a '${currentTimer.activityName}'"
+                    userMessage = "Registrados $minutes min dedicados a '${currentTimer.activityName}' (+${minutes} XP)"
                 )
             }
         }
@@ -544,6 +534,7 @@ class PersonalOsViewModel(
                 // Disminuir racha
                 val newStreak = (habit.currentStreak - 1).coerceAtLeast(0)
                 repository.updateHabit(habit.copy(currentStreak = newStreak))
+                addPersistentXp(-20L)
             } else {
                 val log = HabitLogEntity(
                     habitId = habitId,
@@ -556,6 +547,8 @@ class PersonalOsViewModel(
                 val newStreak = habit.currentStreak + 1
                 val best = maxOf(newStreak, habit.bestStreak)
                 repository.updateHabit(habit.copy(currentStreak = newStreak, bestStreak = best))
+                addPersistentXp(20L)
+                _uiState.update { it.copy(userMessage = "¡Hábito cumplido! (+20 XP)") }
             }
         }
     }
@@ -637,7 +630,9 @@ class PersonalOsViewModel(
 
     fun toggleSubGoal(subGoal: SubGoalEntity) {
         viewModelScope.launch {
-            repository.updateSubGoal(subGoal.copy(isCompleted = !subGoal.isCompleted))
+            val nextState = !subGoal.isCompleted
+            repository.updateSubGoal(subGoal.copy(isCompleted = nextState))
+            addPersistentXp(if (nextState) 75L else -75L)
         }
     }
 
@@ -659,7 +654,7 @@ class PersonalOsViewModel(
                 cycleDate = _uiState.value.currentCycleDate
             )
             repository.insertTransaction(tx)
-            recalculateProgression()
+            addPersistentXp(10L)
         }
     }
 
@@ -837,6 +832,7 @@ class PersonalOsViewModel(
             val ex = _uiState.value.workoutExercises.find { it.id == exerciseId } ?: return@launch
             val updated = ex.copy(isCompleted = !ex.isCompleted)
             repository.updateWorkoutExercise(updated)
+            addPersistentXp(if (updated.isCompleted) 20L else -20L)
 
             val siblingExercises = _uiState.value.workoutExercises.filter { it.sessionId == ex.sessionId && it.id != ex.id }
             val allSiblingsDone = siblingExercises.all { it.isCompleted }
@@ -844,10 +840,10 @@ class PersonalOsViewModel(
                 val session = _uiState.value.workoutSessions.find { it.id == ex.sessionId }
                 if (session != null && !session.isCompleted) {
                     repository.updateWorkoutSession(session.copy(isCompleted = true))
+                    addPersistentXp(100L)
                     _uiState.update { it.copy(userMessage = "¡Sesión '${session.title}' completada! (+100 XP Vitalidad)") }
                 }
             }
-            recalculateProgression()
         }
     }
 
@@ -856,6 +852,7 @@ class PersonalOsViewModel(
             val session = _uiState.value.workoutSessions.find { it.id == sessionId } ?: return@launch
             val newStatus = !session.isCompleted
             repository.updateWorkoutSession(session.copy(isCompleted = newStatus))
+            addPersistentXp(if (newStatus) 100L else -100L)
 
             if (newStatus) {
                 val exercises = _uiState.value.workoutExercises.filter { it.sessionId == sessionId }
@@ -866,7 +863,6 @@ class PersonalOsViewModel(
                 }
                 _uiState.update { it.copy(userMessage = "¡Sesión '${session.title}' finalizada! (+100 XP)") }
             }
-            recalculateProgression()
         }
     }
 

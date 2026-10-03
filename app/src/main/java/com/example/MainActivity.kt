@@ -7,12 +7,19 @@ import androidx.activity.enableEdgeToEdge
 import com.example.ui.PersonalOsApp
 import com.example.ui.theme.MyApplicationTheme
 
+import androidx.activity.compose.LocalActivityResultRegistryOwner
+import androidx.compose.runtime.CompositionLocalProvider
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            PersonalOsApp()
+            CompositionLocalProvider(
+                LocalActivityResultRegistryOwner provides this
+            ) {
+                PersonalOsApp()
+            }
         }
     }
 }

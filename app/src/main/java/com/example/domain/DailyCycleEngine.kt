@@ -13,6 +13,15 @@ object DailyCycleEngine {
      * Retorna una cadena con formato "YYYY-MM-DD".
      */
     fun getCurrentCycleDate(cycleStartTime: String = DEFAULT_CYCLE_START_TIME, currentTimeMillis: Long = System.currentTimeMillis()): String {
+        val calendar = getCurrentCycleCalendar(cycleStartTime, currentTimeMillis)
+        val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        return sdf.format(calendar.time)
+    }
+
+    /**
+     * Retorna el objeto Calendar correspondiente al ciclo activo (ajustado según la hora de inicio ej. 05:00).
+     */
+    fun getCurrentCycleCalendar(cycleStartTime: String = DEFAULT_CYCLE_START_TIME, currentTimeMillis: Long = System.currentTimeMillis()): Calendar {
         val (startHour, startMinute) = parseHourMinute(cycleStartTime)
         val calendar = Calendar.getInstance().apply { timeInMillis = currentTimeMillis }
 
@@ -26,9 +35,23 @@ object DailyCycleEngine {
             // El ciclo actual comenzó el día calendario de ayer a las 05:00
             calendar.add(Calendar.DAY_OF_YEAR, -1)
         }
+        return calendar
+    }
 
-        val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-        return sdf.format(calendar.time)
+    /**
+     * Retorna el número de día de la semana para el ciclo activo (Calendar.MONDAY, Calendar.TUESDAY, etc.).
+     */
+    fun getCurrentCycleDayOfWeek(cycleStartTime: String = DEFAULT_CYCLE_START_TIME, currentTimeMillis: Long = System.currentTimeMillis()): Int {
+        return getCurrentCycleCalendar(cycleStartTime, currentTimeMillis).get(Calendar.DAY_OF_WEEK)
+    }
+
+    /**
+     * Retorna el nombre del día en español (ej: "Lunes", "Martes", "Miércoles") para el ciclo activo.
+     */
+    fun getCurrentCycleDayName(cycleStartTime: String = DEFAULT_CYCLE_START_TIME, currentTimeMillis: Long = System.currentTimeMillis()): String {
+        val cal = getCurrentCycleCalendar(cycleStartTime, currentTimeMillis)
+        val dayFormat = SimpleDateFormat("EEEE", Locale("es", "ES"))
+        return dayFormat.format(cal.time).replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale("es", "ES")) else it.toString() }
     }
 
     /**

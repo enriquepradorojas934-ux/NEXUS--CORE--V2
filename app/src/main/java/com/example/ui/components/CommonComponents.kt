@@ -628,6 +628,7 @@ fun ExecutiveBottomNav(
             Triple(AppNavTab.DASHBOARD, Icons.Default.Dashboard, androidx.compose.ui.res.stringResource(com.example.R.string.nav_hub)),
             Triple(AppNavTab.TIME, Icons.Default.Schedule, androidx.compose.ui.res.stringResource(com.example.R.string.nav_time)),
             Triple(AppNavTab.HABITS, Icons.Default.CheckCircle, androidx.compose.ui.res.stringResource(com.example.R.string.nav_habits)),
+            Triple(AppNavTab.FITNESS, Icons.Default.FitnessCenter, androidx.compose.ui.res.stringResource(com.example.R.string.nav_fitness)),
             Triple(AppNavTab.GOALS, Icons.Default.Flag, androidx.compose.ui.res.stringResource(com.example.R.string.nav_goals)),
             Triple(AppNavTab.FINANCE, Icons.Default.AccountBalanceWallet, androidx.compose.ui.res.stringResource(com.example.R.string.nav_finance))
         )
