@@ -834,14 +834,26 @@ class PersonalOsViewModel(
             repository.updateWorkoutExercise(updated)
             addPersistentXp(if (updated.isCompleted) 20L else -20L)
 
-            val siblingExercises = _uiState.value.workoutExercises.filter { it.sessionId == ex.sessionId && it.id != ex.id }
-            val allSiblingsDone = siblingExercises.all { it.isCompleted }
-            if (updated.isCompleted && allSiblingsDone) {
+            val exDay = com.example.domain.WorkoutDayHelper.getDayTitle(ex)
+            val siblingExercisesOfDay = _uiState.value.workoutExercises.filter {
+                it.sessionId == ex.sessionId && it.id != ex.id && com.example.domain.WorkoutDayHelper.getDayTitle(it) == exDay
+            }
+            val allDayDone = siblingExercisesOfDay.all { it.isCompleted }
+            if (updated.isCompleted && allDayDone) {
                 val session = _uiState.value.workoutSessions.find { it.id == ex.sessionId }
-                if (session != null && !session.isCompleted) {
+                addPersistentXp(100L)
+                _uiState.update { it.copy(userMessage = "¡Entrenamiento de $exDay completado! (+100 XP Vitalidad)") }
+
+                val allSessionDone = _uiState.value.workoutExercises.filter { it.sessionId == ex.sessionId && it.id != ex.id }.all { it.isCompleted }
+                if (allSessionDone && session != null && !session.isCompleted) {
                     repository.updateWorkoutSession(session.copy(isCompleted = true))
-                    addPersistentXp(100L)
-                    _uiState.update { it.copy(userMessage = "¡Sesión '${session.title}' completada! (+100 XP Vitalidad)") }
+                }
+            } else if (!updated.isCompleted && allDayDone) {
+                // Si el día estaba completo y se desmarca un ejercicio, revertir el XP del día
+                addPersistentXp(-100L)
+                val session = _uiState.value.workoutSessions.find { it.id == ex.sessionId }
+                if (session != null && session.isCompleted) {
+                    repository.updateWorkoutSession(session.copy(isCompleted = false))
                 }
             }
         }
@@ -866,7 +878,7 @@ class PersonalOsViewModel(
         }
     }
 
-    fun addWorkoutExercise(sessionId: Long, name: String, sets: Int, reps: String, weightKg: Double, restSeconds: Int) {
+    fun addWorkoutExercise(sessionId: Long, name: String, sets: Int, reps: String, weightKg: Double, restSeconds: Int, notes: String = "") {
         if (name.isBlank()) return
         viewModelScope.launch {
             val ex = WorkoutExerciseEntity(
@@ -875,7 +887,8 @@ class PersonalOsViewModel(
                 sets = sets.coerceAtLeast(1),
                 reps = reps.trim().ifBlank { "10" },
                 weightKg = weightKg.coerceAtLeast(0.0),
-                restSeconds = restSeconds.coerceAtLeast(15)
+                restSeconds = restSeconds.coerceAtLeast(15),
+                notes = notes
             )
             repository.insertWorkoutExercise(ex)
             recalculateProgression()

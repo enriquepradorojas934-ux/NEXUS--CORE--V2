@@ -560,16 +560,28 @@ fun DashboardScreen(
 
                 item {
                     val activeSession = state.workoutSessions.firstOrNull()
-                    val sessionExercises = if (activeSession != null) state.workoutExercises.filter { it.sessionId == activeSession.id } else emptyList()
+                    val configuredDays = if (activeSession != null) com.example.domain.WorkoutDayHelper.getConfiguredDays(activeSession, state.workoutExercises) else emptyList()
+                    val todayIdx = if (activeSession != null) com.example.domain.WorkoutDayHelper.findTodayDayIndex(configuredDays, state.cycleStartTime) else null
+                    val nextWorkoutDay = if (activeSession != null && todayIdx == null) com.example.domain.WorkoutDayHelper.findNextWorkoutDay(configuredDays, state.cycleStartTime) else null
+                    val todayDayPair = if (todayIdx != null) configuredDays.getOrNull(todayIdx) else null
+
+                    val sessionExercises = if (activeSession != null) {
+                        if (todayDayPair != null) {
+                            state.workoutExercises.filter { it.sessionId == activeSession.id && com.example.domain.WorkoutDayHelper.getDayTitle(it) == todayDayPair.first }
+                        } else {
+                            state.workoutExercises.filter { it.sessionId == activeSession.id }
+                        }
+                    } else emptyList()
                     val completedEx = sessionExercises.count { it.isCompleted }
                     val totalEx = sessionExercises.size
+                    val isTodayRest = (activeSession != null && todayIdx == null)
 
                     TacticalCard(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable { onOpenFitness() }
                             .testTag("card_fitness_hub_preview"),
-                        accentColor = TacticalNeonCyan
+                        accentColor = if (isTodayRest) ExecutiveSecondaryAmber else TacticalNeonCyan
                     ) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -578,7 +590,13 @@ fun DashboardScreen(
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = activeSession?.title ?: stringResource(R.string.hub_workout_no_routine_today),
+                                    text = if (activeSession == null) {
+                                        stringResource(R.string.hub_workout_no_routine_today)
+                                    } else if (isTodayRest) {
+                                        "${activeSession.title} · Descanso"
+                                    } else {
+                                        activeSession.title
+                                    },
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = ExecutiveTextPrimary
@@ -586,8 +604,10 @@ fun DashboardScreen(
                                 Spacer(modifier = Modifier.height(2.dp))
                                 Text(
                                     text = if (activeSession != null) {
-                                        if (totalEx > 0) {
-                                            "$completedEx/$totalEx ejercicios completados • ${activeSession.targetGoal}"
+                                        if (isTodayRest) {
+                                            "Hoy es descanso • Próximo: ${nextWorkoutDay?.first ?: "Próximamente"}"
+                                        } else if (totalEx > 0) {
+                                            "${todayDayPair?.first?.split("·")?.firstOrNull()?.trim() ?: "Hoy"}: $completedEx/$totalEx listos • ${activeSession.targetGoal}"
                                         } else {
                                             stringResource(R.string.hub_workout_routine_meta, activeSession.durationMinutes, activeSession.targetGoal)
                                         }
@@ -605,7 +625,7 @@ fun DashboardScreen(
                                 shape = RoundedCornerShape(6.dp)
                             ) {
                                 Text(
-                                    text = if (activeSession != null && completedEx > 0) "Continuar" else "Registrar",
+                                    text = if (isTodayRest) "Ver Rutina" else if (activeSession != null && completedEx > 0) "Continuar" else "Registrar",
                                     fontSize = 11.sp,
                                     color = TacticalNeonCyan,
                                     fontWeight = FontWeight.Bold

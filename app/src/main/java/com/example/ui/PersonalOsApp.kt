@@ -175,8 +175,8 @@ fun PersonalOsApp() {
                         },
                         onToggleExercise = { viewModel.toggleWorkoutExercise(it) },
                         onToggleWorkoutSession = { viewModel.toggleWorkoutSessionCompleted(it) },
-                        onAddExerciseToSession = { sessionId, name, sets, reps, weight, rest ->
-                            viewModel.addWorkoutExercise(sessionId, name, sets, reps, weight, rest)
+                        onAddExerciseToSession = { sessionId, name, sets, reps, weight, rest, notes ->
+                            viewModel.addWorkoutExercise(sessionId, name, sets, reps, weight, rest, notes)
                         },
                         onUpdateExercise = { viewModel.updateWorkoutExercise(it) },
                         onDeleteExercise = { viewModel.deleteWorkoutExercise(it) },
