@@ -29,20 +29,24 @@ object WorkoutDayHelper {
 
     /**
      * Extrae el título del día asignado a un ejercicio (ej: "LUNES · DIA 1").
+     * Si no tiene día asignado, retorna cadena vacía para evitar falsos positivos con Lunes.
      */
     fun getDayTitle(exercise: WorkoutExerciseEntity): String {
         val notes = exercise.notes
-        if (notes.startsWith(DAY_PREFIX)) {
-            val subIdx = notes.indexOf(SUB_PREFIX)
-            val noteEnd = notes.indexOf(";;")
+        val dayIdx = notes.indexOf(DAY_PREFIX)
+        if (dayIdx != -1) {
+            val after = notes.substring(dayIdx + DAY_PREFIX.length)
+            val subIdx = after.indexOf(SUB_PREFIX)
+            val noteEnd = after.indexOf(";;")
             val endIdx = when {
+                subIdx != -1 && noteEnd != -1 -> minOf(subIdx, noteEnd)
                 subIdx != -1 -> subIdx
                 noteEnd != -1 -> noteEnd
-                else -> notes.length
+                else -> after.length
             }
-            return notes.substring(DAY_PREFIX.length, endIdx).trim()
+            return after.substring(0, endIdx).trim()
         }
-        return "LUNES · DIA 1"
+        return ""
     }
 
     /**
@@ -72,6 +76,86 @@ object WorkoutDayHelper {
     }
 
     /**
+     * Comprueba si un ejercicio corresponde al día objetivo especificado (ej. Lunes vs Miércoles vs Viernes).
+     * Evita mezclar ejercicios de distintos días.
+     */
+    fun matchesDay(exercise: WorkoutExerciseEntity, targetDayTitle: String): Boolean {
+        if (targetDayTitle.isBlank()) return false
+        val exDay = getDayTitle(exercise)
+        if (exDay.isBlank()) return false
+
+        val normEx = normalizeDayText(exDay)
+        val normTarget = normalizeDayText(targetDayTitle)
+        if (normEx == normTarget) return true
+
+        // Comparar días de la semana: LUNES, MARTES, MIERCOLES, JUEVES, VIERNES, SABADO, DOMINGO
+        val daysOfWeek = listOf("LUNES", "MARTES", "MIERCOLES", "JUEVES", "VIERNES", "SABADO", "DOMINGO")
+        val exDayOfWeek = daysOfWeek.firstOrNull { normEx.contains(it) }
+        val targetDayOfWeek = daysOfWeek.firstOrNull { normTarget.contains(it) }
+
+        if (exDayOfWeek != null && targetDayOfWeek != null) {
+            return exDayOfWeek == targetDayOfWeek
+        }
+
+        // Comparar por número de día (ej: DIA 1, DIA 2, etc.)
+        val diaRegex = Regex("""DIA\s*(\d+)""")
+        val exDiaNum = diaRegex.find(normEx)?.groupValues?.getOrNull(1)
+        val targetDiaNum = diaRegex.find(normTarget)?.groupValues?.getOrNull(1)
+        if (exDiaNum != null && targetDiaNum != null) {
+            return exDiaNum == targetDiaNum
+        }
+
+        return normEx.contains(normTarget) || normTarget.contains(normEx)
+    }
+
+    /**
+     * Obtiene de forma estricta los ejercicios que pertenecen exclusivamente al día objetivo.
+     * Si la rutina tiene múltiples días (ej. Lunes, Miércoles, Viernes), filtra solo los de ese día.
+     */
+    fun getDayExercises(
+        allSessionExercises: List<WorkoutExerciseEntity>,
+        configuredDays: List<Pair<String, String>>,
+        targetDayTitle: String
+    ): List<WorkoutExerciseEntity> {
+        if (configuredDays.size <= 1) {
+            return allSessionExercises
+        }
+        val targetDayIdx = configuredDays.indexOfFirst { matchesDayName(it.first, targetDayTitle) }
+        val hasAnyDayTags = allSessionExercises.any { getDayTitle(it).isNotBlank() }
+
+        return if (hasAnyDayTags) {
+            allSessionExercises.filter { matchesDay(it, targetDayTitle) }
+        } else {
+            // Si los ejercicios no tienen notas con día (ej. rutinas antiguas), repartirlos equitativamente por día
+            if (targetDayIdx != -1) {
+                val chunkSize = (allSessionExercises.size + configuredDays.size - 1) / configuredDays.size
+                val start = targetDayIdx * chunkSize
+                val end = minOf(start + chunkSize, allSessionExercises.size)
+                if (start < allSessionExercises.size) allSessionExercises.subList(start, end) else emptyList()
+            } else {
+                allSessionExercises.filter { matchesDay(it, targetDayTitle) }
+            }
+        }
+    }
+
+    /**
+     * Compara dos nombres de días (ej: "LUNES · DÍA 1 — Push" vs "LUNES · DIA 1").
+     */
+    fun matchesDayName(day1: String, day2: String): Boolean {
+        val n1 = normalizeDayText(day1)
+        val n2 = normalizeDayText(day2)
+        if (n1 == n2) return true
+
+        val daysOfWeek = listOf("LUNES", "MARTES", "MIERCOLES", "JUEVES", "VIERNES", "SABADO", "DOMINGO")
+        val d1OfWeek = daysOfWeek.firstOrNull { n1.contains(it) }
+        val d2OfWeek = daysOfWeek.firstOrNull { n2.contains(it) }
+        if (d1OfWeek != null && d2OfWeek != null) {
+            return d1OfWeek == d2OfWeek
+        }
+        return n1.contains(n2) || n2.contains(n1)
+    }
+
+    /**
      * Obtiene la lista ordenada de días configurados para una rutina: List<Pair<Título, Subtítulo>>.
      */
     fun getConfiguredDays(session: WorkoutSessionEntity, exercises: List<WorkoutExerciseEntity>): List<Pair<String, String>> {
@@ -94,7 +178,7 @@ object WorkoutDayHelper {
 
         // 2. Extraer días distintos presentes en los ejercicios de la sesión
         val fromExercises = exercises
-            .filter { it.sessionId == session.id }
+            .filter { it.sessionId == session.id && getDayTitle(it).isNotBlank() }
             .map { Pair(getDayTitle(it), getDaySubtitle(it)) }
             .distinctBy { it.first }
 

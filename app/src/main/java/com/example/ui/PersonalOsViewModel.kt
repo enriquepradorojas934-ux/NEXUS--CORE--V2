@@ -836,7 +836,7 @@ class PersonalOsViewModel(
 
             val exDay = com.example.domain.WorkoutDayHelper.getDayTitle(ex)
             val siblingExercisesOfDay = _uiState.value.workoutExercises.filter {
-                it.sessionId == ex.sessionId && it.id != ex.id && com.example.domain.WorkoutDayHelper.getDayTitle(it) == exDay
+                it.sessionId == ex.sessionId && it.id != ex.id && (if (exDay.isNotBlank()) com.example.domain.WorkoutDayHelper.matchesDay(it, exDay) else true)
             }
             val allDayDone = siblingExercisesOfDay.all { it.isCompleted }
             if (updated.isCompleted && allDayDone) {

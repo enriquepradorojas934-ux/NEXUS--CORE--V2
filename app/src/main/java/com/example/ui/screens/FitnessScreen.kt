@@ -379,9 +379,9 @@ fun FitnessScreen(
     if (activeTrainingSession != null) {
         val session = activeTrainingSession!!
         val dayTitle = activeTrainingDayTitle ?: "LUNES · DIA 1"
-        val dayExercises = state.workoutExercises.filter {
-            it.sessionId == session.id && com.example.domain.WorkoutDayHelper.getDayTitle(it) == dayTitle
-        }
+        val sessionExercises = state.workoutExercises.filter { it.sessionId == session.id }
+        val configuredDays = com.example.domain.WorkoutDayHelper.getConfiguredDays(session, sessionExercises)
+        val dayExercises = com.example.domain.WorkoutDayHelper.getDayExercises(sessionExercises, configuredDays, dayTitle)
         ActiveWorkoutRunnerModal(
             session = session,
             dayTitle = dayTitle,
@@ -881,6 +881,18 @@ fun FitnessScreen(
                         showAddDialog = false
                         workoutTitle = ""
                         notesText = ""
+                        routineDays.clear()
+                        routineDays.add(
+                            RoutineDayPlan(
+                                title = "LUNES · DIA 1",
+                                subtitle = "Push (pecho, hombros, tríceps)",
+                                exercises = mutableStateListOf(
+                                    WorkoutExerciseEntity(0, 0, "Press de Banca", 4, "10, 8, 8, 6", 75.0, 90),
+                                    WorkoutExerciseEntity(0, 0, "Press Militar", 3, "10", 20.0, 60)
+                                )
+                            )
+                        )
+                        selectedDayIndex = 0
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = TacticalNeonCyan),
                     modifier = Modifier.testTag("btn_save_workout_confirm")
@@ -937,7 +949,7 @@ fun InteractiveWorkoutSessionCard(
     val activeDaySubtitle = activeDayPair.second
 
     // FILTRADO ESTRICTO: Solo los ejercicios que pertenecen al día seleccionado
-    val dayExercises = exercises.filter { com.example.domain.WorkoutDayHelper.getDayTitle(it) == activeDayTitle }
+    val dayExercises = com.example.domain.WorkoutDayHelper.getDayExercises(exercises, configuredDays, activeDayTitle)
     val completedExercisesCount = dayExercises.count { it.isCompleted }
     val totalExercisesCount = dayExercises.size
     val isDayCompleted = totalExercisesCount > 0 && completedExercisesCount == totalExercisesCount
@@ -1135,7 +1147,7 @@ fun InteractiveWorkoutSessionCard(
 
                     // CUADRO COMPACTO DEL DÍA ACTIVO / SELECTOR DE DÍAS (SOLO EJERCICIOS DEL DÍA)
                     Surface(
-                        shape = RoundedCornerShape(8.dp),
+                        shape = RoundedCornerShape(6.dp),
                         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
                         border = BorderStroke(
                             1.dp,
@@ -1143,10 +1155,10 @@ fun InteractiveWorkoutSessionCard(
                         ),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 2.dp)
+                            .padding(vertical = 1.dp)
                             .testTag("compact_day_box_${session.id}")
                     ) {
-                        Column(modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp)) {
+                        Column(modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp)) {
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -1157,29 +1169,29 @@ fun InteractiveWorkoutSessionCard(
                                         imageVector = Icons.Default.CalendarToday,
                                         contentDescription = null,
                                         tint = if (todayIdx == selectedDayIdx) TacticalNeonCyan else ExecutiveTextSecondary,
-                                        modifier = Modifier.size(12.dp)
+                                        modifier = Modifier.size(11.dp)
                                     )
-                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Spacer(modifier = Modifier.width(5.dp))
                                     Text(
                                         text = activeDayTitle,
                                         fontFamily = FontFamily.Monospace,
-                                        fontSize = 11.sp,
+                                        fontSize = 10.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = if (todayIdx == selectedDayIdx) TacticalNeonCyan else ExecutiveTextPrimary
                                     )
                                     if (todayIdx == selectedDayIdx) {
-                                        Spacer(modifier = Modifier.width(6.dp))
+                                        Spacer(modifier = Modifier.width(5.dp))
                                         Surface(
-                                            shape = RoundedCornerShape(3.dp),
+                                            shape = RoundedCornerShape(2.dp),
                                             color = TacticalNeonCyan.copy(alpha = 0.2f),
                                             border = BorderStroke(1.dp, TacticalNeonCyan.copy(alpha = 0.5f))
                                         ) {
                                             Text(
                                                 text = "HOY",
-                                                fontSize = 8.sp,
+                                                fontSize = 7.sp,
                                                 fontWeight = FontWeight.Bold,
                                                 color = TacticalNeonCyan,
-                                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
+                                                modifier = Modifier.padding(horizontal = 3.dp, vertical = 1.dp)
                                             )
                                         }
                                     }
@@ -1187,17 +1199,17 @@ fun InteractiveWorkoutSessionCard(
 
                                 Text(
                                     text = "${dayExercises.size} ejer.",
-                                    fontSize = 10.sp,
+                                    fontSize = 9.sp,
                                     fontFamily = FontFamily.Monospace,
                                     color = ExecutiveTextSecondary
                                 )
                             }
 
                             if (activeDaySubtitle.isNotBlank()) {
-                                Spacer(modifier = Modifier.height(2.dp))
+                                Spacer(modifier = Modifier.height(1.dp))
                                 Text(
                                     text = if (activeDaySubtitle.startsWith("(")) activeDaySubtitle else "($activeDaySubtitle)",
-                                    fontSize = 10.sp,
+                                    fontSize = 9.sp,
                                     color = ExecutiveTextSecondary,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
@@ -1206,16 +1218,16 @@ fun InteractiveWorkoutSessionCard(
 
                             // Si la rutina tiene múltiples días, selector compacto de días
                             if (configuredDays.size > 1) {
-                                Spacer(modifier = Modifier.height(4.dp))
+                                Spacer(modifier = Modifier.height(2.dp))
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                    horizontalArrangement = Arrangement.spacedBy(3.dp)
                                 ) {
                                     configuredDays.forEachIndexed { dIdx, (dTitle, _) ->
                                         val isSel = (dIdx == selectedDayIdx)
                                         val isTodayThis = (dIdx == todayIdx)
                                         Surface(
-                                            shape = RoundedCornerShape(4.dp),
+                                            shape = RoundedCornerShape(3.dp),
                                             color = if (isSel) TacticalNeonCyan.copy(alpha = 0.2f) else MaterialTheme.colorScheme.surface,
                                             border = BorderStroke(
                                                 1.dp,
@@ -1227,10 +1239,10 @@ fun InteractiveWorkoutSessionCard(
                                         ) {
                                             Text(
                                                 text = dTitle.split("·").firstOrNull()?.trim() ?: dTitle,
-                                                fontSize = 9.sp,
+                                                fontSize = 8.sp,
                                                 fontWeight = if (isSel) FontWeight.Bold else FontWeight.Normal,
                                                 color = if (isSel) TacticalNeonCyan else ExecutiveTextSecondary,
-                                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                                modifier = Modifier.padding(horizontal = 5.dp, vertical = 1.dp)
                                             )
                                         }
                                     }

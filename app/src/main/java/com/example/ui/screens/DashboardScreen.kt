@@ -565,12 +565,12 @@ fun DashboardScreen(
                     val nextWorkoutDay = if (activeSession != null && todayIdx == null) com.example.domain.WorkoutDayHelper.findNextWorkoutDay(configuredDays, state.cycleStartTime) else null
                     val todayDayPair = if (todayIdx != null) configuredDays.getOrNull(todayIdx) else null
 
-                    val sessionExercises = if (activeSession != null) {
-                        if (todayDayPair != null) {
-                            state.workoutExercises.filter { it.sessionId == activeSession.id && com.example.domain.WorkoutDayHelper.getDayTitle(it) == todayDayPair.first }
-                        } else {
-                            state.workoutExercises.filter { it.sessionId == activeSession.id }
-                        }
+                    val sessionExercises = if (activeSession != null && todayDayPair != null) {
+                        com.example.domain.WorkoutDayHelper.getDayExercises(
+                            state.workoutExercises.filter { it.sessionId == activeSession.id },
+                            configuredDays,
+                            todayDayPair.first
+                        )
                     } else emptyList()
                     val completedEx = sessionExercises.count { it.isCompleted }
                     val totalEx = sessionExercises.size
