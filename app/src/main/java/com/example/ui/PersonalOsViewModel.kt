@@ -1055,64 +1055,28 @@ class PersonalOsViewModel(
             val s = _uiState.value
             val habitsDone = s.habitsCompletedToday
             val habitsTotal = s.habitsTotalToday
-            val doneHabitsNames = s.habits.filter { h -> s.habitLogsToday.any { it.habitId == h.id && it.isCompleted } }.map { it.title }
-            val expensesCount = s.transactionsToday.count { it.type == "GASTO" }
-            val totalExp = s.totalExpenses
-            val totalInc = s.totalIncome
-            val workoutsCount = s.workoutSessions.size
+            val tasksDone = s.tasks.count { it.isCompleted }
+            val tasksTotal = s.tasks.size
             val productiveMins = s.totalProductiveMinutesToday
-            val activeGoals = s.goalsWithSubGoals.filter { it.progressPercent < 1.0f }
-            val goalsSummary = "${s.goalsWithSubGoals.count { it.progressPercent >= 1.0f }} de ${s.goalsWithSubGoals.size} metas cumplidas"
+            val cycleRange = DailyCycleEngine.getCycleRangeDisplay(s.cycleStartTime)
+            val timeLeft = DailyCycleEngine.getTimeUntilNextCycle(s.cycleStartTime)
+            val topGoal = s.goalsWithSubGoals.firstOrNull { it.progressPercent < 1.0f } ?: s.goalsWithSubGoals.firstOrNull()
 
-            val bulletPoints = mutableListOf<String>()
-            if (habitsTotal > 0) {
-                bulletPoints.add("Hábitos: $habitsDone/$habitsTotal completados" + (if (doneHabitsNames.isNotEmpty()) " (${doneHabitsNames.joinToString(", ")})" else ""))
-            }
-            if (expensesCount > 0 || totalInc > 0) {
-                bulletPoints.add("Finanzas: ${s.selectedCurrencySymbol}${String.format("%,.2f", totalExp)} en gastos • +${s.selectedCurrencySymbol}${String.format("%,.2f", totalInc)} en ingresos")
-            }
-            if (s.goalsWithSubGoals.isNotEmpty()) {
-                bulletPoints.add("Metas: $goalsSummary (Avance promedio: ${(s.averageGoalsProgress * 100).toInt()}%)")
-            }
-            if (productiveMins > 0) {
-                bulletPoints.add("Enfoque: $productiveMins min de trabajo productivo")
-            }
-            if (workoutsCount > 0) {
-                bulletPoints.add("Entrenamiento: $workoutsCount sesión(es) registrada(s)")
-            }
-
-            val defaultSummary = if (bulletPoints.isNotEmpty()) {
-                bulletPoints.joinToString("\n• ", prefix = "• ")
+            val line1 = "• Ciclo: $cycleRange · Reinicio en $timeLeft"
+            val line2 = if (habitsTotal > 0 || tasksTotal > 0) {
+                "• Ejecución: $habitsDone/$habitsTotal hábitos · $tasksDone/$tasksTotal tareas" + (if (productiveMins > 0) " · ${productiveMins}m foco" else "")
             } else {
-                "Sin actividades registradas hoy en el ciclo actual. Registra tus tareas, hábitos, gastos o entrenamientos para ver tu síntesis ejecutiva."
+                "• Ejecución: Listo para registrar actividades del ciclo"
+            }
+            val line3 = if (topGoal != null) {
+                val pct = (topGoal.progressPercent * 100).toInt()
+                "• Meta activa: ${topGoal.goal.title} ($pct% completado)"
+            } else {
+                "• Meta activa: Define tu objetivo prioritario en Metas"
             }
 
-            _uiState.update { it.copy(dailyAiSummary = defaultSummary) }
-
-            try {
-                val aiService = com.example.service.PersonalAiProductivityService()
-                val snapshot = com.example.service.UserProductivitySnapshot(
-                    cycleDate = s.currentCycleDate,
-                    productiveMinutesToday = productiveMins,
-                    pendingTasks = s.tasks.filter { !it.isCompleted }.map { it.title },
-                    completedTasks = s.tasks.filter { it.isCompleted }.map { it.title },
-                    habitsCompleted = habitsDone,
-                    habitsTotal = habitsTotal,
-                    habitNames = doneHabitsNames,
-                    appUsageMinutes = 0,
-                    appBudgetMinutes = 0,
-                    blockedApps = emptyList(),
-                    activeGoals = activeGoals.map { it.goal.title },
-                    netFinancialBalance = s.netBalance
-                )
-                val aiResult = aiService.generateProductivityAdvice(snapshot, s.selectedLanguage, s.selectedCurrencySymbol)
-                val advice = aiResult.getOrNull()
-                if (!advice.isNullOrBlank()) {
-                    _uiState.update { it.copy(dailyAiSummary = advice) }
-                }
-            } catch (_: Throwable) {
-                // Conserva el resumen inteligente local
-            }
+            val structuredSummary = "$line1\n$line2\n$line3"
+            _uiState.update { it.copy(dailyAiSummary = structuredSummary) }
         }
     }
 

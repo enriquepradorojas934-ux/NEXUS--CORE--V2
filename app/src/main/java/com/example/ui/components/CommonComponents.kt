@@ -39,6 +39,7 @@ fun ExecutiveHeader(
     timeUntilReset: String,
     cycleProgress: Float,
     cycleStartTime: String = "05:00",
+    showCycleBar: Boolean = false,
     actionIcon: ImageVector? = null,
     onActionClick: (() -> Unit)? = null
 ) {
@@ -49,7 +50,7 @@ fun ExecutiveHeader(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp)
+                .padding(horizontal = 16.dp, vertical = 10.dp)
         ) {
             // HUD Tag & Action
             Row(
@@ -97,14 +98,14 @@ fun ExecutiveHeader(
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(6.dp))
 
             // Screen Title & Subtitle
             Text(
                 text = title,
                 style = MaterialTheme.typography.headlineMedium.copy(
                     fontWeight = FontWeight.ExtraBold,
-                    fontSize = 24.sp,
+                    fontSize = 22.sp,
                     letterSpacing = (-0.5).sp
                 ),
                 color = SoloTextPrimary
@@ -119,80 +120,98 @@ fun ExecutiveHeader(
                 )
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // Prominent Configurable Cycle Bar & Next Reset Countdown
-            val cycleRangeText = com.example.domain.DailyCycleEngine.getCycleRangeDisplay(cycleStartTime)
-            Surface(
-                shape = RoundedCornerShape(16.dp),
-                color = SoloCardBg,
-                border = androidx.compose.foundation.BorderStroke(1.dp, SoloBorderGlow),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column {
-                            Text(
-                                text = androidx.compose.ui.res.stringResource(com.example.R.string.active_cycle).uppercase(),
-                                style = MaterialTheme.typography.labelSmall.copy(
-                                    fontSize = 10.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    letterSpacing = 1.2.sp,
-                                    fontFamily = FontFamily.Monospace
-                                ),
-                                color = SoloTextSecondary
-                            )
-                            Text(
-                                text = "$cycleRangeText  •  $cycleDate",
-                                style = MaterialTheme.typography.labelMedium.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    fontFamily = FontFamily.Monospace,
-                                    fontSize = 12.sp
-                                ),
-                                color = SoloTextPrimary
-                            )
-                        }
-
-                        Surface(
-                            shape = RoundedCornerShape(6.dp),
-                            color = SoloTrack,
-                            border = androidx.compose.foundation.BorderStroke(1.dp, SoloGold.copy(alpha = 0.6f))
+            // Bloque CICLO ACTIVO: Solo visible en el HUD (Centro de Mando)
+            if (showCycleBar) {
+                Spacer(modifier = Modifier.height(10.dp))
+                val cycleRangeText = com.example.domain.DailyCycleEngine.getCycleRangeDisplay(cycleStartTime)
+                Surface(
+                    shape = RoundedCornerShape(14.dp),
+                    color = SoloCardBg,
+                    border = androidx.compose.foundation.BorderStroke(1.dp, SoloBorderGlow),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(
-                                text = androidx.compose.ui.res.stringResource(com.example.R.string.cycle_reset_in, timeUntilReset).uppercase(),
-                                style = MaterialTheme.typography.labelSmall.copy(
-                                    fontWeight = FontWeight.ExtraBold,
-                                    fontFamily = FontFamily.Monospace,
-                                    fontSize = 10.sp,
-                                    letterSpacing = 0.6.sp
-                                ),
-                                color = SoloGold,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                            )
+                            Column(modifier = Modifier.weight(1f, fill = false)) {
+                                Text(
+                                    text = "CICLO ACTIVO // $cycleRangeText",
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        letterSpacing = 1.1.sp,
+                                        fontFamily = FontFamily.Monospace
+                                    ),
+                                    color = SoloTextSecondary,
+                                    maxLines = 1
+                                )
+                                Text(
+                                    text = cycleDate,
+                                    style = MaterialTheme.typography.labelMedium.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        fontFamily = FontFamily.Monospace,
+                                        fontSize = 11.sp
+                                    ),
+                                    color = SoloTextPrimary,
+                                    maxLines = 1
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.width(8.dp))
+
+                            // Chip compacto y alineado para el reinicio
+                            Surface(
+                                shape = RoundedCornerShape(6.dp),
+                                color = SoloTrack,
+                                border = androidx.compose.foundation.BorderStroke(1.dp, SoloGold.copy(alpha = 0.55f))
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Timer,
+                                        contentDescription = null,
+                                        tint = SoloGold,
+                                        modifier = Modifier.size(11.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(
+                                        text = timeUntilReset,
+                                        style = MaterialTheme.typography.labelSmall.copy(
+                                            fontWeight = FontWeight.ExtraBold,
+                                            fontFamily = FontFamily.Monospace,
+                                            fontSize = 10.sp,
+                                            letterSpacing = 0.4.sp
+                                        ),
+                                        color = SoloGold,
+                                        maxLines = 1
+                                    )
+                                }
+                            }
                         }
-                    }
 
-                    Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(7.dp))
 
-                    // Barra con relleno degradado cyan -> morado sobre track #1A1A24
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(6.dp)
-                            .clip(RoundedCornerShape(3.dp))
-                            .background(SoloTrack)
-                    ) {
+                        // Barra de progreso del ciclo con degradado cyan -> morado sobre track #1A1A24
                         Box(
                             modifier = Modifier
-                                .fillMaxWidth(cycleProgress.coerceIn(0f, 1f))
-                                .fillMaxHeight()
+                                .fillMaxWidth()
+                                .height(5.dp)
                                 .clip(RoundedCornerShape(3.dp))
-                                .background(SoloNeonGradient)
-                        )
+                                .background(SoloTrack)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth(cycleProgress.coerceIn(0f, 1f))
+                                    .fillMaxHeight()
+                                    .clip(RoundedCornerShape(3.dp))
+                                    .background(SoloNeonGradient)
+                            )
+                        }
                     }
                 }
             }

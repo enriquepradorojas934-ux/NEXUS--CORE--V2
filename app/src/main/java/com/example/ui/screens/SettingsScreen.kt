@@ -28,6 +28,7 @@ import com.example.ui.theme.*
 import com.example.BuildConfig
 import androidx.compose.ui.unit.sp
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     state: PersonalOsUiState,
@@ -49,7 +50,7 @@ fun SettingsScreen(
 ) {
     val context = LocalContext.current
     val clipboardManager = LocalClipboardManager.current
-    var cycleTimeInput by remember { mutableStateOf(state.cycleStartTime) }
+    var showCycleTimePicker by remember { mutableStateOf(false) }
     var showPrivacyPolicyDialog by remember { mutableStateOf(false) }
     var showExportDialog by remember { mutableStateOf(false) }
     var exportedJsonText by remember { mutableStateOf("") }
@@ -238,13 +239,74 @@ fun SettingsScreen(
             modifier = Modifier.fillMaxSize().padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            // AUTENTICACIÓN FIREBASE (GOOGLE SIGN-IN & CUENTA SEGURA)
+            // MODO LOCAL SOBERANO (ROOM DATABASE) - PEQUEÑO Y DISCRETO
             item {
-                // MODO LOCAL SOBERANO (ROOM DATABASE)
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    shape = RoundedCornerShape(16.dp),
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = SoloCardBg,
+                    border = androidx.compose.foundation.BorderStroke(1.dp, SoloCardBorder),
                     modifier = Modifier.fillMaxWidth().testTag("card_local_storage_sovereign")
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(
+                                Icons.Default.Storage,
+                                contentDescription = null,
+                                tint = SoloTextSecondary,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Column {
+                                Text(
+                                    text = "ALMACENAMIENTO LOCAL // ROOM",
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        fontFamily = FontFamily.Monospace,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 10.sp
+                                    ),
+                                    color = SoloTextSecondary
+                                )
+                                Text(
+                                    text = "Persistencia SQLite local en dispositivo · Sin telemetría ni nube",
+                                    style = MaterialTheme.typography.bodySmall.copy(fontSize = 10.sp),
+                                    color = SoloTextSecondary.copy(alpha = 0.8f)
+                                )
+                            }
+                        }
+                        Surface(
+                            color = SoloTrack,
+                            shape = RoundedCornerShape(4.dp),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, SoloCardBorder)
+                        ) {
+                            Text(
+                                text = "OFFLINE",
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 9.sp,
+                                    fontFamily = FontFamily.Monospace
+                                ),
+                                color = SoloTextSecondary,
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                            )
+                        }
+                    }
+                }
+            }
+
+            // PARÁMETRO: INICIO DEL CICLO DIARIO (SELECTOR ÚNICO TIPO RELOJ M3)
+            item {
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                    color = SoloCardBg,
+                    border = androidx.compose.foundation.BorderStroke(1.dp, SoloCardBorder),
+                    modifier = Modifier.fillMaxWidth().testTag("card_cycle_setting")
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Row(
@@ -252,145 +314,92 @@ fun SettingsScreen(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(
-                                    Icons.Default.Storage,
-                                    contentDescription = null,
-                                    tint = ExecutivePrimaryTeal
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(
-                                    text = "ALMACENAMIENTO LOCAL SOBERANO (ROOM)",
-                                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                                    color = ExecutivePrimaryTeal
-                                )
-                            }
-                            Surface(
-                                color = ExecutiveSuccessGreen.copy(alpha = 0.15f),
-                                shape = RoundedCornerShape(8.dp)
-                            ) {
-                                Text(
-                                    text = "100% OFFLINE",
-                                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                                    color = ExecutiveSuccessGreen,
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                                )
-                            }
+                            Text(
+                                text = "PARÁMETRO: INICIO DEL CICLO DIARIO",
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    fontFamily = FontFamily.Monospace,
+                                    fontWeight = FontWeight.Bold,
+                                    letterSpacing = 1.1.sp,
+                                    fontSize = 11.sp
+                                ),
+                                color = SoloNeonCyan
+                            )
+                            Icon(
+                                Icons.Default.Schedule,
+                                contentDescription = null,
+                                tint = SoloNeonCyan,
+                                modifier = Modifier.size(16.dp)
+                            )
                         }
-
-                        Spacer(modifier = Modifier.height(10.dp))
-
-                        Text(
-                            text = "Tus datos (calendario, entrenamientos, hábitos, finanzas y puntos RPG) se almacenan de manera persistente en la base de datos local SQLite (Room) de tu dispositivo. La aplicación opera de forma autónoma sin depender de servicios en la nube ni requerir inicio de sesión con Google.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-
-                        Spacer(modifier = Modifier.height(10.dp))
-
-                        Surface(
-                            color = ExecutiveDarkSurfaceVariant.copy(alpha = 0.6f),
-                            shape = RoundedCornerShape(10.dp),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Icon(
-                                    Icons.Default.CheckCircle,
-                                    contentDescription = null,
-                                    tint = ExecutiveSuccessGreen,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(
-                                    text = "Persistencia Room activa · Cero latencia · Privacidad total",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-            // PARAMETRO INICIO DEL CICLO DIARIO
-            item {
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier.fillMaxWidth().testTag("card_cycle_setting")
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(
-                            text = "PARÁMETRO: INICIO DEL CICLO DIARIO",
-                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                            color = SoloNeonCyan
-                        )
                         Spacer(modifier = Modifier.height(6.dp))
                         val currentRange = com.example.domain.DailyCycleEngine.getCycleRangeDisplay(state.cycleStartTime)
                         Text(
-                            text = "Corte operativo del sistema: $currentRange (Actual: ${state.cycleStartTime}). Hábitos, tareas y entrenamientos se sincronizan con este horario.",
-                            style = MaterialTheme.typography.bodySmall,
+                            text = "Corte operativo del sistema: $currentRange. Hábitos, tareas y entrenamientos se sincronizan con este horario.",
+                            style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
                             color = SoloTextSecondary
                         )
-                        Spacer(modifier = Modifier.height(10.dp))
 
-                        // Chips rápidos para horarios habituales
+                        Spacer(modifier = Modifier.height(14.dp))
+
+                        // Fila de hora actual y botón selector de reloj
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            listOf("00:00" to "00:00 Medianoche", "04:00" to "04:00 Madrugada", "05:00" to "05:00 Estándar").forEach { (time, label) ->
-                                val isSelected = state.cycleStartTime == time
+                            Row(verticalAlignment = Alignment.CenterVertically) {
                                 Surface(
-                                    shape = RoundedCornerShape(6.dp),
-                                    color = if (isSelected) SoloNeonCyan.copy(alpha = 0.2f) else SoloTrack,
-                                    border = androidx.compose.foundation.BorderStroke(
-                                        1.dp,
-                                        if (isSelected) SoloNeonCyan else SoloCardBorder
-                                    ),
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .clickable {
-                                            cycleTimeInput = time
-                                            onSetCycleStartTime(time)
-                                        }
-                                        .padding(vertical = 2.dp)
+                                    shape = RoundedCornerShape(8.dp),
+                                    color = SoloTrack,
+                                    border = androidx.compose.foundation.BorderStroke(1.dp, SoloGold.copy(alpha = 0.7f))
                                 ) {
                                     Text(
-                                        text = label,
-                                        fontSize = 10.sp,
-                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                        text = state.cycleStartTime,
+                                        style = MaterialTheme.typography.headlineSmall.copy(
+                                            fontFamily = FontFamily.Monospace,
+                                            fontWeight = FontWeight.ExtraBold,
+                                            fontSize = 24.sp
+                                        ),
+                                        color = SoloGold,
+                                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                                    )
+                                }
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Column {
+                                    Text(
+                                        text = "HORA ACTIVA",
                                         fontFamily = FontFamily.Monospace,
-                                        color = if (isSelected) SoloNeonCyan else SoloTextSecondary,
-                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 6.dp),
-                                        maxLines = 1
+                                        fontSize = 9.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = SoloTextSecondary
+                                    )
+                                    Text(
+                                        text = "Reinicio diario",
+                                        fontSize = 10.sp,
+                                        color = SoloTextSecondary
                                     )
                                 }
                             }
-                        }
-
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
-                        ) {
-                            OutlinedTextField(
-                                value = cycleTimeInput,
-                                onValueChange = { cycleTimeInput = it },
-                                label = { Text(stringResource(R.string.settings_cycle_time_label)) },
-                                modifier = Modifier.weight(1f).testTag("input_cycle_time")
-                            )
 
                             Button(
-                                onClick = { onSetCycleStartTime(cycleTimeInput) },
-                                colors = ButtonDefaults.buttonColors(containerColor = SoloNeonCyan),
+                                onClick = { showCycleTimePicker = true },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = SoloNeonCyan,
+                                    contentColor = SoloBg
+                                ),
                                 shape = RoundedCornerShape(8.dp),
-                                modifier = Modifier.testTag("btn_save_cycle_time")
+                                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp),
+                                modifier = Modifier.testTag("btn_select_cycle_time")
                             ) {
-                                Text(stringResource(R.string.action_save), color = SoloBg, fontWeight = FontWeight.Bold)
+                                Icon(Icons.Default.AccessTime, contentDescription = null, modifier = Modifier.size(16.dp), tint = SoloBg)
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = "ELEGIR HORA",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    fontFamily = FontFamily.Monospace,
+                                    color = SoloBg
+                                )
                             }
                         }
                     }
@@ -629,92 +638,31 @@ fun SettingsScreen(
                 }
             }
 
-            // RESPUESTA SENSORIAL Y HÁPTICA
-            item {
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.Vibration, contentDescription = null, tint = ExecutiveSecondaryAmber, modifier = Modifier.size(20.dp))
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = stringResource(R.string.test_sensory_alert),
-                                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                                color = ExecutiveSecondaryAmber
-                            )
-                        }
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "Micro-vibraciones táctiles al completar tareas o hábitos, y aviso sonoro armónico al concluir tus bloques de enfoque.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(modifier = Modifier.height(12.dp))
-                        OutlinedButton(
-                            onClick = { SensoryFeedbackHelper.playFocusCompleteCelebration(context) },
-                            modifier = Modifier.fillMaxWidth().testTag("btn_test_haptics")
-                        ) {
-                            Icon(Icons.Default.NotificationsActive, contentDescription = null, modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(stringResource(R.string.test_sensory_alert), style = MaterialTheme.typography.labelSmall)
-                        }
-                    }
-                }
-            }
-
-            // SIMULACIÓN Y PRUEBAS
-            item {
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(
-                            text = stringResource(R.string.force_cycle_reset),
-                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                            color = ExecutiveSecondaryAmber
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "Puedes forzar manualmente el reinicio del ciclo para probar la restauración de contadores a 0 minutos.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(modifier = Modifier.height(12.dp))
-                        OutlinedButton(
-                            onClick = onForceResetCycle,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Icon(Icons.Default.Refresh, contentDescription = null)
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(stringResource(R.string.force_cycle_reset))
-                        }
-                    }
-                }
-            }
-
             // ARQUITECTURA DEL SISTEMA
             item {
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                Surface(
                     shape = RoundedCornerShape(16.dp),
+                    color = SoloCardBg,
+                    border = androidx.compose.foundation.BorderStroke(1.dp, SoloCardBorder),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
                             text = "ARQUITECTURA DEL SISTEMA PERSONAL",
-                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                            color = ExecutiveAccentBlue
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                fontWeight = FontWeight.Bold,
+                                fontFamily = FontFamily.Monospace,
+                                letterSpacing = 1.1.sp,
+                                fontSize = 11.sp
+                            ),
+                            color = SoloNeonCyan
                         )
                         Spacer(modifier = Modifier.height(8.dp))
+                        val currentRange = com.example.domain.DailyCycleEngine.getCycleRangeDisplay(state.cycleStartTime)
                         Text(
-                            text = "• Persistencia: Room SQLite Offline-first\n• Control de Ciclo: DailyCycleEngine (05:00 a 04:59)\n• Recordatorios en Segundo Plano: WorkManager\n• Interfaz: Jetpack Compose Material Design 3",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            text = "• Persistencia: Room SQLite Offline-first (almacenamiento soberano)\n• Control de Ciclo: DailyCycleEngine ($currentRange)\n• Recordatorios en Segundo Plano: WorkManager Android\n• Interfaz: Jetpack Compose Material Design 3 (Solo Leveling Rango S)",
+                            style = MaterialTheme.typography.bodySmall.copy(lineHeight = 18.sp),
+                            color = SoloTextSecondary
                         )
                     }
                 }
@@ -799,6 +747,90 @@ fun SettingsScreen(
                 }
             }
         }
+    }
+
+    // DIÁLOGO DE SELECCIÓN DE HORA DE CICLO CON TIME PICKER MATERIAL 3 OSCURO NEÓN
+    if (showCycleTimePicker) {
+        val (curH, curM) = remember(state.cycleStartTime) {
+            val parts = state.cycleStartTime.split(":")
+            val h = parts.getOrNull(0)?.toIntOrNull() ?: 5
+            val m = parts.getOrNull(1)?.toIntOrNull() ?: 0
+            h to m
+        }
+        val is24Hr = android.text.format.DateFormat.is24HourFormat(context)
+        val timePickerState = rememberTimePickerState(
+            initialHour = curH,
+            initialMinute = curM,
+            is24Hour = is24Hr
+        )
+
+        AlertDialog(
+            onDismissRequest = { showCycleTimePicker = false },
+            containerColor = SoloCardBg,
+            shape = RoundedCornerShape(16.dp),
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.AccessTime, contentDescription = null, tint = SoloNeonCyan)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        "INICIO DEL CICLO OPERATIVO",
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = FontFamily.Monospace,
+                            fontSize = 14.sp
+                        ),
+                        color = SoloTextPrimary
+                    )
+                }
+            },
+            text = {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "Selecciona la hora de corte diario (${if (is24Hr) "formato 24h" else "formato 12h"}).",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = SoloTextSecondary,
+                        modifier = Modifier.padding(bottom = 12.dp)
+                    )
+                    TimePicker(
+                        state = timePickerState,
+                        colors = TimePickerDefaults.colors(
+                            clockDialColor = SoloTrack,
+                            selectorColor = SoloNeonCyan,
+                            containerColor = SoloCardBg,
+                            periodSelectorBorderColor = SoloCardBorder,
+                            periodSelectorSelectedContainerColor = SoloNeonCyan.copy(alpha = 0.25f),
+                            periodSelectorSelectedContentColor = SoloNeonCyan,
+                            periodSelectorUnselectedContainerColor = SoloTrack,
+                            periodSelectorUnselectedContentColor = SoloTextSecondary,
+                            timeSelectorSelectedContainerColor = SoloNeonCyan.copy(alpha = 0.25f),
+                            timeSelectorSelectedContentColor = SoloNeonCyan,
+                            timeSelectorUnselectedContainerColor = SoloTrack,
+                            timeSelectorUnselectedContentColor = SoloTextPrimary
+                        )
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        val formatted = "%02d:%02d".format(timePickerState.hour, timePickerState.minute)
+                        onSetCycleStartTime(formatted)
+                        showCycleTimePicker = false
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = SoloNeonCyan)
+                ) {
+                    Text("APLICAR HORA", color = SoloBg, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showCycleTimePicker = false }) {
+                    Text("CANCELAR", color = SoloTextSecondary)
+                }
+            }
+        )
     }
 
     if (showCurrencyDialog) {
