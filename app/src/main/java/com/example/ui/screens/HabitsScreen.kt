@@ -137,6 +137,7 @@ fun HabitsScreen(
             cycleDate = state.currentCycleDate,
             timeUntilReset = state.timeUntilNextCycle,
             cycleProgress = state.cycleProgress,
+            cycleStartTime = state.cycleStartTime,
             actionIcon = Icons.Default.Add,
             onActionClick = { showAddDialog = true }
         )

@@ -105,7 +105,14 @@ object WorkoutDayHelper {
             return exDiaNum == targetDiaNum
         }
 
-        return normEx.contains(normTarget) || normTarget.contains(normEx)
+        // Si uno tiene día de semana y el otro no, y ambos tienen número o palabras clave distintas
+        val cleanWordsEx = normEx.split(" ", "·", "-", "—", "|", "/", ":").filter { it.isNotBlank() }
+        val cleanWordsTarget = normTarget.split(" ", "·", "-", "—", "|", "/", ":").filter { it.isNotBlank() }
+        val commonKeywords = cleanWordsEx.intersect(cleanWordsTarget.toSet())
+            .filterNot { it in listOf("DE", "EL", "LA", "EN", "Y", "O", "DIA", "DIAS") }
+        if (commonKeywords.isNotEmpty()) return true
+
+        return normEx == normTarget
     }
 
     /**
@@ -121,10 +128,13 @@ object WorkoutDayHelper {
             return allSessionExercises
         }
         val targetDayIdx = configuredDays.indexOfFirst { matchesDayName(it.first, targetDayTitle) }
+        val targetConfiguredPair = if (targetDayIdx != -1) configuredDays[targetDayIdx] else null
         val hasAnyDayTags = allSessionExercises.any { getDayTitle(it).isNotBlank() }
 
         return if (hasAnyDayTags) {
-            allSessionExercises.filter { matchesDay(it, targetDayTitle) }
+            allSessionExercises.filter { ex ->
+                matchesDay(ex, targetDayTitle) || (targetConfiguredPair != null && matchesDay(ex, targetConfiguredPair.first))
+            }
         } else {
             // Si los ejercicios no tienen notas con día (ej. rutinas antiguas), repartirlos equitativamente por día
             if (targetDayIdx != -1) {

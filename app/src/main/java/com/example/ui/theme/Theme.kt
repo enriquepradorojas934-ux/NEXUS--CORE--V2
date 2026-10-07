@@ -46,11 +46,11 @@ private val LightColorScheme = lightColorScheme(
 
 fun getAccentColor(name: String): Color {
     return when (name) {
-        "Púrpura" -> ExecutivePurple
-        "Zafiro" -> ExecutiveAccentBlue
-        "Ámbar" -> ExecutiveSecondaryAmber
+        "Púrpura" -> SoloNeonPurple
+        "Zafiro" -> SoloNeonCyan
+        "Ámbar" -> SoloGold
         "Esmeralda" -> ExecutiveSuccessGreen
-        else -> ExecutivePrimaryTeal
+        else -> SoloNeonCyan
     }
 }
 

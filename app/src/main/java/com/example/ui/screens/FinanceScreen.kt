@@ -129,6 +129,7 @@ fun FinanceScreen(
             cycleDate = state.currentCycleDate,
             timeUntilReset = state.timeUntilNextCycle,
             cycleProgress = state.cycleProgress,
+            cycleStartTime = state.cycleStartTime,
             actionIcon = if (activeTab == FinanceSectionTab.PATRIMONIO) Icons.Default.AddBusiness else Icons.Default.AddShoppingCart,
             onActionClick = {
                 if (activeTab == FinanceSectionTab.PATRIMONIO) {

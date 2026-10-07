@@ -38,11 +38,12 @@ fun ExecutiveHeader(
     cycleDate: String,
     timeUntilReset: String,
     cycleProgress: Float,
+    cycleStartTime: String = "05:00",
     actionIcon: ImageVector? = null,
     onActionClick: (() -> Unit)? = null
 ) {
     Surface(
-        color = MaterialTheme.colorScheme.surface,
+        color = SoloBg,
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(
@@ -59,65 +60,76 @@ fun ExecutiveHeader(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(
                         modifier = Modifier
-                            .size(7.dp)
+                            .size(8.dp)
                             .clip(CircleShape)
-                            .background(ExecutivePrimaryTeal)
+                            .background(SoloNeonCyan)
+                            .border(1.5.dp, SoloNeonCyan.copy(alpha = 0.8f), CircleShape)
                     )
-                    Spacer(modifier = Modifier.width(6.dp))
+                    Spacer(modifier = Modifier.width(7.dp))
                     Text(
-                        text = "LIFEOS // PRECISION EXECUTIVE",
+                        text = "SOLO LEVELING // RANGO S",
                         style = MaterialTheme.typography.labelSmall.copy(
-                            letterSpacing = 1.2.sp,
-                            fontWeight = FontWeight.Bold
+                            letterSpacing = 1.4.sp,
+                            fontWeight = FontWeight.Black,
+                            fontFamily = FontFamily.Monospace,
+                            fontSize = 10.sp
                         ),
-                        color = ExecutivePrimaryTeal
+                        color = SoloNeonCyan
                     )
                 }
 
                 if (actionIcon != null && onActionClick != null) {
                     IconButton(
                         onClick = onActionClick,
-                        modifier = Modifier.size(32.dp).testTag("header_action_button")
+                        modifier = Modifier
+                            .size(32.dp)
+                            .border(1.dp, SoloCardBorder, RoundedCornerShape(8.dp))
+                            .background(SoloCardBg, RoundedCornerShape(8.dp))
+                            .testTag("header_action_button")
                     ) {
                         Icon(
                             actionIcon,
                             contentDescription = "Acción",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(18.dp)
+                            tint = SoloNeonCyan,
+                            modifier = Modifier.size(16.dp)
                         )
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             // Screen Title & Subtitle
             Text(
                 text = title,
-                style = MaterialTheme.typography.headlineSmall.copy(
-                    fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.headlineMedium.copy(
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 24.sp,
                     letterSpacing = (-0.5).sp
                 ),
-                color = MaterialTheme.colorScheme.onSurface
+                color = SoloTextPrimary
             )
             if (subtitle != null) {
                 Text(
                     text = subtitle,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        fontSize = 12.sp
+                    ),
+                    color = SoloTextSecondary
                 )
             }
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-            // Prominent Cycle Bar (05:00 → 04:59) & Next Reset Countdown
+            // Prominent Configurable Cycle Bar & Next Reset Countdown
+            val cycleRangeText = com.example.domain.DailyCycleEngine.getCycleRangeDisplay(cycleStartTime)
             Surface(
-                shape = RoundedCornerShape(10.dp),
-                color = ExecutiveDarkSurfaceVariant,
-                border = androidx.compose.foundation.BorderStroke(1.dp, ExecutiveBorderSubtle),
+                shape = RoundedCornerShape(16.dp),
+                color = SoloCardBg,
+                border = androidx.compose.foundation.BorderStroke(1.dp, SoloBorderGlow),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
+                Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -125,42 +137,63 @@ fun ExecutiveHeader(
                     ) {
                         Column {
                             Text(
-                                text = androidx.compose.ui.res.stringResource(com.example.R.string.active_cycle),
+                                text = androidx.compose.ui.res.stringResource(com.example.R.string.active_cycle).uppercase(),
                                 style = MaterialTheme.typography.labelSmall.copy(
                                     fontSize = 10.sp,
                                     fontWeight = FontWeight.Bold,
-                                    letterSpacing = 0.8.sp
+                                    letterSpacing = 1.2.sp,
+                                    fontFamily = FontFamily.Monospace
                                 ),
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = SoloTextSecondary
                             )
                             Text(
-                                text = "05:00 → 04:59  •  $cycleDate",
-                                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
-                                color = MaterialTheme.colorScheme.onSurface
+                                text = "$cycleRangeText  •  $cycleDate",
+                                style = MaterialTheme.typography.labelMedium.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    fontFamily = FontFamily.Monospace,
+                                    fontSize = 12.sp
+                                ),
+                                color = SoloTextPrimary
                             )
                         }
 
-                        Text(
-                            text = androidx.compose.ui.res.stringResource(com.example.R.string.cycle_reset_in, timeUntilReset),
-                            style = MaterialTheme.typography.labelMedium.copy(
-                                fontWeight = FontWeight.Bold,
-                                letterSpacing = 0.5.sp
-                            ),
-                            color = ExecutiveSecondaryAmber
-                        )
+                        Surface(
+                            shape = RoundedCornerShape(6.dp),
+                            color = SoloTrack,
+                            border = androidx.compose.foundation.BorderStroke(1.dp, SoloGold.copy(alpha = 0.6f))
+                        ) {
+                            Text(
+                                text = androidx.compose.ui.res.stringResource(com.example.R.string.cycle_reset_in, timeUntilReset).uppercase(),
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    fontWeight = FontWeight.ExtraBold,
+                                    fontFamily = FontFamily.Monospace,
+                                    fontSize = 10.sp,
+                                    letterSpacing = 0.6.sp
+                                ),
+                                color = SoloGold,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            )
+                        }
                     }
 
-                    Spacer(modifier = Modifier.height(6.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
 
-                    LinearProgressIndicator(
-                        progress = { cycleProgress.coerceIn(0f, 1f) },
+                    // Barra con relleno degradado cyan -> morado sobre track #1A1A24
+                    Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(4.dp)
-                            .clip(RoundedCornerShape(2.dp)),
-                        color = ExecutivePrimaryTeal,
-                        trackColor = ExecutiveDarkSurface
-                    )
+                            .height(6.dp)
+                            .clip(RoundedCornerShape(3.dp))
+                            .background(SoloTrack)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth(cycleProgress.coerceIn(0f, 1f))
+                                .fillMaxHeight()
+                                .clip(RoundedCornerShape(3.dp))
+                                .background(SoloNeonGradient)
+                        )
+                    }
                 }
             }
         }
@@ -173,38 +206,33 @@ fun LifeOsBadge(
     type: LifeOsBadgeType,
     modifier: Modifier = Modifier
 ) {
-    val (bg, textColor, border) = when (type) {
-        LifeOsBadgeType.AVAILABLE, LifeOsBadgeType.HEALTHY -> Triple(
-            ExecutiveSuccessGreen.copy(alpha = 0.12f),
+    val (textColor, borderColor) = when (type) {
+        LifeOsBadgeType.AVAILABLE, LifeOsBadgeType.HEALTHY -> Pair(
             ExecutiveSuccessGreen,
-            ExecutiveSuccessGreen.copy(alpha = 0.3f)
+            ExecutiveSuccessGreen.copy(alpha = 0.6f)
         )
-        LifeOsBadgeType.ACTIVE -> Triple(
-            ExecutiveElectricViolet.copy(alpha = 0.2f),
-            ExecutiveVioletGlow,
-            ExecutiveElectricViolet.copy(alpha = 0.5f)
+        LifeOsBadgeType.ACTIVE -> Pair(
+            SoloNeonCyan,
+            SoloNeonCyan.copy(alpha = 0.7f)
         )
-        LifeOsBadgeType.WARNING, LifeOsBadgeType.NEAR_LIMIT -> Triple(
-            ExecutiveSecondaryAmber.copy(alpha = 0.15f),
-            ExecutiveSecondaryAmber,
-            ExecutiveSecondaryAmber.copy(alpha = 0.4f)
+        LifeOsBadgeType.WARNING, LifeOsBadgeType.NEAR_LIMIT -> Pair(
+            SoloGold,
+            SoloGold.copy(alpha = 0.6f)
         )
-        LifeOsBadgeType.EXHAUSTED, LifeOsBadgeType.BLOCKED, LifeOsBadgeType.CRITICAL -> Triple(
-            ExecutiveDangerRed.copy(alpha = 0.15f),
+        LifeOsBadgeType.EXHAUSTED, LifeOsBadgeType.BLOCKED, LifeOsBadgeType.CRITICAL -> Pair(
             ExecutiveDangerRed,
-            ExecutiveDangerRed.copy(alpha = 0.4f)
+            ExecutiveDangerRed.copy(alpha = 0.6f)
         )
-        LifeOsBadgeType.NEUTRAL -> Triple(
-            ExecutiveDarkSurfaceElevated,
-            ExecutiveTextMuted,
-            ExecutiveBorderSubtle
+        LifeOsBadgeType.NEUTRAL -> Pair(
+            SoloTextSecondary,
+            SoloCardBorder
         )
     }
 
     Surface(
-        shape = RoundedCornerShape(4.dp),
-        color = bg,
-        border = androidx.compose.foundation.BorderStroke(1.dp, border),
+        shape = RoundedCornerShape(6.dp),
+        color = SoloTrack, // Fondo #1A1A24
+        border = androidx.compose.foundation.BorderStroke(1.dp, borderColor), // Borde neón
         modifier = modifier
     ) {
         Text(
@@ -212,10 +240,11 @@ fun LifeOsBadge(
             style = MaterialTheme.typography.labelSmall.copy(
                 fontSize = 10.sp,
                 fontWeight = FontWeight.Bold,
-                letterSpacing = 0.6.sp
+                letterSpacing = 0.8.sp,
+                fontFamily = FontFamily.Monospace
             ),
             color = textColor,
-            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
         )
     }
 }
@@ -230,7 +259,8 @@ fun LifeOsSectionHeader(
     subtag: String = "",
     tag: String = "",
     badge: String? = null,
-    indicatorColor: Color = MaterialTheme.colorScheme.primary,
+    icon: ImageVector? = null,
+    indicatorColor: Color = SoloNeonCyan,
     trailingText: String? = null,
     actionLabel: String? = null,
     onActionClick: (() -> Unit)? = null,
@@ -252,23 +282,34 @@ fun LifeOsSectionHeader(
                     .size(8.dp)
                     .clip(CircleShape)
                     .background(indicatorColor)
-                    .border(1.dp, indicatorColor.copy(alpha = 0.5f), CircleShape)
+                    .border(1.dp, indicatorColor.copy(alpha = 0.8f), CircleShape)
             )
             Spacer(modifier = Modifier.width(8.dp))
+            if (icon != null) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = indicatorColor,
+                    modifier = Modifier.size(15.dp)
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+            }
             Text(
-                text = title,
+                text = title.uppercase(),
                 style = MaterialTheme.typography.titleSmall.copy(
                     fontWeight = FontWeight.Bold,
-                    letterSpacing = 0.4.sp
+                    fontSize = 11.sp,
+                    letterSpacing = 1.6.sp,
+                    fontFamily = FontFamily.Monospace
                 ),
-                color = ExecutiveTextWhite
+                color = SoloTextSecondary // Color secundario #8B8B9B
             )
             if (effectiveTag.isNotBlank()) {
                 Spacer(modifier = Modifier.width(8.dp))
                 Surface(
-                    shape = RoundedCornerShape(4.dp),
-                    color = indicatorColor.copy(alpha = 0.12f),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, indicatorColor.copy(alpha = 0.3f))
+                    shape = RoundedCornerShape(6.dp),
+                    color = SoloTrack,
+                    border = androidx.compose.foundation.BorderStroke(1.dp, indicatorColor.copy(alpha = 0.6f))
                 ) {
                     Text(
                         text = effectiveTag.uppercase(),
@@ -279,30 +320,39 @@ fun LifeOsSectionHeader(
                             letterSpacing = 0.8.sp
                         ),
                         color = indicatorColor,
-                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                        modifier = Modifier.padding(horizontal = 7.dp, vertical = 2.dp)
                     )
                 }
             }
         }
         if (actionLabel != null && onActionClick != null) {
-            TextButton(
+            OutlinedButton(
                 onClick = onActionClick,
-                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp)
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = indicatorColor
+                ),
+                border = androidx.compose.foundation.BorderStroke(1.dp, indicatorColor.copy(alpha = 0.6f)),
+                shape = RoundedCornerShape(6.dp),
+                contentPadding = PaddingValues(horizontal = 10.dp, vertical = 2.dp),
+                modifier = Modifier.height(28.dp)
             ) {
                 Text(
                     text = actionLabel,
                     style = MaterialTheme.typography.labelSmall.copy(
-                        color = indicatorColor,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 11.sp
+                        fontSize = 10.sp,
+                        letterSpacing = 0.5.sp
                     )
                 )
             }
         } else if (trailingText != null) {
             Text(
                 text = trailingText,
-                style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace),
-                color = ExecutiveTextMuted
+                style = MaterialTheme.typography.labelSmall.copy(
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 11.sp
+                ),
+                color = SoloTextSecondary
             )
         }
     }
@@ -311,16 +361,29 @@ fun LifeOsSectionHeader(
 @Composable
 fun TacticalCard(
     modifier: Modifier = Modifier,
-    accentColor: Color = ExecutiveElectricViolet,
+    accentColor: Color = SoloNeonCyan,
+    glowEffect: Boolean = false,
     content: @Composable ColumnScope.() -> Unit
 ) {
     Surface(
-        shape = RoundedCornerShape(12.dp),
-        color = ExecutiveDarkSurface,
-        border = androidx.compose.foundation.BorderStroke(1.dp, ExecutiveBorderSubtle),
+        shape = RoundedCornerShape(16.dp), // border-radius 16dp
+        color = SoloCardBg, // Fondo tarjetas #0F0F14
+        border = androidx.compose.foundation.BorderStroke(
+            1.dp,
+            androidx.compose.ui.graphics.Brush.linearGradient(
+                listOf(
+                    accentColor.copy(alpha = 0.50f),
+                    SoloCardBorder,
+                    SoloNeonPurple.copy(alpha = 0.35f)
+                )
+            )
+        ),
         modifier = modifier
     ) {
-        Column(modifier = Modifier.padding(14.dp), content = content)
+        Column(
+            modifier = Modifier.padding(20.dp), // padding interno ~20dp
+            content = content
+        )
     }
 }
 
@@ -336,7 +399,7 @@ fun CircularCompletionControl(
     onToggle: () -> Unit,
     modifier: Modifier = Modifier,
     activeColor: Color = ExecutiveSuccessGreen,
-    inactiveColor: Color = ExecutiveBorder,
+    inactiveColor: Color = SoloCardBorder,
     size: Dp = 24.dp
 ) {
     val context = LocalContext.current
@@ -388,7 +451,7 @@ fun CircularCompletionControl(
 
 /**
  * Barra de Progreso Diario LifeOS
- * Muestra: "X / Y completadas", barra porcentual reactiva,
+ * Muestra: "X / Y completadas", barra porcentual reactiva con degradado Solo Leveling,
  * y estado "DÍA COMPLETADO" con estilo táctico cuando se alcanza el 100%.
  */
 @Composable
@@ -396,22 +459,23 @@ fun DailyProgressBar(
     completed: Int,
     total: Int,
     modifier: Modifier = Modifier,
-    accentColor: Color = ExecutiveElectricViolet
+    accentColor: Color = SoloNeonCyan
 ) {
     val percent = if (total > 0) (completed.toFloat() / total).coerceIn(0f, 1f) else 0f
     val percentText = (percent * 100).toInt()
     val isAllDone = total > 0 && completed >= total
 
     Surface(
-        shape = RoundedCornerShape(12.dp),
-        color = if (isAllDone) ExecutiveSuccessGreen.copy(alpha = 0.08f) else ExecutiveDarkSurface,
+        shape = RoundedCornerShape(16.dp),
+        color = SoloCardBg,
         border = androidx.compose.foundation.BorderStroke(
             1.dp,
-            if (isAllDone) ExecutiveSuccessGreen.copy(alpha = 0.4f) else ExecutiveBorderSubtle
+            if (isAllDone) androidx.compose.ui.graphics.SolidColor(ExecutiveSuccessGreen.copy(alpha = 0.5f))
+            else androidx.compose.ui.graphics.Brush.linearGradient(listOf(SoloNeonCyan.copy(alpha = 0.4f), SoloCardBorder, SoloNeonPurple.copy(alpha = 0.3f)))
         ),
         modifier = modifier.fillMaxWidth()
     ) {
-        Column(modifier = Modifier.padding(14.dp)) {
+        Column(modifier = Modifier.padding(18.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -422,17 +486,18 @@ fun DailyProgressBar(
                         modifier = Modifier
                             .size(8.dp)
                             .clip(CircleShape)
-                            .background(if (isAllDone) ExecutiveSuccessGreen else accentColor)
+                            .background(if (isAllDone) ExecutiveSuccessGreen else SoloNeonCyan)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = if (isAllDone) androidx.compose.ui.res.stringResource(com.example.R.string.day_completed) else androidx.compose.ui.res.stringResource(com.example.R.string.daily_progress),
+                        text = if (isAllDone) androidx.compose.ui.res.stringResource(com.example.R.string.day_completed).uppercase() else androidx.compose.ui.res.stringResource(com.example.R.string.daily_progress).uppercase(),
                         style = MaterialTheme.typography.labelSmall.copy(
                             fontWeight = FontWeight.Bold,
                             fontFamily = FontFamily.Monospace,
-                            letterSpacing = 1.sp
+                            letterSpacing = 1.2.sp,
+                            fontSize = 11.sp
                         ),
-                        color = if (isAllDone) ExecutiveSuccessGreen else ExecutiveTextWhite
+                        color = if (isAllDone) ExecutiveSuccessGreen else SoloTextSecondary
                     )
                 }
 
@@ -440,31 +505,42 @@ fun DailyProgressBar(
                     Text(
                         text = androidx.compose.ui.res.stringResource(com.example.R.string.completed_tasks_count, completed, total),
                         style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace),
-                        color = ExecutiveTextMuted
+                        color = SoloTextSecondary
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = "$percentText%",
                         style = MaterialTheme.typography.labelMedium.copy(
-                            fontWeight = FontWeight.Bold,
-                            fontFamily = FontFamily.Monospace
+                            fontWeight = FontWeight.ExtraBold,
+                            fontFamily = FontFamily.Monospace,
+                            fontSize = 12.sp
                         ),
-                        color = if (isAllDone) ExecutiveSuccessGreen else accentColor
+                        color = if (isAllDone) ExecutiveSuccessGreen else SoloGold
                     )
                 }
             }
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            LinearProgressIndicator(
-                progress = { percent },
+            // Barra con fondo #1A1A24 y degradado neón cyan -> morado
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(6.dp)
-                    .clip(RoundedCornerShape(3.dp)),
-                color = if (isAllDone) ExecutiveSuccessGreen else accentColor,
-                trackColor = ExecutiveDarkSurfaceVariant
-            )
+                    .height(8.dp)
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(SoloTrack)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(percent)
+                        .fillMaxHeight()
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(
+                            if (isAllDone) androidx.compose.ui.graphics.Brush.horizontalGradient(listOf(ExecutiveSuccessGreen, SoloNeonCyan))
+                            else SoloNeonGradient
+                        )
+                )
+            }
 
             if (isAllDone) {
                 Spacer(modifier = Modifier.height(8.dp))
@@ -500,9 +576,10 @@ fun DailyProgressBar(
     modifier: Modifier = Modifier,
     label: String = "PROGRESO",
     valueText: String = "",
-    fillColor: Color = ExecutiveElectricViolet
+    fillColor: Color = SoloNeonCyan
 ) {
-    val percentText = (progress.coerceIn(0f, 1f) * 100).toInt()
+    val coercedProgress = progress.coerceIn(0f, 1f)
+    val percentText = (coercedProgress * 100).toInt()
     Column(modifier = modifier) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -510,34 +587,42 @@ fun DailyProgressBar(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = label,
+                text = label.uppercase(),
                 style = MaterialTheme.typography.labelSmall.copy(
                     fontWeight = FontWeight.Bold,
                     fontFamily = FontFamily.Monospace,
-                    fontSize = 10.sp
+                    fontSize = 10.sp,
+                    letterSpacing = 1.2.sp
                 ),
-                color = ExecutiveTextWhite
+                color = SoloTextSecondary
             )
             Text(
                 text = if (valueText.isNotBlank()) valueText else "$percentText%",
                 style = MaterialTheme.typography.labelSmall.copy(
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.ExtraBold,
                     fontFamily = FontFamily.Monospace,
-                    fontSize = 10.sp
+                    fontSize = 11.sp
                 ),
-                color = fillColor
+                color = SoloGold
             )
         }
-        Spacer(modifier = Modifier.height(4.dp))
-        LinearProgressIndicator(
-            progress = { progress.coerceIn(0f, 1f) },
+        Spacer(modifier = Modifier.height(6.dp))
+        // Track #1A1A24 con relleno degradado cyan -> morado
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(6.dp)
-                .clip(RoundedCornerShape(3.dp)),
-            color = fillColor,
-            trackColor = ExecutiveDarkSurfaceVariant
-        )
+                .height(8.dp)
+                .clip(RoundedCornerShape(4.dp))
+                .background(SoloTrack)
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(coercedProgress)
+                    .fillMaxHeight()
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(SoloNeonGradient)
+            )
+        }
     }
 }
 
@@ -554,9 +639,10 @@ fun ExecutiveMetricCard(
 ) {
     Card(
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = SoloCardBg
         ),
         shape = RoundedCornerShape(16.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, SoloCardBorder),
         modifier = modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
@@ -565,14 +651,15 @@ fun ExecutiveMetricCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(18.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
                 modifier = Modifier
                     .size(46.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(accentColor.copy(alpha = 0.15f)),
+                    .background(SoloTrack)
+                    .border(1.dp, accentColor.copy(alpha = 0.5f), RoundedCornerShape(12.dp)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -587,26 +674,33 @@ fun ExecutiveMetricCard(
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = question,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    text = question.uppercase(),
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        fontFamily = FontFamily.Monospace,
+                        letterSpacing = 1.sp,
+                        fontSize = 10.sp
+                    ),
+                    color = SoloTextSecondary
                 )
                 Text(
                     text = value,
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onSurface
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 20.sp
+                    ),
+                    color = SoloTextPrimary
                 )
                 Text(
                     text = detail,
-                    style = MaterialTheme.typography.bodySmall.copy(lineHeight = 16.sp),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    style = MaterialTheme.typography.bodySmall.copy(lineHeight = 16.sp, fontSize = 11.sp),
+                    color = SoloTextSecondary
                 )
             }
 
             Icon(
                 Icons.Default.ChevronRight,
                 contentDescription = "Ir",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                tint = SoloNeonCyan.copy(alpha = 0.7f)
             )
         }
     }
@@ -620,9 +714,11 @@ fun ExecutiveBottomNav(
     language: String = "Español"
 ) {
     NavigationBar(
-        modifier = modifier.testTag("bottom_navigation_bar"),
-        containerColor = MaterialTheme.colorScheme.surface,
-        tonalElevation = 6.dp
+        modifier = modifier
+            .border(androidx.compose.foundation.BorderStroke(1.dp, SoloCardBorder))
+            .testTag("bottom_navigation_bar"),
+        containerColor = SoloCardBg, // #0F0F14
+        tonalElevation = 8.dp
     ) {
         val items = listOf(
             Triple(AppNavTab.DASHBOARD, Icons.Default.Dashboard, androidx.compose.ui.res.stringResource(com.example.R.string.nav_hub)),
@@ -649,15 +745,16 @@ fun ExecutiveBottomNav(
                     Text(
                         label,
                         style = MaterialTheme.typography.labelSmall,
-                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                        fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Normal,
+                        fontSize = 10.sp
                     )
                 },
                 colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = ExecutiveDarkBg,
-                    selectedTextColor = ExecutivePrimaryTeal,
-                    indicatorColor = ExecutivePrimaryTeal,
-                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    selectedIconColor = SoloBg,
+                    selectedTextColor = SoloNeonCyan,
+                    indicatorColor = SoloNeonCyan,
+                    unselectedIconColor = SoloTextSecondary,
+                    unselectedTextColor = SoloTextSecondary
                 ),
                 modifier = Modifier.testTag("nav_item_${tab.name.lowercase()}")
             )
