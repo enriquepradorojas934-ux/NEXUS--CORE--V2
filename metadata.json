@@ -1,6 +1,6 @@
 {
-  "name": "LifeOS",
-  "description": "LifeOS Precision Executive: Sistema operativo personal avanzado para gestión de tiempo, hábitos, metas, finanzas y bienestar digital.",
+  "name": "Personal OS",
+  "description": "Executive life and productivity operating system with RPG progression, habits, goals, and offline persistence",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
