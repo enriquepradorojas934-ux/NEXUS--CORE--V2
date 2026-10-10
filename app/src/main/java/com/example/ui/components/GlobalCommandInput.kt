@@ -78,11 +78,11 @@ fun GlobalCommandInput(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Resumen de estado operativo en 3 viñetas estructuradas (Ciclo / Ejecución / Meta activa)
+            // Resumen diario generado automáticamente por IA (aparece sin escribir nada)
             Surface(
                 shape = RoundedCornerShape(10.dp),
-                color = SoloTrack,
-                border = androidx.compose.foundation.BorderStroke(1.dp, SoloNeonCyan.copy(alpha = 0.35f)),
+                color = ExecutiveDarkSurfaceElevated,
+                border = androidx.compose.foundation.BorderStroke(1.dp, TacticalNeonCyan.copy(alpha = 0.22f)),
                 modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp).testTag("card_daily_ai_summary")
             ) {
                 Column(modifier = Modifier.padding(12.dp)) {
@@ -95,28 +95,27 @@ fun GlobalCommandInput(
                             Icon(
                                 Icons.Default.AutoAwesome,
                                 contentDescription = null,
-                                tint = SoloNeonCyan,
+                                tint = TacticalNeonCyan,
                                 modifier = Modifier.size(14.dp)
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
-                                "ESTADO OPERATIVO // SÍNTESIS",
+                                stringResource(R.string.global_command_daily_summary),
                                 fontFamily = FontFamily.Monospace,
                                 fontSize = 10.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = SoloNeonCyan,
+                                color = TacticalNeonCyan,
                                 letterSpacing = 0.5.sp
                             )
                         }
                         Surface(
                             shape = RoundedCornerShape(4.dp),
-                            color = SoloNeonCyan.copy(alpha = 0.15f),
-                            border = androidx.compose.foundation.BorderStroke(1.dp, SoloNeonCyan.copy(alpha = 0.4f))
+                            color = TacticalNeonCyan.copy(alpha = 0.15f)
                         ) {
                             Text(
-                                "ACTIVO",
+                                stringResource(R.string.global_command_ai_badge),
                                 fontSize = 9.sp,
-                                color = SoloNeonCyan,
+                                color = TacticalNeonCyan,
                                 fontWeight = FontWeight.Bold,
                                 modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                             )
@@ -125,12 +124,8 @@ fun GlobalCommandInput(
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
                         text = dailyAiSummary ?: stringResource(R.string.global_command_synthesizing),
-                        style = MaterialTheme.typography.bodySmall.copy(
-                            lineHeight = 18.sp,
-                            fontFamily = FontFamily.Monospace,
-                            fontSize = 11.sp
-                        ),
-                        color = SoloTextPrimary
+                        style = MaterialTheme.typography.bodySmall.copy(lineHeight = 18.sp),
+                        color = ExecutiveTextPrimary
                     )
                 }
             }

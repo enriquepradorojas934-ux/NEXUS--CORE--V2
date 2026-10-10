@@ -265,4 +265,20 @@
     <string name="type_workout">Type Workout</string>
     <string name="understood">Understood</string>
     <string name="view_privacy_statement">View Privacy Statement</string>
+    <string name="active_cycle">Ciclo Activo</string>
+    <string name="cycle_reset_in">Reinicio en</string>
+    <string name="global_command_daily_summary">Resumen Diario IA</string>
+    <string name="global_command_ai_badge">Comando Inteligente</string>
+    <string name="hub_operational_principle">Principio Operativo</string>
+    <string name="hub_workout_view_module">Ver Módulo de Entrenamiento</string>
+    <string name="chat_title">Asistente Ejecutivo</string>
+    <string name="hub_ai_advisor_title">Asesor Ejecutivo IA</string>
+    <string name="hub_ai_analyzing">Analizando estado ejecutivo...</string>
+    <string name="hub_ai_subtitle">Inteligencia Táctica &amp; Diagnóstico</string>
+    <string name="action_diagnostic">Diagnóstico</string>
+    <string name="action_consult">Consultar</string>
+    <string name="hub_ai_open_chat">Abrir Chat</string>
+    <string name="settings_cycle_time_label">Hora de Inicio de Ciclo</string>
+    <string name="test_sensory_alert">Probar Alerta Sensorial</string>
+    <string name="force_cycle_reset">Forzar Reinicio de Ciclo</string>
 </resources>

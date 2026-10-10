@@ -19,6 +19,10 @@ object SensoryFeedbackHelper {
         vibrate(context, 80, VibrationEffect.DEFAULT_AMPLITUDE)
     }
 
+    fun playFocusCompleteCelebration(context: Context) {
+        vibrateSuccess(context)
+    }
+
     fun playRewardSound() {
         // Optional acoustic feedback
     }

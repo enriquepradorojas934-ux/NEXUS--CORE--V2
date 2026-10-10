@@ -172,26 +172,15 @@ fun FitnessScreen(
                                 )
                             }
 
-                            OutlinedButton(
+                            Button(
                                 onClick = { showAddDialog = true },
-                                colors = ButtonDefaults.outlinedButtonColors(
-                                    containerColor = SoloTrack,
-                                    contentColor = TacticalNeonCyan
-                                ),
-                                border = androidx.compose.foundation.BorderStroke(1.dp, TacticalNeonCyan.copy(alpha = 0.7f)),
+                                colors = ButtonDefaults.buttonColors(containerColor = TacticalNeonCyan),
                                 shape = RoundedCornerShape(8.dp),
-                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
                                 modifier = Modifier.testTag("btn_add_workout")
                             ) {
-                                Icon(Icons.Default.Add, contentDescription = null, tint = TacticalNeonCyan, modifier = Modifier.size(14.dp))
+                                Icon(Icons.Default.Add, contentDescription = null, tint = ExecutiveDarkBg, modifier = Modifier.size(16.dp))
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text(
-                                    stringResource(R.string.fitness_register_btn),
-                                    color = TacticalNeonCyan,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 11.sp,
-                                    fontFamily = FontFamily.Monospace
-                                )
+                                Text(stringResource(R.string.fitness_register_btn), color = ExecutiveDarkBg, fontWeight = FontWeight.Bold, fontSize = 12.sp)
                             }
                         }
                     }
@@ -1160,20 +1149,20 @@ fun InteractiveWorkoutSessionCard(
                         Spacer(modifier = Modifier.height(10.dp))
                     }
 
-                    // CUADRO DEL DÍA ACTIVO / SELECTOR DE DÍAS (JERARQUÍA Y TIPOGRAFÍA LIMPIAS)
+                    // CUADRO COMPACTO DEL DÍA ACTIVO / SELECTOR DE DÍAS (SOLO EJERCICIOS DEL DÍA)
                     Surface(
-                        shape = RoundedCornerShape(12.dp),
-                        color = SoloTrack,
+                        shape = RoundedCornerShape(6.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
                         border = BorderStroke(
                             1.dp,
-                            if (todayIdx == selectedDayIdx) TacticalNeonCyan.copy(alpha = 0.5f) else SoloCardBorder
+                            if (todayIdx == selectedDayIdx) TacticalNeonCyan.copy(alpha = 0.6f) else ExecutiveBorderSubtle
                         ),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 4.dp)
+                            .padding(vertical = 1.dp)
                             .testTag("compact_day_box_${session.id}")
                     ) {
-                        Column(modifier = Modifier.padding(12.dp)) {
+                        Column(modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp)) {
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -1183,61 +1172,60 @@ fun InteractiveWorkoutSessionCard(
                                     Icon(
                                         imageVector = Icons.Default.CalendarToday,
                                         contentDescription = null,
-                                        tint = if (todayIdx == selectedDayIdx) TacticalNeonCyan else SoloTextSecondary,
-                                        modifier = Modifier.size(14.dp)
+                                        tint = if (todayIdx == selectedDayIdx) TacticalNeonCyan else ExecutiveTextSecondary,
+                                        modifier = Modifier.size(11.dp)
                                     )
-                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Spacer(modifier = Modifier.width(5.dp))
                                     Text(
                                         text = activeDayTitle,
                                         fontFamily = FontFamily.Monospace,
-                                        fontSize = 12.sp,
+                                        fontSize = 10.sp,
                                         fontWeight = FontWeight.Bold,
-                                        color = if (todayIdx == selectedDayIdx) TacticalNeonCyan else SoloTextPrimary
+                                        color = if (todayIdx == selectedDayIdx) TacticalNeonCyan else ExecutiveTextPrimary
                                     )
                                     if (todayIdx == selectedDayIdx) {
-                                        Spacer(modifier = Modifier.width(6.dp))
+                                        Spacer(modifier = Modifier.width(5.dp))
                                         Surface(
-                                            shape = RoundedCornerShape(4.dp),
+                                            shape = RoundedCornerShape(2.dp),
                                             color = TacticalNeonCyan.copy(alpha = 0.2f),
-                                            border = BorderStroke(1.dp, TacticalNeonCyan.copy(alpha = 0.6f))
+                                            border = BorderStroke(1.dp, TacticalNeonCyan.copy(alpha = 0.5f))
                                         ) {
                                             Text(
                                                 text = "HOY",
-                                                fontSize = 9.sp,
+                                                fontSize = 7.sp,
                                                 fontWeight = FontWeight.Bold,
-                                                fontFamily = FontFamily.Monospace,
                                                 color = TacticalNeonCyan,
-                                                modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
+                                                modifier = Modifier.padding(horizontal = 3.dp, vertical = 1.dp)
                                             )
                                         }
                                     }
                                 }
 
                                 Text(
-                                    text = "${dayExercises.size} ejercicios",
-                                    fontSize = 11.sp,
+                                    text = "${dayExercises.size} ejer.",
+                                    fontSize = 9.sp,
                                     fontFamily = FontFamily.Monospace,
-                                    color = SoloTextSecondary
+                                    color = ExecutiveTextSecondary
                                 )
                             }
 
                             if (activeDaySubtitle.isNotBlank()) {
-                                Spacer(modifier = Modifier.height(4.dp))
+                                Spacer(modifier = Modifier.height(1.dp))
                                 Text(
-                                    text = if (activeDaySubtitle.startsWith("(")) activeDaySubtitle else "Enfoque: $activeDaySubtitle",
-                                    fontSize = 11.sp,
-                                    color = SoloTextSecondary,
+                                    text = if (activeDaySubtitle.startsWith("(")) activeDaySubtitle else "($activeDaySubtitle)",
+                                    fontSize = 9.sp,
+                                    color = ExecutiveTextSecondary,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
                                 )
                             }
 
-                            // Si la rutina tiene múltiples días, selector de días limpio y espacioso
+                            // Si la rutina tiene múltiples días, selector compacto de días
                             if (configuredDays.size > 1) {
-                                Spacer(modifier = Modifier.height(8.dp))
+                                Spacer(modifier = Modifier.height(2.dp))
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                    horizontalArrangement = Arrangement.spacedBy(3.dp)
                                 ) {
                                     configuredDays.forEachIndexed { dIdx, (dTitle, _) ->
                                         val isSel = (dIdx == selectedDayIdx)
@@ -1245,34 +1233,34 @@ fun InteractiveWorkoutSessionCard(
                                         val thisDayExercises = com.example.domain.WorkoutDayHelper.getDayExercises(exercises, configuredDays, dTitle)
                                         val isThisDayDone = thisDayExercises.isNotEmpty() && thisDayExercises.all { it.isCompleted }
                                         Surface(
-                                            shape = RoundedCornerShape(6.dp),
-                                            color = if (isSel) TacticalNeonCyan.copy(alpha = 0.2f) else if (isThisDayDone) ExecutiveSuccessGreen.copy(alpha = 0.15f) else SoloCardBg,
+                                            shape = RoundedCornerShape(3.dp),
+                                            color = if (isSel) TacticalNeonCyan.copy(alpha = 0.2f) else if (isThisDayDone) ExecutiveSuccessGreen.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surface,
                                             border = BorderStroke(
                                                 1.dp,
-                                                if (isSel) TacticalNeonCyan else if (isThisDayDone) ExecutiveSuccessGreen.copy(alpha = 0.7f) else if (isTodayThis) TacticalNeonCyan.copy(alpha = 0.4f) else SoloCardBorder
+                                                if (isSel) TacticalNeonCyan else if (isThisDayDone) ExecutiveSuccessGreen.copy(alpha = 0.6f) else if (isTodayThis) TacticalNeonCyan.copy(alpha = 0.4f) else ExecutiveBorderSubtle
                                             ),
                                             modifier = Modifier
                                                 .clickable { selectedDayIdx = dIdx }
+                                                .padding(vertical = 1.dp)
                                         ) {
                                             Row(
                                                 verticalAlignment = Alignment.CenterVertically,
-                                                modifier = Modifier.padding(horizontal = 9.dp, vertical = 5.dp)
+                                                modifier = Modifier.padding(horizontal = 5.dp, vertical = 1.dp)
                                             ) {
                                                 if (isThisDayDone) {
                                                     Icon(
                                                         Icons.Default.Check,
                                                         contentDescription = null,
                                                         tint = ExecutiveSuccessGreen,
-                                                        modifier = Modifier.size(11.dp)
+                                                        modifier = Modifier.size(9.dp)
                                                     )
-                                                    Spacer(modifier = Modifier.width(3.dp))
+                                                    Spacer(modifier = Modifier.width(2.dp))
                                                 }
                                                 Text(
                                                     text = dTitle.split("·").firstOrNull()?.trim() ?: dTitle,
-                                                    fontSize = 10.sp,
-                                                    fontFamily = FontFamily.Monospace,
+                                                    fontSize = 8.sp,
                                                     fontWeight = if (isSel) FontWeight.Bold else FontWeight.Normal,
-                                                    color = if (isSel) TacticalNeonCyan else if (isThisDayDone) ExecutiveSuccessGreen else SoloTextSecondary
+                                                    color = if (isSel) TacticalNeonCyan else if (isThisDayDone) ExecutiveSuccessGreen else ExecutiveTextSecondary
                                                 )
                                             }
                                         }

@@ -265,4 +265,20 @@
     <string name="type_workout">Type Workout</string>
     <string name="understood">Understood</string>
     <string name="view_privacy_statement">View Privacy Statement</string>
+    <string name="active_cycle">Active Cycle</string>
+    <string name="cycle_reset_in">Reset in</string>
+    <string name="global_command_daily_summary">AI Daily Summary</string>
+    <string name="global_command_ai_badge">Smart Command</string>
+    <string name="hub_operational_principle">Operational Principle</string>
+    <string name="hub_workout_view_module">View Training Module</string>
+    <string name="chat_title">Executive Assistant</string>
+    <string name="hub_ai_advisor_title">Executive AI Advisor</string>
+    <string name="hub_ai_analyzing">Analyzing executive state...</string>
+    <string name="hub_ai_subtitle">Tactical Intelligence &amp; Diagnostics</string>
+    <string name="action_diagnostic">Diagnostic</string>
+    <string name="action_consult">Consult</string>
+    <string name="hub_ai_open_chat">Open Chat</string>
+    <string name="settings_cycle_time_label">Cycle Start Time</string>
+    <string name="test_sensory_alert">Test Sensory Alert</string>
+    <string name="force_cycle_reset">Force Cycle Reset</string>
 </resources>

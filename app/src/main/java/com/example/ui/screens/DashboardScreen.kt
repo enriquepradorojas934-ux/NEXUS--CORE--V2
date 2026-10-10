@@ -75,7 +75,6 @@ fun DashboardScreen(
                 timeUntilReset = state.timeUntilNextCycle,
                 cycleProgress = state.cycleProgress,
                 cycleStartTime = state.cycleStartTime,
-                showCycleBar = true,
                 actionIcon = Icons.Default.Settings,
                 onActionClick = { onNavigate(AppNavTab.SETTINGS) }
             )
@@ -106,56 +105,57 @@ fun DashboardScreen(
                     )
                 }
 
-                // CÓDIGO DEL DÍA (DIRECTIVA DEL CICLO)
+                // PRINCIPIO OPERATIVO
                 item {
                     Surface(
-                        shape = RoundedCornerShape(16.dp),
-                        color = SoloCardBg,
-                        border = androidx.compose.foundation.BorderStroke(1.dp, SoloCardBorder),
+                        shape = RoundedCornerShape(12.dp),
+                        color = ExecutiveDarkSurface,
+                        border = androidx.compose.foundation.BorderStroke(1.dp, ExecutiveBorderSubtle),
                         modifier = Modifier.fillMaxWidth().testTag("card_daily_aphorism")
                     ) {
-                        Column(modifier = Modifier.padding(18.dp)) {
+                        Column(modifier = Modifier.padding(14.dp)) {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween,
                                 modifier = Modifier.fillMaxWidth()
                             ) {
-                                Icon(
-                                    imageVector = Icons.Default.FormatQuote,
-                                    contentDescription = null,
-                                    tint = SoloGold,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                                Spacer(modifier = Modifier.width(7.dp))
-                                Text(
-                                    text = "CÓDIGO DEL DÍA",
-                                    style = MaterialTheme.typography.labelSmall.copy(
-                                        fontFamily = FontFamily.Monospace,
-                                        fontWeight = FontWeight.Bold,
-                                        letterSpacing = 1.3.sp,
-                                        fontSize = 11.sp
-                                    ),
-                                    color = SoloTextSecondary
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        imageVector = Icons.Default.FormatQuote,
+                                        contentDescription = null,
+                                        tint = ExecutiveSecondaryAmber,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(
+                                        text = stringResource(R.string.hub_operational_principle),
+                                        style = MaterialTheme.typography.labelSmall.copy(
+                                            fontFamily = FontFamily.Monospace,
+                                            fontWeight = FontWeight.Bold,
+                                            letterSpacing = 1.sp
+                                        ),
+                                        color = ExecutiveSecondaryAmber
+                                    )
+                                }
+                                LifeOsBadge(
+                                    text = todayAphorism.focusArea.uppercase(),
+                                    type = LifeOsBadgeType.ACTIVE
                                 )
                             }
-                            Spacer(modifier = Modifier.height(10.dp))
+                            Spacer(modifier = Modifier.height(8.dp))
                             Text(
                                 text = "\"${todayAphorism.quote}\"",
-                                style = MaterialTheme.typography.bodyMedium.copy(
+                                style = MaterialTheme.typography.bodySmall.copy(
                                     fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
-                                    lineHeight = 20.sp,
-                                    fontSize = 13.sp
+                                    lineHeight = 18.sp
                                 ),
-                                color = SoloTextPrimary
+                                color = ExecutiveTextWhite
                             )
-                            Spacer(modifier = Modifier.height(6.dp))
+                            Spacer(modifier = Modifier.height(4.dp))
                             Text(
                                 text = "— ${todayAphorism.author}",
-                                style = MaterialTheme.typography.labelSmall.copy(
-                                    fontWeight = FontWeight.SemiBold,
-                                    fontFamily = FontFamily.Monospace,
-                                    fontSize = 11.sp
-                                ),
-                                color = SoloTextSecondary,
+                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium),
+                                color = ExecutiveTextMuted,
                                 modifier = Modifier.align(Alignment.End)
                             )
                         }
@@ -497,7 +497,9 @@ fun DashboardScreen(
                         title = stringResource(R.string.hub_workout_section_title),
                         badge = "${state.workoutSessions.size}",
                         subtag = stringResource(R.string.hub_workout_subtag),
-                        indicatorColor = TacticalNeonCyan
+                        indicatorColor = TacticalNeonCyan,
+                        actionLabel = stringResource(R.string.hub_workout_view_module),
+                        onActionClick = onOpenFitness
                     )
                 }
 
@@ -532,57 +534,193 @@ fun DashboardScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
-                                val dayName = todayDayPair?.first?.split("·")?.firstOrNull()?.trim() ?: "HOY"
                                 Text(
                                     text = if (activeSession == null) {
                                         stringResource(R.string.hub_workout_no_routine_today)
                                     } else if (isTodayRest) {
-                                        "Descanso · ${activeSession.title}"
+                                        "${activeSession.title} · Descanso"
                                     } else {
-                                        "$dayName · ${activeSession.title}"
+                                        activeSession.title
                                     },
-                                    fontSize = 13.sp,
+                                    fontSize = 14.sp,
                                     fontWeight = FontWeight.Bold,
-                                    fontFamily = FontFamily.Monospace,
-                                    color = SoloTextPrimary
+                                    color = ExecutiveTextPrimary
                                 )
-                                Spacer(modifier = Modifier.height(3.dp))
+                                Spacer(modifier = Modifier.height(2.dp))
                                 Text(
                                     text = if (activeSession != null) {
                                         if (isTodayRest) {
-                                            "Próxima sesión: ${nextWorkoutDay?.first ?: "Siguiente ciclo"}"
+                                            "Hoy es descanso • Próximo: ${nextWorkoutDay?.first ?: "Próximamente"}"
                                         } else if (totalEx > 0) {
-                                            "$completedEx/$totalEx ejercicios listos • ${activeSession.targetGoal}"
+                                            "${todayDayPair?.first?.split("·")?.firstOrNull()?.trim() ?: "Hoy"}: $completedEx/$totalEx listos • ${activeSession.targetGoal}"
                                         } else {
                                             stringResource(R.string.hub_workout_routine_meta, activeSession.durationMinutes, activeSession.targetGoal)
                                         }
                                     } else {
                                         stringResource(R.string.hub_workout_tap_to_log)
                                     },
-                                    fontSize = 11.sp,
-                                    color = if (totalEx > 0 && completedEx == totalEx) ExecutiveSuccessGreen else SoloTextSecondary
+                                    fontSize = 12.sp,
+                                    color = if (totalEx > 0 && completedEx == totalEx) ExecutiveSuccessGreen else ExecutiveTextSecondary
                                 )
                             }
-                            if (!isTodayRest && activeSession != null) {
-                                Spacer(modifier = Modifier.width(8.dp))
-                                OutlinedButton(
-                                    onClick = onOpenFitness,
-                                    colors = ButtonDefaults.outlinedButtonColors(
-                                        containerColor = SoloTrack,
-                                        contentColor = TacticalNeonCyan
-                                    ),
-                                    border = androidx.compose.foundation.BorderStroke(1.dp, TacticalNeonCyan.copy(alpha = 0.7f)),
-                                    shape = RoundedCornerShape(8.dp),
-                                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp)
-                                ) {
+                            Spacer(modifier = Modifier.width(8.dp))
+                            FilledTonalButton(
+                                onClick = onOpenFitness,
+                                colors = ButtonDefaults.filledTonalButtonColors(containerColor = TacticalNeonCyan.copy(alpha = 0.2f)),
+                                shape = RoundedCornerShape(6.dp)
+                            ) {
+                                Text(
+                                    text = if (isTodayRest) "Ver Rutina" else if (activeSession != null && completedEx > 0) "Continuar" else "Registrar",
+                                    fontSize = 11.sp,
+                                    color = TacticalNeonCyan,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // ========================================
+                // AUXILIAR: ASESOR ANALÍTICO GEMINI
+                // ========================================
+                item {
+                    Surface(
+                        shape = RoundedCornerShape(14.dp),
+                        color = ExecutiveDarkSurface,
+                        border = androidx.compose.foundation.BorderStroke(1.dp, ExecutiveBorderSubtle),
+                        modifier = Modifier.fillMaxWidth().testTag("card_ai_advisor")
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        imageVector = Icons.Default.AutoAwesome,
+                                        contentDescription = stringResource(R.string.chat_title),
+                                        tint = ExecutiveCyan,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
                                     Text(
-                                        text = if (completedEx > 0 && completedEx < totalEx) "CONTINUAR" else if (completedEx == totalEx && totalEx > 0) "COMPLETO" else "REGISTRAR",
-                                        fontSize = 10.sp,
-                                        color = if (completedEx == totalEx && totalEx > 0) ExecutiveSuccessGreen else TacticalNeonCyan,
-                                        fontWeight = FontWeight.Bold,
-                                        fontFamily = FontFamily.Monospace
+                                        text = stringResource(R.string.hub_ai_advisor_title),
+                                        style = MaterialTheme.typography.labelSmall.copy(
+                                            fontFamily = FontFamily.Monospace,
+                                            fontWeight = FontWeight.Bold,
+                                            letterSpacing = 1.sp
+                                        ),
+                                        color = ExecutiveCyan
                                     )
                                 }
+                                if (state.aiProductivityAdvice != null) {
+                                    IconButton(
+                                        onClick = onClearAiAdvice,
+                                        modifier = Modifier.size(24.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Close,
+                                            contentDescription = stringResource(R.string.action_close),
+                                            tint = ExecutiveTextMuted,
+                                            modifier = Modifier.size(16.dp)
+                                        )
+                                    }
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            if (state.isGeneratingAiAdvice) {
+                                Column(
+                                    modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    CircularProgressIndicator(
+                                        color = ExecutiveCyan,
+                                        modifier = Modifier.size(24.dp),
+                                        strokeWidth = 2.dp
+                                    )
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Text(
+                                        text = stringResource(R.string.hub_ai_analyzing),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = ExecutiveTextMuted
+                                    )
+                                }
+                            } else if (state.aiProductivityAdvice != null) {
+                                Surface(
+                                    shape = RoundedCornerShape(8.dp),
+                                    color = ExecutiveDarkSurfaceElevated,
+                                    border = androidx.compose.foundation.BorderStroke(1.dp, ExecutiveCyan.copy(alpha = 0.25f)),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text(
+                                        text = state.aiProductivityAdvice,
+                                        style = MaterialTheme.typography.bodySmall.copy(lineHeight = 18.sp),
+                                        color = ExecutiveTextWhite,
+                                        modifier = Modifier.padding(12.dp)
+                                    )
+                                }
+                            } else {
+                                Text(
+                                    text = stringResource(R.string.hub_ai_subtitle),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = ExecutiveTextMuted
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(10.dp))
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                OutlinedButton(
+                                    onClick = onRequestAiAdvice,
+                                    enabled = !state.isGeneratingAiAdvice,
+                                    colors = ButtonDefaults.outlinedButtonColors(contentColor = ExecutiveCyan),
+                                    border = androidx.compose.foundation.BorderStroke(1.dp, ExecutiveCyan.copy(alpha = 0.5f)),
+                                    modifier = Modifier.weight(1f).testTag("btn_request_ai_advice")
+                                ) {
+                                    Icon(Icons.Default.Insights, contentDescription = null, modifier = Modifier.size(16.dp))
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(stringResource(R.string.action_diagnostic), style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold))
+                                }
+
+                                OutlinedButton(
+                                    onClick = { showCustomQuestionDialog = true },
+                                    enabled = !state.isGeneratingAiAdvice,
+                                    colors = ButtonDefaults.outlinedButtonColors(contentColor = ExecutiveTextWhite),
+                                    border = androidx.compose.foundation.BorderStroke(1.dp, ExecutiveBorder),
+                                    modifier = Modifier.weight(1f).testTag("btn_ask_custom_ai")
+                                ) {
+                                    Icon(Icons.Default.QuestionAnswer, contentDescription = null, modifier = Modifier.size(16.dp))
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(stringResource(R.string.action_consult), style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold))
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            Button(
+                                onClick = {
+                                    SensoryFeedbackHelper.vibrateLightTick(context)
+                                    onOpenChat()
+                                },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = ExecutiveCyan.copy(alpha = 0.15f),
+                                    contentColor = ExecutiveCyan
+                                ),
+                                border = androidx.compose.foundation.BorderStroke(1.dp, ExecutiveCyan.copy(alpha = 0.4f)),
+                                modifier = Modifier.fillMaxWidth().testTag("btn_open_full_chat")
+                            ) {
+                                Icon(Icons.Default.Forum, contentDescription = null, modifier = Modifier.size(16.dp))
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    stringResource(R.string.hub_ai_open_chat),
+                                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold)
+                                )
                             }
                         }
                     }

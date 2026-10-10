@@ -30,8 +30,6 @@ import com.example.ui.theme.*
 
 /**
  * Tarjeta táctica HUD de Nivel y Progresión RPG en el Centro de Mando
- * Vista colapsada por defecto: solo Operador, Nivel, XP total y barra de progreso.
- * Al tocar "Detalles": despliega atributos en barras y logros tácticos.
  */
 @Composable
 fun TacticalProgressionWidget(
@@ -39,12 +37,10 @@ fun TacticalProgressionWidget(
     onOpenDetails: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var isExpanded by remember { mutableStateOf(false) }
-
     TacticalCard(
         modifier = modifier
             .fillMaxWidth()
-            .clickable { isExpanded = !isExpanded }
+            .clickable { onOpenDetails() }
             .testTag("card_tactical_progression"),
         accentColor = SoloNeonCyan
     ) {
@@ -74,7 +70,7 @@ fun TacticalProgressionWidget(
                     Spacer(modifier = Modifier.width(10.dp))
                     Column {
                         Text(
-                            text = "OPERADOR · ${progression.rankTitle.uppercase()}",
+                            text = progression.rankTitle.uppercase(),
                             fontFamily = FontFamily.Monospace,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.ExtraBold,
@@ -99,9 +95,9 @@ fun TacticalProgressionWidget(
                     }
                 }
 
-                // Botón secundario con borde neón para alternar detalles
+                // Botón secundario con borde neón
                 OutlinedButton(
-                    onClick = { isExpanded = !isExpanded },
+                    onClick = onOpenDetails,
                     colors = ButtonDefaults.outlinedButtonColors(
                         containerColor = SoloTrack,
                         contentColor = SoloNeonCyan
@@ -112,7 +108,7 @@ fun TacticalProgressionWidget(
                     modifier = Modifier.testTag("btn_view_progression_details")
                 ) {
                     Text(
-                        text = (if (isExpanded) "MENOS" else stringResource(R.string.progression_details)).uppercase(),
+                        text = stringResource(R.string.progression_details).uppercase(),
                         fontSize = 10.sp,
                         color = SoloNeonCyan,
                         fontWeight = FontWeight.Bold,
@@ -131,88 +127,58 @@ fun TacticalProgressionWidget(
                 valueText = "${progression.currentLevelXp} / ${progression.nextLevelXp} XP"
             )
 
-            // VISTA DETALLADA DESPLEGABLE (ATRIBUTOS DE RANGO S)
-            AnimatedVisibility(visible = isExpanded) {
-                Column(modifier = Modifier.fillMaxWidth().padding(top = 14.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "ATRIBUTOS DE RANGO S",
-                            style = MaterialTheme.typography.labelSmall.copy(
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.Bold,
-                                letterSpacing = 1.4.sp,
-                                fontFamily = FontFamily.Monospace
-                            ),
-                            color = SoloTextSecondary
-                        )
-                        Text(
-                            text = "STATUS",
-                            style = MaterialTheme.typography.labelSmall.copy(
-                                fontSize = 9.sp,
-                                fontFamily = FontFamily.Monospace,
-                                fontWeight = FontWeight.Bold
-                            ),
-                            color = SoloNeonCyan
-                        )
-                    }
+            Spacer(modifier = Modifier.height(14.dp))
 
-                    Spacer(modifier = Modifier.height(8.dp))
+            // BARRAS HORIZONTALES DE ATRIBUTOS (DISCIPLINA, ENFOQUE, VITALIDAD, FINANZAS)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "ATRIBUTOS DE RANGO S",
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.4.sp,
+                        fontFamily = FontFamily.Monospace
+                    ),
+                    color = SoloTextSecondary
+                )
+                Text(
+                    text = "STATUS",
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        fontSize = 9.sp,
+                        fontFamily = FontFamily.Monospace,
+                        fontWeight = FontWeight.Bold
+                    ),
+                    color = SoloNeonCyan
+                )
+            }
 
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        DailyProgressBar(
-                            progress = progression.disciplineScore / 100f,
-                            label = "DISCIPLINA",
-                            valueText = "${progression.disciplineScore}/100"
-                        )
-                        DailyProgressBar(
-                            progress = progression.focusScore / 100f,
-                            label = "ENFOQUE",
-                            valueText = "${progression.focusScore}/100"
-                        )
-                        DailyProgressBar(
-                            progress = progression.vitalityScore / 100f,
-                            label = "VITALIDAD",
-                            valueText = "${progression.vitalityScore}/100"
-                        )
-                        DailyProgressBar(
-                            progress = progression.financialScore / 100f,
-                            label = "FINANZAS",
-                            valueText = "${progression.financialScore}/100"
-                        )
-                    }
+            Spacer(modifier = Modifier.height(8.dp))
 
-                    Spacer(modifier = Modifier.height(10.dp))
-
-                    OutlinedButton(
-                        onClick = onOpenDetails,
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            containerColor = SoloTrack,
-                            contentColor = SoloGold
-                        ),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, SoloGold.copy(alpha = 0.6f)),
-                        shape = RoundedCornerShape(8.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.EmojiEvents,
-                            contentDescription = null,
-                            tint = SoloGold,
-                            modifier = Modifier.size(14.dp)
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = "VER SISTEMA COMPLETO DE LOGROS",
-                            fontSize = 10.sp,
-                            color = SoloGold,
-                            fontWeight = FontWeight.Bold,
-                            fontFamily = FontFamily.Monospace
-                        )
-                    }
-                }
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                DailyProgressBar(
+                    progress = progression.disciplineScore / 100f,
+                    label = "DISCIPLINA",
+                    valueText = "${progression.disciplineScore}/100"
+                )
+                DailyProgressBar(
+                    progress = progression.focusScore / 100f,
+                    label = "ENFOQUE",
+                    valueText = "${progression.focusScore}/100"
+                )
+                DailyProgressBar(
+                    progress = progression.vitalityScore / 100f,
+                    label = "VITALIDAD",
+                    valueText = "${progression.vitalityScore}/100"
+                )
+                DailyProgressBar(
+                    progress = progression.financialScore / 100f,
+                    label = "FINANZAS",
+                    valueText = "${progression.financialScore}/100"
+                )
             }
         }
     }
