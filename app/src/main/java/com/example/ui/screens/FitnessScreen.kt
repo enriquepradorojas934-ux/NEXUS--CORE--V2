@@ -62,7 +62,6 @@ fun FitnessScreen(
     onSuggestTacticalNote: (routineName: String, goal: String, minutes: Int, summary: String, onResult: (String) -> Unit) -> Unit = { _, _, _, _, _ -> },
     onToggleExercise: (Long) -> Unit = {},
     onToggleWorkoutSession: (Long) -> Unit = {},
-    onCompleteWorkoutDay: (sessionId: Long, dayTitle: String) -> Unit = { _, _ -> },
     onAddExerciseToSession: (sessionId: Long, name: String, sets: Int, reps: String, weightKg: Double, restSeconds: Int, notes: String) -> Unit = { _, _, _, _, _, _, _ -> },
     onUpdateExercise: (WorkoutExerciseEntity) -> Unit = {},
     onDeleteExercise: (WorkoutExerciseEntity) -> Unit = {},
@@ -126,7 +125,6 @@ fun FitnessScreen(
                 cycleDate = state.currentCycleDate,
                 timeUntilReset = state.timeUntilNextCycle,
                 cycleProgress = state.cycleProgress,
-                cycleStartTime = state.cycleStartTime,
                 actionIcon = Icons.Default.Close,
                 onActionClick = onClose
             )
@@ -298,7 +296,6 @@ fun FitnessScreen(
                             },
                             onToggleExercise = onToggleExercise,
                             onToggleWorkoutSession = onToggleWorkoutSession,
-                            onCompleteWorkoutDay = onCompleteWorkoutDay,
                             onDeleteWorkout = onDeleteWorkout,
                             onStartWorkoutRunner = { dayTitle ->
                                 activeTrainingSession = session
@@ -391,7 +388,7 @@ fun FitnessScreen(
             exercises = dayExercises,
             onToggleExercise = onToggleExercise,
             onCompleteSession = {
-                onCompleteWorkoutDay(session.id, dayTitle)
+                onToggleWorkoutSession(session.id)
             },
             onClose = {
                 activeTrainingSession = null
@@ -924,7 +921,6 @@ fun InteractiveWorkoutSessionCard(
     onToggleExpand: () -> Unit,
     onToggleExercise: (Long) -> Unit,
     onToggleWorkoutSession: (Long) -> Unit,
-    onCompleteWorkoutDay: (sessionId: Long, dayTitle: String) -> Unit = { _, _ -> },
     onDeleteWorkout: (WorkoutSessionEntity) -> Unit,
     onStartWorkoutRunner: (dayTitle: String) -> Unit,
     onAddExerciseClick: (targetDayTitle: String, targetDaySub: String) -> Unit,
@@ -1230,39 +1226,24 @@ fun InteractiveWorkoutSessionCard(
                                     configuredDays.forEachIndexed { dIdx, (dTitle, _) ->
                                         val isSel = (dIdx == selectedDayIdx)
                                         val isTodayThis = (dIdx == todayIdx)
-                                        val thisDayExercises = com.example.domain.WorkoutDayHelper.getDayExercises(exercises, configuredDays, dTitle)
-                                        val isThisDayDone = thisDayExercises.isNotEmpty() && thisDayExercises.all { it.isCompleted }
                                         Surface(
                                             shape = RoundedCornerShape(3.dp),
-                                            color = if (isSel) TacticalNeonCyan.copy(alpha = 0.2f) else if (isThisDayDone) ExecutiveSuccessGreen.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surface,
+                                            color = if (isSel) TacticalNeonCyan.copy(alpha = 0.2f) else MaterialTheme.colorScheme.surface,
                                             border = BorderStroke(
                                                 1.dp,
-                                                if (isSel) TacticalNeonCyan else if (isThisDayDone) ExecutiveSuccessGreen.copy(alpha = 0.6f) else if (isTodayThis) TacticalNeonCyan.copy(alpha = 0.4f) else ExecutiveBorderSubtle
+                                                if (isSel) TacticalNeonCyan else if (isTodayThis) TacticalNeonCyan.copy(alpha = 0.4f) else ExecutiveBorderSubtle
                                             ),
                                             modifier = Modifier
                                                 .clickable { selectedDayIdx = dIdx }
                                                 .padding(vertical = 1.dp)
                                         ) {
-                                            Row(
-                                                verticalAlignment = Alignment.CenterVertically,
+                                            Text(
+                                                text = dTitle.split("·").firstOrNull()?.trim() ?: dTitle,
+                                                fontSize = 8.sp,
+                                                fontWeight = if (isSel) FontWeight.Bold else FontWeight.Normal,
+                                                color = if (isSel) TacticalNeonCyan else ExecutiveTextSecondary,
                                                 modifier = Modifier.padding(horizontal = 5.dp, vertical = 1.dp)
-                                            ) {
-                                                if (isThisDayDone) {
-                                                    Icon(
-                                                        Icons.Default.Check,
-                                                        contentDescription = null,
-                                                        tint = ExecutiveSuccessGreen,
-                                                        modifier = Modifier.size(9.dp)
-                                                    )
-                                                    Spacer(modifier = Modifier.width(2.dp))
-                                                }
-                                                Text(
-                                                    text = dTitle.split("·").firstOrNull()?.trim() ?: dTitle,
-                                                    fontSize = 8.sp,
-                                                    fontWeight = if (isSel) FontWeight.Bold else FontWeight.Normal,
-                                                    color = if (isSel) TacticalNeonCyan else if (isThisDayDone) ExecutiveSuccessGreen else ExecutiveTextSecondary
-                                                )
-                                            }
+                                            )
                                         }
                                     }
                                 }
@@ -1508,12 +1489,12 @@ fun InteractiveWorkoutSessionCard(
                             Text("ENTRENAR AHORA", color = ExecutiveDarkBg, fontWeight = FontWeight.Bold, fontSize = 12.sp)
                         }
 
-                        if (!isDayCompleted) {
+                        if (!session.isCompleted) {
                             Button(
                                 onClick = {
                                     SensoryFeedbackHelper.vibrateSuccess(context)
                                     SensoryFeedbackHelper.playRewardSound()
-                                    onCompleteWorkoutDay(session.id, activeDayTitle)
+                                    onToggleWorkoutSession(session.id)
                                 },
                                 colors = ButtonDefaults.buttonColors(containerColor = ExecutiveSuccessGreen),
                                 shape = RoundedCornerShape(8.dp),
@@ -1521,24 +1502,7 @@ fun InteractiveWorkoutSessionCard(
                             ) {
                                 Icon(Icons.Default.Check, contentDescription = null, tint = ExecutiveDarkBg, modifier = Modifier.size(16.dp))
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text("COMPLETAR DÍA (+100 XP)", color = ExecutiveDarkBg, fontWeight = FontWeight.Bold, fontSize = 11.sp)
-                            }
-                        } else {
-                            Surface(
-                                shape = RoundedCornerShape(8.dp),
-                                color = ExecutiveSuccessGreen.copy(alpha = 0.15f),
-                                border = BorderStroke(1.dp, ExecutiveSuccessGreen.copy(alpha = 0.6f)),
-                                modifier = Modifier.weight(1f).height(40.dp)
-                            ) {
-                                Row(
-                                    modifier = Modifier.fillMaxSize(),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.Center
-                                ) {
-                                    Icon(Icons.Default.CheckCircle, contentDescription = null, tint = ExecutiveSuccessGreen, modifier = Modifier.size(16.dp))
-                                    Spacer(modifier = Modifier.width(4.dp))
-                                    Text("DÍA COMPLETADO", color = ExecutiveSuccessGreen, fontWeight = FontWeight.Bold, fontSize = 11.sp)
-                                }
+                                Text("COMPLETAR (+100 XP)", color = ExecutiveDarkBg, fontWeight = FontWeight.Bold, fontSize = 11.sp)
                             }
                         }
                     }
@@ -2040,7 +2004,7 @@ fun ActiveWorkoutRunnerModal(
             ) {
                 Icon(Icons.Default.CheckCircle, contentDescription = null, tint = ExecutiveDarkBg, modifier = Modifier.size(18.dp))
                 Spacer(modifier = Modifier.width(6.dp))
-                Text("FINALIZAR DÍA (+100 XP)", color = ExecutiveDarkBg, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                Text("FINALIZAR SESIÓN (+100 XP)", color = ExecutiveDarkBg, fontWeight = FontWeight.Bold, fontSize = 13.sp)
             }
         },
         dismissButton = {

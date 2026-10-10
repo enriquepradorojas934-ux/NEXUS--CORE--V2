@@ -74,7 +74,6 @@ fun DashboardScreen(
                 cycleDate = state.currentCycleDate,
                 timeUntilReset = state.timeUntilNextCycle,
                 cycleProgress = state.cycleProgress,
-                cycleStartTime = state.cycleStartTime,
                 actionIcon = Icons.Default.Settings,
                 onActionClick = { onNavigate(AppNavTab.SETTINGS) }
             )
@@ -84,8 +83,64 @@ fun DashboardScreen(
                     .fillMaxSize()
                     .padding(horizontal = 16.dp),
                 contentPadding = PaddingValues(top = 14.dp, bottom = 100.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
+                // BARRA DE ESTADO DE CUENTA Y SINCRONIZACIÓN CLOUD FIRESTORE
+                item {
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = ExecutiveDarkSurface,
+                        border = androidx.compose.foundation.BorderStroke(1.dp, ExecutiveBorderSubtle),
+                        modifier = Modifier.fillMaxWidth().testTag("card_cloud_user_status")
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = if (state.currentUser != null) Icons.Default.CloudDone else Icons.Default.CloudQueue,
+                                    contentDescription = null,
+                                    tint = if (state.currentUser != null) ExecutiveSuccessGreen else ExecutiveSecondaryAmber,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Column {
+                                    Text(
+                                        text = state.currentUser?.let {
+                                            it.displayName ?: it.email ?: if (it.isAnonymous) stringResource(R.string.cloud_anonymous_session) else stringResource(R.string.cloud_profile)
+                                        } ?: stringResource(R.string.cloud_offline_storage),
+                                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                                        color = ExecutiveTextWhite
+                                    )
+                                    Text(
+                                        text = if (state.currentUser != null) stringResource(R.string.cloud_sync_active) else stringResource(R.string.cloud_link_in_settings),
+                                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                                        color = ExecutiveTextMuted
+                                    )
+                                }
+                            }
+
+                            TextButton(
+                                onClick = { onNavigate(AppNavTab.SETTINGS) },
+                                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+                                modifier = Modifier.height(30.dp)
+                            ) {
+                                Text(
+                                    text = if (state.currentUser != null) stringResource(R.string.action_manage) else stringResource(R.string.action_connect),
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        fontFamily = FontFamily.Monospace,
+                                        fontSize = 11.sp
+                                    ),
+                                    color = ExecutivePrimaryTeal
+                                )
+                            }
+                        }
+                    }
+                }
+
                 // HUD DE PROGRESIÓN RPG TÁCTICA
                 item {
                     TacticalProgressionWidget(

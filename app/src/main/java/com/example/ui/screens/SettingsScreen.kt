@@ -1,7 +1,6 @@
 package com.example.ui.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -14,7 +13,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalClipboardManager
@@ -230,8 +228,7 @@ fun SettingsScreen(
             subtitle = androidx.compose.ui.res.stringResource(com.example.R.string.settings_subtitle),
             cycleDate = state.currentCycleDate,
             timeUntilReset = state.timeUntilNextCycle,
-            cycleProgress = state.cycleProgress,
-            cycleStartTime = state.cycleStartTime
+            cycleProgress = state.cycleProgress
         )
 
         LazyColumn(
@@ -325,52 +322,14 @@ fun SettingsScreen(
                         Text(
                             text = "PARÁMETRO: INICIO DEL CICLO DIARIO",
                             style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                            color = SoloNeonCyan
+                            color = ExecutivePrimaryTeal
                         )
                         Spacer(modifier = Modifier.height(6.dp))
-                        val currentRange = com.example.domain.DailyCycleEngine.getCycleRangeDisplay(state.cycleStartTime)
                         Text(
-                            text = "Corte operativo del sistema: $currentRange (Actual: ${state.cycleStartTime}). Hábitos, tareas y entrenamientos se sincronizan con este horario.",
+                            text = "Configuración del corte diario del sistema. Por defecto: 05:00 AM.",
                             style = MaterialTheme.typography.bodySmall,
-                            color = SoloTextSecondary
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                        Spacer(modifier = Modifier.height(10.dp))
-
-                        // Chips rápidos para horarios habituales
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            listOf("00:00" to "00:00 Medianoche", "04:00" to "04:00 Madrugada", "05:00" to "05:00 Estándar").forEach { (time, label) ->
-                                val isSelected = state.cycleStartTime == time
-                                Surface(
-                                    shape = RoundedCornerShape(6.dp),
-                                    color = if (isSelected) SoloNeonCyan.copy(alpha = 0.2f) else SoloTrack,
-                                    border = androidx.compose.foundation.BorderStroke(
-                                        1.dp,
-                                        if (isSelected) SoloNeonCyan else SoloCardBorder
-                                    ),
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .clickable {
-                                            cycleTimeInput = time
-                                            onSetCycleStartTime(time)
-                                        }
-                                        .padding(vertical = 2.dp)
-                                ) {
-                                    Text(
-                                        text = label,
-                                        fontSize = 10.sp,
-                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                                        fontFamily = FontFamily.Monospace,
-                                        color = if (isSelected) SoloNeonCyan else SoloTextSecondary,
-                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 6.dp),
-                                        maxLines = 1
-                                    )
-                                }
-                            }
-                        }
-
                         Spacer(modifier = Modifier.height(12.dp))
 
                         Row(
@@ -386,11 +345,10 @@ fun SettingsScreen(
 
                             Button(
                                 onClick = { onSetCycleStartTime(cycleTimeInput) },
-                                colors = ButtonDefaults.buttonColors(containerColor = SoloNeonCyan),
-                                shape = RoundedCornerShape(8.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = ExecutivePrimaryTeal),
                                 modifier = Modifier.testTag("btn_save_cycle_time")
                             ) {
-                                Text(stringResource(R.string.action_save), color = SoloBg, fontWeight = FontWeight.Bold)
+                                Text(stringResource(R.string.action_save))
                             }
                         }
                     }

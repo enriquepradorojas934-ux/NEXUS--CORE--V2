@@ -75,17 +75,6 @@ object DailyCycleEngine {
     }
 
     /**
-     * Retorna el rango visual del ciclo activo (ej: "05:00 → 04:59", "04:00 → 03:59", "00:00 → 23:59").
-     */
-    fun getCycleRangeDisplay(cycleStartTime: String = DEFAULT_CYCLE_START_TIME): String {
-        val (startHour, startMinute) = parseHourMinute(cycleStartTime)
-        val endTotalMinutes = (startHour * 60 + startMinute - 1 + 1440) % 1440
-        val endHour = endTotalMinutes / 60
-        val endMinute = endTotalMinutes % 60
-        return "%02d:%02d → %02d:%02d".format(startHour, startMinute, endHour, endMinute)
-    }
-
-    /**
      * Retorna el tiempo restante en formato amigable "Xh Ym" hasta el próximo reinicio de ciclo.
      */
     fun getTimeUntilNextCycle(cycleStartTime: String = DEFAULT_CYCLE_START_TIME): String {

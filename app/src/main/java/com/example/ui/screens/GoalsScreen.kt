@@ -85,7 +85,6 @@ fun GoalsScreen(
             cycleDate = state.currentCycleDate,
             timeUntilReset = state.timeUntilNextCycle,
             cycleProgress = state.cycleProgress,
-            cycleStartTime = state.cycleStartTime,
             actionIcon = Icons.Default.Add,
             onActionClick = { showAddGoalDialog = true }
         )

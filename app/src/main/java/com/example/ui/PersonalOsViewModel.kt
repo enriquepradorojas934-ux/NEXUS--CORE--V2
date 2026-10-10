@@ -878,40 +878,6 @@ class PersonalOsViewModel(
         }
     }
 
-    /**
-     * Completa exclusivamente los ejercicios del día activo (ej. Lunes).
-     * Los ejercicios de otros días (Miércoles, Viernes) permanecen intactos.
-     * La rutina completa solo se marca como finalizada si todos los días están terminados.
-     */
-    fun completeWorkoutDay(sessionId: Long, dayTitle: String) {
-        viewModelScope.launch {
-            val session = _uiState.value.workoutSessions.find { it.id == sessionId } ?: return@launch
-            val sessionExercises = _uiState.value.workoutExercises.filter { it.sessionId == sessionId }
-            val configuredDays = com.example.domain.WorkoutDayHelper.getConfiguredDays(session, sessionExercises)
-            val dayExercises = com.example.domain.WorkoutDayHelper.getDayExercises(sessionExercises, configuredDays, dayTitle)
-
-            val newlyCompletedExercises = dayExercises.filter { !it.isCompleted }
-            for (ex in newlyCompletedExercises) {
-                repository.updateWorkoutExercise(ex.copy(isCompleted = true))
-                addPersistentXp(20L)
-            }
-
-            // Otorgar XP táctico (+100 XP) solo si el día no estaba previamente completo
-            if (newlyCompletedExercises.isNotEmpty() || !dayExercises.all { it.isCompleted }) {
-                addPersistentXp(100L)
-            }
-            val cleanDayName = dayTitle.split("·").firstOrNull()?.trim() ?: dayTitle
-            _uiState.update { it.copy(userMessage = "¡Día $cleanDayName completado! (+100 XP Vitalidad)") }
-
-            // Comprobar si TODOS los ejercicios de la rutina completa han sido finalizados
-            val otherExercises = sessionExercises.filterNot { dayExercises.any { de -> de.id == it.id } }
-            val allRoutineDone = (dayExercises.isNotEmpty() && otherExercises.all { it.isCompleted })
-            if (allRoutineDone && !session.isCompleted) {
-                repository.updateWorkoutSession(session.copy(isCompleted = true))
-            }
-        }
-    }
-
     fun addWorkoutExercise(sessionId: Long, name: String, sets: Int, reps: String, weightKg: Double, restSeconds: Int, notes: String = "") {
         if (name.isBlank()) return
         viewModelScope.launch {

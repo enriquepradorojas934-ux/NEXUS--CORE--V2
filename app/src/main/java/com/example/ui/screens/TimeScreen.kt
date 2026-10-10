@@ -65,7 +65,6 @@ fun TimeScreen(
             cycleDate = state.currentCycleDate,
             timeUntilReset = state.timeUntilNextCycle,
             cycleProgress = state.cycleProgress,
-            cycleStartTime = state.cycleStartTime,
             actionIcon = Icons.Default.Add,
             onActionClick = {
                 if (selectedSection == 0) showAddTaskDialog = true else showAddBlockDialog = true
